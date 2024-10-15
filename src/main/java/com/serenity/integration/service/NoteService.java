@@ -164,11 +164,11 @@ Logger logger = LoggerFactory.getLogger(getClass());
             note.setNoteType(set.getString(4));
             note.setEncounterDate(set.getString(5));
             note.setPatientMrNumber(set.getString(6));
-            note.setRecalled(set.getBoolean(7));
+           // note.setRecalled(set.getBoolean(7));
             note.setPractitionerRoleType(set.getString(8));
             note.setPractitionerName(set.getString(9));
             note.setPractitionerId(set.getString(10));
-            note.setEdited(set.getBoolean(11));
+        //    note.setEdited(set.getBoolean(11));
             note.setDataSource("his");
             notes.add(note);
         } 
