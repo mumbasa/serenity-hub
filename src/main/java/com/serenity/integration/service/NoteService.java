@@ -3,6 +3,7 @@ package com.serenity.integration.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.internal.ExceptionConverterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,6 +104,8 @@ Logger logger = LoggerFactory.getLogger(getClass());
 
 
     public  void  getHisNote(){
+        List<EncounterNote> fallouts = new ArrayList<>();
+
         List<EncounterNote> notes = new ArrayList<>();
      //   String queryDetails =  String.join("' OR source.patient_mr_number='",numbers.toArray(String[]::new )) ;  
         String sql = "SELECT `source`.`created_at` AS `created_at`, " +
@@ -158,16 +161,16 @@ Logger logger = LoggerFactory.getLogger(getClass());
         while(set.next()){
             System.err.println(set.getString(1));
             EncounterNote note = new EncounterNote();
-            note.setCreatedAt(set.getString(1).replaceAll("\u0000", ""));
-            note.setUpdatedAt(set.getString(2).replaceAll("\u0000", ""));
-            note.setNote(set.getString(3).replaceAll("\u0000", ""));
-            note.setNoteType(set.getString(4).replaceAll("\u0000", ""));
-            note.setEncounterDate(set.getString(5).replaceAll("\u0000", ""));
-            note.setPatientMrNumber(set.getString(6).replaceAll("\u0000", ""));
+            note.setCreatedAt(set.getString(1));
+            note.setUpdatedAt(set.getString(2));
+            note.setNote(set.getString(3));
+            note.setNoteType(set.getString(4));
+            note.setEncounterDate(set.getString(5));
+            note.setPatientMrNumber(set.getString(6));
            // note.setRecalled(set.getBoolean(7));
-            note.setPractitionerRoleType(set.getString(8).replaceAll("\u0000", ""));
+            note.setPractitionerRoleType(set.getString(8));
             note.setPractitionerName(set.getString(9).replaceAll("\u0000", ""));
-            note.setPractitionerId(set.getString(10).replaceAll("\u0000", ""));
+            note.setPractitionerId(set.getString(10));
         //    note.setEdited(set.getBoolean(11));
             note.setDataSource("his");
             notes.add(note);
@@ -175,8 +178,13 @@ Logger logger = LoggerFactory.getLogger(getClass());
         int rounds =Math.round(notes.size()/1000);
        for(int i=0;i<rounds;i++){
         logger.info("adding round "+rounds);
+        try{
         encounterNoteRepository.saveAllAndFlush(notes.subList(i*1000, (i*1000)+1000));
+        }catch(Exception e){
 
+
+
+        }
 
        }
         
