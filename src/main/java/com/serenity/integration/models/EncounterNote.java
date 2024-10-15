@@ -1,5 +1,6 @@
 package com.serenity.integration.models;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,6 +20,7 @@ public class EncounterNote {
     private String uuid;
     private String createdAt;
     private String updatedAt;
+        @Column(columnDefinition="TEXT")
     private String note;
     private String encounterId;
     private String encounterDate;
