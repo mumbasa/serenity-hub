@@ -31,9 +31,9 @@ public class IntegrationApplication {
 	public void coke(){
 		//String[] ac = {"NMC/OG/15/024341","NMC/OG/15/024341"};
 		//List<String> ad = Arrays.asList(ac);
-		noteService.getHisNote();
+		//noteService.getHisNote();
 		logger.info("Starting import");
-		//service.loadPatients();
+		service.getHisNote();
 
 		logger.info("finishing import");
 

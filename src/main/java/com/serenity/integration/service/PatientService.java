@@ -11,15 +11,19 @@ import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.RestTemplate;
 
+import com.serenity.integration.models.EncounterNote;
 import com.serenity.integration.models.PatientData;
 import com.serenity.integration.repository.PatientRepository;
 
@@ -28,6 +32,10 @@ public class PatientService {
 
     @Autowired
     PatientRepository patientRepository;
+
+    @Autowired
+@Qualifier(value="hisJdbcTemplate")
+JdbcTemplate hisJdbcTemplate;
 
     Logger LOGGER = LoggerFactory.getLogger(this.getClass().getCanonicalName());
    
@@ -84,13 +92,60 @@ public class PatientService {
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<PatientData> response = restTemplate.exchange(url, HttpMethod.POST, httpEntity, PatientData.class);
 //setting the stock with the data in serenity
-System.err.println(stock);
+    System.err.println(stock);
          System.err.println(response.getBody());
        
         return response.getBody();
     }
 
 
+ public  void  getHisNote(){
+        List<PatientData> fallouts = new ArrayList<>();
+
+        String sql = "SELECT * FROM patient_master";
+        SqlRowSet record =hisJdbcTemplate.queryForRowSet(sql);
+        while(record.next()){
+            System.err.println(record.getString(1));
+            PatientData pd = new PatientData();
+           
+        pd.setMrNumber(record.getString("patient_id"));
+        pd.setLastName(record.getString("plastname"));
+        pd.setFirstName(record.getString("pfirstname"));
+        pd.setMobile(record.getString("mobile").replaceAll("-", ""));
+        pd.setEmail(record.getString("email"));
+        pd.setBirthDate(record.getString("dob"));
+      //  nationalId(record.getString("countryid");
+        pd.setGender(record.getString("gender"));
+        pd.setExternalSystem("his");
+        pd.setNationalMobileNumber(record.getString("phone"));
+        pd.setFullName(record.getString("pname"));
+        pd.setTitle(record.getString("title"));
+        pd.setOccupation(record.getString("occupation"));
+        pd.setEmployer(record.getString("employer"));
+        pd.setBloodType(record.getString("bloodgroup"));
+        pd.setMaritalStatus(record.getString("maritalstatus"));
+        pd.setNationality(record.getString("country"));
+        pd.setPassportNumber(record.getString("passport_no"));
+        pd.setBirthTime(record.getString("timeofbirth"));
+        pd.setReligiousAffiliation(record.getString("religiousaffiliation"));
+       // managingOrganizationId(record.getString("membership");
+       fallouts.add(pd);
+        } 
+        int rounds =Math.round(fallouts.size()/1000)+1;
+       for(int i=0;i<rounds;i++){
+        LOGGER.info("adding round "+rounds);
+        try{
+        patientRepository.saveAllAndFlush(fallouts.subList(i*1000, (i*1000)+1000));
+        }catch(Exception e){
 
 
+
+        }
+
+       }
+        
+    
+        }
 }
+
+
