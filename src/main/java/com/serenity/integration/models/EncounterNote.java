@@ -17,21 +17,43 @@ public class EncounterNote {
     @Id
    @GeneratedValue(strategy=GenerationType.SEQUENCE)
     private long id;
+    @Column(columnDefinition="TEXT")
+
     private String uuid;
+    @Column(columnDefinition="TEXT")
+
     private String createdAt;
+    @Column(columnDefinition="TEXT")
+
     private String updatedAt;
-        @Column(columnDefinition="TEXT")
+    @Column(columnDefinition="TEXT")
     private String note;
+    @Column(columnDefinition="TEXT")
+
     private String encounterId;
+
+    @Column(columnDefinition="TEXT")
     private String encounterDate;
+    @Column(columnDefinition="TEXT")
+
     private String patientMrNumber;
+
+    @Column(columnDefinition="TEXT")
     private String encounterType;
+    @Column(columnDefinition="TEXT")
+
     private String noteType;
     private boolean isEdited;
     private boolean isRecalled;
     private boolean isFormatted;
+    @Column(columnDefinition="TEXT")
+
     private String practitionerName;
+    @Column(columnDefinition="TEXT")
+
     private String practitionerRoleType;
+    @Column(columnDefinition="TEXT")
+
     private String practitionerId;
     private String dataSource;
 }
