@@ -179,8 +179,8 @@ Logger logger = LoggerFactory.getLogger(getClass());
         "  EntryDate AS \"encounter_date\", " +
         "  NULL AS \"created_at\", " +
         "  NULL AS \"updated_at\", " +
-        "  'note-type' AS \"history-of-presenting-illness\", " +
-        "  'encounter_type' AS \"outpatient-consultation\", " +
+        "  'history-of-presenting-illness' AS \"note-type\", " +
+        "  'outpatient-consultation' AS \"encounter-type\", " +
         "  FALSE AS is_edited, " +
         "  FALSE AS is_recalled, " +
         "  'unknown' AS practitioner_role_type, " +
@@ -323,7 +323,7 @@ Logger logger = LoggerFactory.getLogger(getClass());
      "        DATE_FORMAT(progress_notes.EntryDate, '%d-%b-%Y %l:%i %p') AS `created_at`, " +
      "        progress_notes.UpdateDate AS `updated_at`, " +
      "        progress_notes.ProgressNote AS `note`, " +
-     "        'progress note' AS `note_type`, " +
+     "        'progress-note' AS `note_type`, " +
      "        DATE_FORMAT(progress_notes.NoteDate, '%d-%b-%Y %l:%i %p') AS `encounter_date`, " +
      "        patients.Patient_ID AS `patient_mr_number`, " +
      "        'progress note' AS `encounter_type`, " +
