@@ -103,34 +103,54 @@ Logger logger = LoggerFactory.getLogger(getClass());
 
 
 
-    public  void  getHisNote(){
-        List<EncounterNote> fallouts = new ArrayList<>();
+    public  void  getChiefNote(){
 
         List<EncounterNote> notes = new ArrayList<>();
-     //   String queryDetails =  String.join("' OR source.patient_mr_number='",numbers.toArray(String[]::new )) ;  
-        String sql = "";
-    //    "WHERE source.patient_mr_number ='"+queryDetails +"'";
-        SqlRowSet set =hisJdbcTemplate.queryForRowSet(sql);
+        String sqlQuery = 
+        "SELECT " +
+        "  Transaction_ID AS \"uuid\", " +
+        "  Transaction_ID AS \"encounter_id\", " +
+        "  PatientID AS \"patient_mr_number\", " +
+        "  MainComplaint AS \"note\", " +
+        "  EntryBy AS \"practitioner_id\", " +
+        "  EntryDate AS \"encounter_date\", " +
+        "  NULL AS \"created_at\", " +
+        "  NULL AS \"updated_at\", " +
+        "  'chief-complaint' AS \"note-type\", " +
+        "  'outpatient-consultation' AS \"encounter_type\", " +
+        "  FALSE AS is_edited, " +
+        "  FALSE AS is_recalled, " +
+        "  'unknown' AS practitioner_role_type, " +
+        "  CONCAT(practitioners.title, ' ', practitioners.Name) AS \"practitioner_name\", " +
+        "  NULL AS \"edit_history\" " +
+        "FROM " +
+        "  cpoe_hpexam " +
+        "  LEFT JOIN employee_master AS practitioners ON cpoe_hpexam.EntryBy = practitioners.Employee_ID;";
+    
+   
+        SqlRowSet set =hisJdbcTemplate.queryForRowSet(sqlQuery);
         while(set.next()){
-            System.err.println(set.getString(1));
             EncounterNote note = new EncounterNote();
-            note.setCreatedAt(set.getString(1));
-            note.setUpdatedAt(set.getString(2));
-            note.setNote(set.getString(3));
-            note.setNoteType(set.getString(4));
-            note.setEncounterDate(set.getString(5));
-            note.setPatientMrNumber(set.getString(6));
-           // note.setRecalled(set.getBoolean(7));
-            note.setPractitionerRoleType(set.getString(8));
-            note.setPractitionerName(set.getString(9).replaceAll("\u0000", ""));
-            note.setPractitionerId(set.getString(10));
-        //    note.setEdited(set.getBoolean(11));
+            note.setUuid(set.getString(1));
+            note.setEncounterId(set.getString(2));
+            note.setCreatedAt(set.getString(7));
+            note.setUpdatedAt(set.getString(8));
+            note.setNote(set.getString(4));
+            note.setNoteType(set.getString(9));
+            note.setEncounterDate(set.getString(6));
+            note.setPatientMrNumber(set.getString(3));
+            note.setEncounterType(set.getString(10));
+            note.setRecalled(set.getBoolean(12));
+            note.setPractitionerRoleType(set.getString(13));
+            note.setPractitionerName(set.getString(14));
+            note.setPractitionerId(set.getString(5));
+           note.setEdited(set.getBoolean(11));
             note.setDataSource("his");
             notes.add(note);
         } 
         int rounds =Math.round(notes.size()/1000);
        for(int i=0;i<rounds;i++){
-        logger.info("adding round "+rounds);
+        logger.info("adding round chief "+rounds);
         try{
         encounterNoteRepository.saveAllAndFlush(notes.subList(i*1000, (i*1000)+1000));
         }catch(Exception e){
@@ -145,8 +165,7 @@ Logger logger = LoggerFactory.getLogger(getClass());
         }
 
 
-         public  void  getChiefComplaint(){
-        List<EncounterNote> fallouts = new ArrayList<>();
+         public  void  getProgressNote(){
 
         List<EncounterNote> notes = new ArrayList<>();
      String sqlQuery = 
@@ -217,7 +236,7 @@ Logger logger = LoggerFactory.getLogger(getClass());
         } 
         int rounds =Math.round(notes.size()/1000);
        for(int i=0;i<rounds;i++){
-        logger.info("adding round "+rounds);
+        logger.info("adding round progress"+rounds);
         try{
         encounterNoteRepository.saveAllAndFlush(notes.subList(i*1000, (i*1000)+1000));
         }catch(Exception e){
