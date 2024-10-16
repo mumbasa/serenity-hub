@@ -36,7 +36,7 @@ public class IntegrationApplication {
 	noteService.getProgressNote();
 	noteService.getChiefNote();
 	noteService.getPresentingIllness();
-
+	noteService.getCarePlan();
 		logger.info("finishing import");
 
 	}

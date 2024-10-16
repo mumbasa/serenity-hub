@@ -231,6 +231,72 @@ Logger logger = LoggerFactory.getLogger(getClass());
         }
 
 
+
+        public  void  getCarePlan(){
+
+            List<EncounterNote> notes = new ArrayList<>();
+            String sqlQuery = 
+            "SELECT " +
+            "  cc.TransactionID AS \"uuid\", " +
+            "  cc.TransactionID AS \"encounter_id\", " +
+            "  cc.PatientID AS \"mr_number\", " +
+            "  cc.CarePlan AS \"note\", " +
+            "  cc.EntryBy AS \"practitioner_id\", " +
+            "  cc.EntryDate AS \"encounter_date\", " +
+            "  NULL AS \"created_at\", " +
+            "  cc.UpdateDate AS \"updated_at\", " +
+            "  'plan-of-care' AS \"note-type\", " +
+            "  'outpatient-consultation' AS \"encounter_type\", " +
+            "  FALSE AS \"is_edited\", " +
+            "  FALSE AS \"is_recalled\", " +
+            "  'unknown' AS \"practitioner_role_type\", " +
+            "  CONCAT(em.title, ' ', em.Name) AS \"practitioner_name\", " +
+            "  NULL AS \"edit_history\" " +
+            "FROM " +
+            "  cpoe_careplan cc " +
+            "  LEFT JOIN employee_master em ON cc.EntryBy = em.Employee_ID;";
+        
+        
+        
+       
+            SqlRowSet set =hisJdbcTemplate.queryForRowSet(sqlQuery);
+            while(set.next()){
+                EncounterNote note = new EncounterNote();
+                note.setUuid(set.getString(1));
+                note.setEncounterId(set.getString(2));
+                note.setCreatedAt(set.getString(7));
+                note.setUpdatedAt(set.getString(8));
+                note.setNote(set.getString(4));
+                note.setNoteType(set.getString(9));
+                note.setEncounterDate(set.getString(6));
+                note.setPatientMrNumber(set.getString(3));
+                note.setEncounterType(set.getString(10));
+                note.setRecalled(set.getBoolean(12));
+                note.setPractitionerRoleType(set.getString(13));
+                note.setPractitionerName(set.getString(14));
+                note.setPractitionerId(set.getString(5));
+               note.setEdited(set.getBoolean(11));
+                note.setDataSource("his");
+                notes.add(note);
+            } 
+            int rounds =Math.round(notes.size()/1000);
+           for(int i=0;i<rounds;i++){
+            logger.info("adding round presenting illness "+rounds);
+            try{
+            encounterNoteRepository.saveAllAndFlush(notes.subList(i*1000, (i*1000)+1000));
+            }catch(Exception e){
+    
+    
+    
+            }
+    
+           }
+            
+        
+            }
+    
+
+
          public  void  getProgressNote(){
 
         List<EncounterNote> notes = new ArrayList<>();
