@@ -31,10 +31,10 @@ public class Encounter {
     private String uuid;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private String createdAt;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private String updatedAt;
 
     @Column(name = "encounter_class")
     private String encounterClass;
@@ -49,16 +49,16 @@ public class Encounter {
     private String priority;
 
     @Column(name = "planned_start")
-    private LocalDateTime plannedStart;
+    private String plannedStart;
 
     @Column(name = "planned_end")
-    private LocalDateTime plannedEnd;
+    private String plannedEnd;
 
     @Column(name = "started_at")
-    private LocalDateTime startedAt;
+    private String startedAt;
 
     @Column(name = "ended_at")
-    private LocalDateTime endedAt;
+    private String endedAt;
 
     @Column(name = "external_id")
     private String externalId;

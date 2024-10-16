@@ -86,13 +86,13 @@ public class EncounterService {
         while (set.next()) {
             Encounter note = new Encounter();
             note.setUuid(set.getString(1));
-            note.setCreatedAt(LocalDateTime.parse(set.getString(2)));
+            note.setCreatedAt((set.getString(2)));
             note.setEncounterClass(set.getString(4));
             note.setStatus(set.getString(5));
             note.setPriority(set.getString(7));
-            note.setPlannedStart(LocalDateTime.parse(set.getString(8)));
-            note.setPlannedEnd(LocalDateTime.parse(set.getString(9)));
-            note.setStartedAt(LocalDateTime.parse(set.getString(10)));
+            note.setPlannedStart((set.getString(8)));
+            note.setPlannedEnd((set.getString(9)));
+            note.setStartedAt((set.getString(10)));
             note.setEndedAt(null);
             note.setExternalId(set.getString(13));
             note.setAppointmentId(set.getString(14));
