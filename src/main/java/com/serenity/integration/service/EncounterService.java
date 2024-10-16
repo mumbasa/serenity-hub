@@ -80,7 +80,7 @@ public class EncounterService {
                 "INNER JOIN " +
                 "    f_ledgertransaction lt ON lt.`Transaction_ID` = pmh.`Transaction_ID` " +
                 "INNER JOIN " +
-                "    appointment app ON app.ledgertnxNo = lt.LedgerTransactionNo;";
+                "    appointment app ON app.ledgertnxNo = lt.LedgerTransactionNo LIMIT 100000;";
 
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery);
         while (set.next()) {
