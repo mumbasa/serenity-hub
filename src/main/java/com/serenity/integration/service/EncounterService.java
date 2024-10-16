@@ -25,7 +25,7 @@ public class EncounterService {
 
     Logger LOGGER = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
-    public void encounter() {
+    public void encounter(int start,int end) {
 
         List<Encounter> notes = new ArrayList<>();
         String sqlQuery = "SELECT " +
@@ -80,7 +80,7 @@ public class EncounterService {
                 "INNER JOIN " +
                 "    f_ledgertransaction lt ON lt.`Transaction_ID` = pmh.`Transaction_ID` " +
                 "INNER JOIN " +
-                "    appointment app ON app.ledgertnxNo = lt.LedgerTransactionNo LIMIT 300000,600000;";
+                "    appointment app ON app.ledgertnxNo = lt.LedgerTransactionNo LIMIT "+start+","+end;
 
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery);
         while (set.next()) {
@@ -96,6 +96,7 @@ public class EncounterService {
             note.setPlannedEnd((set.getString(9)));
             note.setStartedAt((set.getString(10)));
             note.setEndedAt(null);
+            note.setExternalSystem("his");
             note.setExternalId(set.getString(12));
             note.setAppointmentId(set.getString(13));
             note.setLocationId(null);

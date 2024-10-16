@@ -38,7 +38,9 @@ public class IntegrationApplication {
 		//List<String> ad = Arrays.asList(ac);
 		//noteService.getHisNote();
 		logger.info("Starting import");
-encounterService.encounter();
+encounterService.encounter(0,300000);
+encounterService.encounter(300000,700000);
+encounterService.encounter(700000,1000000);
 	logger.info("finishing import");
 
 	}
