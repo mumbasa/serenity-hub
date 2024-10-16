@@ -7,6 +7,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+import com.serenity.integration.service.EncounterService;
 import com.serenity.integration.service.NoteService;
 import com.serenity.integration.service.PatientService;
 
@@ -22,6 +23,10 @@ public class IntegrationApplication {
 	@Autowired
 	NoteService noteService;
 
+	@Autowired
+	EncounterService encounterService;
+
+
 	Logger logger = LoggerFactory.getLogger(getClass());
 	public static void main(String[] args) {
 		SpringApplication.run(IntegrationApplication.class, args);
@@ -33,10 +38,7 @@ public class IntegrationApplication {
 		//List<String> ad = Arrays.asList(ac);
 		//noteService.getHisNote();
 		logger.info("Starting import");
-	noteService.getProgressNote();
-	noteService.getChiefNote();
-	noteService.getPresentingIllness();
-	noteService.getCarePlan();
+encounterService.encounter();
 	logger.info("finishing import");
 
 	}
