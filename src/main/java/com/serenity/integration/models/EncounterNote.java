@@ -17,8 +17,8 @@ public class EncounterNote {
     @Id
    @GeneratedValue(strategy=GenerationType.SEQUENCE)
     private long id;
-    @Column(columnDefinition="TEXT")
 
+    @Column(columnDefinition="TEXT")
     private String uuid;
     @Column(columnDefinition="TEXT")
 

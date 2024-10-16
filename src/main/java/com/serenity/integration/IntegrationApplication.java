@@ -33,7 +33,8 @@ public class IntegrationApplication {
 		//List<String> ad = Arrays.asList(ac);
 		//noteService.getHisNote();
 		logger.info("Starting import");
-		service.getHisNote();
+	noteService.getProgressNote();
+	noteService.getChiefNote();
 
 		logger.info("finishing import");
 
