@@ -112,7 +112,7 @@ Logger logger = LoggerFactory.getLogger(getClass());
         "  PatientID AS \"patient_mr_number\", " +
         "  MainComplaint AS \"note\", " +
         "  EntryBy AS \"practitioner_id\", " +
-        "  EntryDate AS \"encounter_date\", " +
+        "  DATE_FORMAT(EntryDate, '%Y-%m-%dT%TZ') AS \"encounter_date\", " +
         "  NULL AS \"created_at\", " +
         "  NULL AS \"updated_at\", " +
         "  'chief-complaint' AS \"note-type\", " +
@@ -169,32 +169,35 @@ Logger logger = LoggerFactory.getLogger(getClass());
     public  void  getPresentingIllness(){
 
         List<EncounterNote> notes = new ArrayList<>();
-        String sqlQuery = 
-        "SELECT " +
-        "  Transaction_ID AS \"uuid\", " +
-        "  Transaction_ID AS \"encounter_id\", " +
-        "  PatientID AS \"patient_mr_number\", " +
-        "  ProgressionComplaint AS \"note\", " +
-        "  EntryBy AS \"practitioner_id\", " +
-        "  EntryDate AS \"encounter_date\", " +
-        "  NULL AS \"created_at\", " +
-        "  NULL AS \"updated_at\", " +
-        "  'history-of-presenting-illness' AS \"note-type\", " +
-        "  'outpatient-consultation' AS \"encounter-type\", " +
-        "  FALSE AS is_edited, " +
-        "  FALSE AS is_recalled, " +
-        "  'unknown' AS practitioner_role_type, " +
-        "  CONCAT(practitioners.title, ' ', practitioners.Name) AS \"practitioner_name\", " +
-        "  NULL AS \"edit_history\" " +
-        "FROM " +
-        "  cpoe_hpexam " +
-        "  LEFT JOIN employee_master AS practitioners ON cpoe_hpexam.EntryBy = practitioners.Employee_ID " +
-        "WHERE " +
-        "  ProgressionComplaint <> ''";
+        String query = 
+    "SELECT " +
+    "    Transaction_ID AS \"uuid\", " +
+    "    Transaction_ID AS \"encounter_id\", " +
+    "    PatientID AS \"patient_mr_number\", " +
+    "    ProgressionComplaint AS \"note\", " +
+    "    EntryBy AS \"practitioner_id\", " +
+    "    DATE_FORMAT(EntryDate, '%Y-%m-%dT%TZ') AS \"encounter_date\", " +
+    "    NULL AS \"created_at\", " +
+    "    NULL AS \"updated_at\", " +
+    "    'history-of-presenting-illness' AS \"note-type\", " +
+    "    'outpatient-consultation' AS \"encounter-type\", " +
+    "    FALSE AS is_edited, " +
+    "    FALSE AS is_recalled, " +
+    "    'unknown' AS practitioner_role_type, " +
+    "    CONCAT(practitioners.title, ' ', practitioners.Name) AS \"practitioner_name\", " +
+    "    NULL AS \"edit_history\" " +
+    "FROM " +
+    "    cpoe_hpexam " +
+    "LEFT JOIN " +
+    "    employee_master AS practitioners " +
+    "    ON cpoe_hpexam.EntryBy = practitioners.Employee_ID " +
+    "WHERE " +
+    "    ProgressionComplaint <> '';";
+
     
     
    
-        SqlRowSet set =hisJdbcTemplate.queryForRowSet(sqlQuery);
+        SqlRowSet set =hisJdbcTemplate.queryForRowSet(query);
         while(set.next()){
             EncounterNote note = new EncounterNote();
             note.setUuid(set.getString(1));
@@ -235,16 +238,16 @@ Logger logger = LoggerFactory.getLogger(getClass());
         public  void  getCarePlan(){
 
             List<EncounterNote> notes = new ArrayList<>();
-            String sqlQuery = 
+            String query = 
             "SELECT " +
             "  cc.TransactionID AS \"uuid\", " +
             "  cc.TransactionID AS \"encounter_id\", " +
             "  cc.PatientID AS \"mr_number\", " +
             "  cc.CarePlan AS \"note\", " +
             "  cc.EntryBy AS \"practitioner_id\", " +
-            "  cc.EntryDate AS \"encounter_date\", " +
+            "  DATE_FORMAT(cc.EntryDate,'%Y-%m-%dT%TZ') AS \"encounter_date\", " +
             "  NULL AS \"created_at\", " +
-            "  cc.UpdateDate AS \"updated_at\", " +
+            "  DATE_FORMAT(cc.UpdateDate,'%Y-%m-%dT%TZ') AS \"updated_at\", " +
             "  'plan-of-care' AS \"note-type\", " +
             "  'outpatient-consultation' AS \"encounter_type\", " +
             "  FALSE AS \"is_edited\", " +
@@ -254,12 +257,13 @@ Logger logger = LoggerFactory.getLogger(getClass());
             "  NULL AS \"edit_history\" " +
             "FROM " +
             "  cpoe_careplan cc " +
-            "  LEFT JOIN employee_master em ON cc.EntryBy = em.Employee_ID;";
-        
-        
+            "LEFT JOIN " +
+            "  employee_master em " +
+            "ON " +
+            "  cc.EntryBy = em.Employee_ID;";
         
        
-            SqlRowSet set =hisJdbcTemplate.queryForRowSet(sqlQuery);
+            SqlRowSet set =hisJdbcTemplate.queryForRowSet(query);
             while(set.next()){
                 EncounterNote note = new EncounterNote();
                 note.setUuid(set.getString(1));
@@ -281,7 +285,7 @@ Logger logger = LoggerFactory.getLogger(getClass());
             } 
             int rounds =Math.round(notes.size()/1000);
            for(int i=0;i<rounds;i++){
-            logger.info("adding round presenting illness "+rounds);
+            logger.info("adding round care plan "+rounds);
             try{
             encounterNoteRepository.saveAllAndFlush(notes.subList(i*1000, (i*1000)+1000));
             }catch(Exception e){
@@ -300,50 +304,56 @@ Logger logger = LoggerFactory.getLogger(getClass());
          public  void  getProgressNote(){
 
         List<EncounterNote> notes = new ArrayList<>();
-     String sqlQuery = 
-     "SELECT " +
-     "    `source`.`created_at` AS `created_at`, " +
-     "    `source`.`updated_at` AS `updated_at`, " +
-     "    `source`.`note` AS `note`, " +
-     "    `source`.`note_type` AS `note_type`, " +
-     "    `source`.`encounter_date` AS `encounter_date`, " +
-     "    `source`.`patient_mr_number` AS `patient_mr_number`, " +
-     "    `source`.`encounter_type` AS `encounter_type`, " +
-     "    `source`.`is_recalled` AS `is_recalled`, " +
-     "    `source`.`practitioner_role_type` AS `practitioner_role_type`, " +
-     "    `source`.`practitioner_name` AS `practitioner_name`, " +
-     "    `source`.`practitioner_id` AS `practitioner_id`, " +
-     "    `source`.`is_edited` AS `is_edited`, " +
-     "    `pm`.`PName` AS `patient_name`, " +
-     "    source.uuid AS `uuid` " +
-     "FROM " +
-     "( " +
-     "    SELECT " +
-     "        CONCAT(progress_notes.TransactionId, '_nyaho_his_nursing_doctorprogressnote_', progress_notes.ID) AS `uuid`, " +
-     "        DATE_FORMAT(progress_notes.EntryDate, '%d-%b-%Y %l:%i %p') AS `created_at`, " +
-     "        progress_notes.UpdateDate AS `updated_at`, " +
-     "        progress_notes.ProgressNote AS `note`, " +
-     "        'progress-note' AS `note_type`, " +
-     "        DATE_FORMAT(progress_notes.NoteDate, '%d-%b-%Y %l:%i %p') AS `encounter_date`, " +
-     "        patients.Patient_ID AS `patient_mr_number`, " +
-     "        'progress note' AS `encounter_type`, " +
-     "        CONCAT(practitioners.title, ' ', practitioners.Name) AS `practitioner_name`, " +
-     "        practitioners.Employee_ID AS `practitioner_id`, " +
-     "        FALSE AS `is_edited`, " +
-     "        FALSE AS `is_recalled`, " +
-     "        'unknown' AS `practitioner_role_type` " +
-     "    FROM " +
-     "        nursing_doctorprogressnote AS progress_notes " +
-     "    INNER JOIN " +
-     "        patient_ipd_profile AS admissions ON admissions.Transaction_ID = progress_notes.TransactionId " +
-     "    INNER JOIN " +
-     "        patient_master AS patients ON admissions.PatientID = patients.Patient_ID " +
-     "    LEFT JOIN " +
-     "        employee_master AS practitioners ON progress_notes.UserID = practitioners.Employee_ID " +
-     "    ORDER BY " +
-     "        progress_notes.EntryDate DESC " +
-     ") AS `source` " +
-     "LEFT JOIN `patient_master` AS `pm` ON `source`.`patient_mr_number` = `pm`.`Patient_ID`";
+        String sqlQuery = 
+        "SELECT " +
+        "    `source`.`created_at` AS `created_at`, " +
+        "    `source`.`updated_at` AS `updated_at`, " +
+        "    `source`.`note` AS `note`, " +
+        "    `source`.`note_type` AS `note_type`, " +
+        "    `source`.`encounter_date` AS `encounter_date`, " +
+        "    `source`.`patient_mr_number` AS `patient_mr_number`, " +
+        "    `source`.`encounter_type` AS `encounter_type`, " +
+        "    `source`.`is_recalled` AS `is_recalled`, " +
+        "    `source`.`practitioner_role_type` AS `practitioner_role_type`, " +
+        "    `source`.`practitioner_name` AS `practitioner_name`, " +
+        "    `source`.`practitioner_id` AS `practitioner_id`, " +
+        "    `source`.`is_edited` AS `is_edited`, " +
+        "    `pm`.`PName` AS `patient_name`, " +
+        "    source.uuid AS `uuid` " +
+        "FROM " +
+        "( " +
+        "    SELECT " +
+        "        CONCAT(progress_notes.TransactionId, '_nyaho_his_nursing_doctorprogressnote_', progress_notes.ID) AS `uuid`, " +
+        "        DATE_FORMAT(progress_notes.EntryDate, '%Y-%m-%dT%H:%i:%sZ') AS `created_at`, " +
+        "        DATE_FORMAT(progress_notes.UpdateDate, '%Y-%m-%dT%H:%i:%sZ') AS `updated_at`, " +
+        "        progress_notes.ProgressNote AS `note`, " +
+        "        'progress-note' AS `note_type`, " +
+        "        DATE_FORMAT(progress_notes.NoteDate, '%Y-%m-%dT%H:%i:%sZ') AS `encounter_date`, " +
+        "        patients.Patient_ID AS `patient_mr_number`, " +
+        "        'progress note' AS `encounter_type`, " +
+        "        CONCAT(practitioners.title, ' ', practitioners.Name) AS `practitioner_name`, " +
+        "        practitioners.Employee_ID AS `practitioner_id`, " +
+        "        FALSE AS `is_edited`, " +
+        "        FALSE AS `is_recalled`, " +
+        "        'unknown' AS `practitioner_role_type` " +
+        "    FROM " +
+        "        nursing_doctorprogressnote AS progress_notes " +
+        "    INNER JOIN " +
+        "        patient_ipd_profile AS admissions " +
+        "        ON admissions.Transaction_ID = progress_notes.TransactionId " +
+        "    INNER JOIN " +
+        "        patient_master AS patients " +
+        "        ON admissions.PatientID = patients.Patient_ID " +
+        "    LEFT JOIN " +
+        "        employee_master AS practitioners " +
+        "        ON progress_notes.UserID = practitioners.Employee_ID " +
+        "    ORDER BY " +
+        "        progress_notes.EntryDate DESC " +
+        ") AS `source` " +
+        "LEFT JOIN `patient_master` AS `pm` " +
+        "ON `source`.`patient_mr_number` = `pm`.`Patient_ID`;";
+    
+   
  
     //    "WHERE source.patient_mr_number ='"+queryDetails +"'";
         SqlRowSet set =hisJdbcTemplate.queryForRowSet(sqlQuery);
