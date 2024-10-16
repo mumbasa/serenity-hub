@@ -109,7 +109,7 @@ public class EncounterService {
             note.setCreatedByName(set.getString(29));
             note.setUserFriendlyId(set.getString(30));
             note.setAssignedToName(set.getString(31));
-            note.setAssignedToId(set.getString(32));
+           // note.setAssignedToId(set.getString(32));
 
             notes.add(note);
         }
