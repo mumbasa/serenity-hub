@@ -102,7 +102,6 @@ Logger logger = LoggerFactory.getLogger(getClass());
     }
 
 
-
     public  void  getChiefNote(){
 
         List<EncounterNote> notes = new ArrayList<>();
@@ -151,6 +150,73 @@ Logger logger = LoggerFactory.getLogger(getClass());
         int rounds =Math.round(notes.size()/1000);
        for(int i=0;i<rounds;i++){
         logger.info("adding round chief "+rounds);
+        try{
+        encounterNoteRepository.saveAllAndFlush(notes.subList(i*1000, (i*1000)+1000));
+        }catch(Exception e){
+
+
+
+        }
+
+       }
+        
+    
+        }
+
+
+
+
+    public  void  getPresentingIllness(){
+
+        List<EncounterNote> notes = new ArrayList<>();
+        String sqlQuery = 
+        "SELECT " +
+        "  Transaction_ID AS \"uuid\", " +
+        "  Transaction_ID AS \"encounter_id\", " +
+        "  PatientID AS \"patient_mr_number\", " +
+        "  ProgressionComplaint AS \"note\", " +
+        "  EntryBy AS \"practitioner_id\", " +
+        "  EntryDate AS \"encounter_date\", " +
+        "  NULL AS \"created_at\", " +
+        "  NULL AS \"updated_at\", " +
+        "  'note-type' AS \"history-of-presenting-illness\", " +
+        "  'encounter_type' AS \"outpatient-consultation\", " +
+        "  FALSE AS is_edited, " +
+        "  FALSE AS is_recalled, " +
+        "  'unknown' AS practitioner_role_type, " +
+        "  CONCAT(practitioners.title, ' ', practitioners.Name) AS \"practitioner_name\", " +
+        "  NULL AS \"edit_history\" " +
+        "FROM " +
+        "  cpoe_hpexam " +
+        "  LEFT JOIN employee_master AS practitioners ON cpoe_hpexam.EntryBy = practitioners.Employee_ID " +
+        "WHERE " +
+        "  ProgressionComplaint <> ''";
+    
+    
+   
+        SqlRowSet set =hisJdbcTemplate.queryForRowSet(sqlQuery);
+        while(set.next()){
+            EncounterNote note = new EncounterNote();
+            note.setUuid(set.getString(1));
+            note.setEncounterId(set.getString(2));
+            note.setCreatedAt(set.getString(7));
+            note.setUpdatedAt(set.getString(8));
+            note.setNote(set.getString(4));
+            note.setNoteType(set.getString(9));
+            note.setEncounterDate(set.getString(6));
+            note.setPatientMrNumber(set.getString(3));
+            note.setEncounterType(set.getString(10));
+            note.setRecalled(set.getBoolean(12));
+            note.setPractitionerRoleType(set.getString(13));
+            note.setPractitionerName(set.getString(14));
+            note.setPractitionerId(set.getString(5));
+           note.setEdited(set.getBoolean(11));
+            note.setDataSource("his");
+            notes.add(note);
+        } 
+        int rounds =Math.round(notes.size()/1000);
+       for(int i=0;i<rounds;i++){
+        logger.info("adding round presenting illness "+rounds);
         try{
         encounterNoteRepository.saveAllAndFlush(notes.subList(i*1000, (i*1000)+1000));
         }catch(Exception e){
