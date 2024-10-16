@@ -377,7 +377,7 @@ Logger logger = LoggerFactory.getLogger(getClass());
         } 
         int rounds =Math.round(notes.size()/1000);
        for(int i=0;i<rounds;i++){
-        logger.info("adding round progress "+i);
+        logger.info(rounds +"\tadding round progress "+i);
         try{
         encounterNoteRepository.saveAllAndFlush(notes.subList(i*1000, (i*1000)+1000));
         }catch(Exception e){
