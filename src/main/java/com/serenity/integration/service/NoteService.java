@@ -285,7 +285,7 @@ Logger logger = LoggerFactory.getLogger(getClass());
             } 
             int rounds =Math.round(notes.size()/1000);
            for(int i=0;i<rounds;i++){
-            logger.info("adding round care plan "+rounds);
+            logger.info("adding round care plan "+i);
             try{
             encounterNoteRepository.saveAllAndFlush(notes.subList(i*1000, (i*1000)+1000));
             }catch(Exception e){
@@ -358,7 +358,6 @@ Logger logger = LoggerFactory.getLogger(getClass());
     //    "WHERE source.patient_mr_number ='"+queryDetails +"'";
         SqlRowSet set =hisJdbcTemplate.queryForRowSet(sqlQuery);
         while(set.next()){
-            System.err.println(set.getString(1));
             EncounterNote note = new EncounterNote();
             note.setCreatedAt(set.getString(1));
             note.setUpdatedAt(set.getString(2));
@@ -378,7 +377,7 @@ Logger logger = LoggerFactory.getLogger(getClass());
         } 
         int rounds =Math.round(notes.size()/1000);
        for(int i=0;i<rounds;i++){
-        logger.info("adding round progress"+rounds);
+        logger.info("adding round progress "+i);
         try{
         encounterNoteRepository.saveAllAndFlush(notes.subList(i*1000, (i*1000)+1000));
         }catch(Exception e){
