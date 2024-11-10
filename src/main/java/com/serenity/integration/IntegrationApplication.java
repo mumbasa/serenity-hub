@@ -48,7 +48,7 @@ public class IntegrationApplication {
 //setupService.healthServiceSetup("161380e9-22d3-4627-a97f-0f918ce3e4a9","RR.csv");;
 //System.err.println(setupService.getWards("161380e9-22d3-4627-a97f-0f918ce3e4a9").size());
 service.getHisNote();
-setupService.setWard("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+//setupService.setWard("161380e9-22d3-4627-a97f-0f918ce3e4a9");
 	logger.info("finishing import");
 
 	}
