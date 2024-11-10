@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import com.serenity.integration.service.EncounterService;
 import com.serenity.integration.service.NoteService;
 import com.serenity.integration.service.PatientService;
+import com.serenity.integration.service.SetupService;
+import com.serenity.integration.service.WardSetupService;
 
 import jakarta.annotation.PostConstruct;
 
@@ -26,6 +28,9 @@ public class IntegrationApplication {
 	@Autowired
 	EncounterService encounterService;
 
+	@Autowired
+	WardSetupService setupService;
+
 
 	Logger logger = LoggerFactory.getLogger(getClass());
 	public static void main(String[] args) {
@@ -38,9 +43,12 @@ public class IntegrationApplication {
 		//List<String> ad = Arrays.asList(ac);
 		//noteService.getHisNote();
 		logger.info("Starting import");
-encounterService.encounter(0,300000);
-encounterService.encounter(300000,700000);
-encounterService.encounter(700000,1000000);
+
+//setupService.setPricing("161380e9-22d3-4627-a97f-0f918ce3e4a9", "161380e9-22d3-4627-a97f-0f918ce3e4a9");
+//setupService.healthServiceSetup("161380e9-22d3-4627-a97f-0f918ce3e4a9","RR.csv");;
+//System.err.println(setupService.getWards("161380e9-22d3-4627-a97f-0f918ce3e4a9").size());
+service.getHisNote();
+setupService.setWard("161380e9-22d3-4627-a97f-0f918ce3e4a9");
 	logger.info("finishing import");
 
 	}

@@ -1,0 +1,26 @@
+Bed name	Ward name	Ward type	Room name	Room Names	Ward names	Ward name	Price tier name	Price	Currency	Billing Frequency
+bed1	Barclays shared room	General	b1 share room	b1 share room	Barclays double room	Barclays shared room		396	GHS	Daily
+bed2	Barclays shared room	General	b2 share room	b1- ICU Vent	Barclays large single room	Barclays shared room		396	GHS	Daily
+bed3	Barclays shared room	General	b3 share room	b1- large single room	Barclays shared room	Barclays shared room		396	GHS	Daily
+bed1	Barclays double room	General	b1-double room	b1- small single room	Barclays small single room	Barclays double room		546	GHS	Daily
+bed2	Barclays double room	General	b2-double room	b1- Surgical Female	Catherine ICU Vent	Barclays double room		546	GHS	Daily
+bed1	Barclays small single room	General	b1- small single room	b1- Surgical Male	Catherine Surgical Ward - Female	Barclays small single room		724	GHS	Daily
+bed1	Barclays large single room	General	b1- large single room	b1-double room	Catherine Surgical Ward - Male	Barclays large single room		985	GHS	Daily
+bed1	Catherine Surgical Ward - Female	Other	b1- Surgical Female	b2 share room	Janet Wing - NICU COT	Catherine Surgical Ward - Female		430	GHS	Daily
+bed2	Catherine Surgical Ward - Female	Other	b2- Surgical Female	b2- ICU Vent	Janet Wing - NICU INCUBATOR	Catherine Surgical Ward - Female		430	GHS	Daily
+bed3	Catherine Surgical Ward - Female	Other	b3- Surgical Female	b2- Surgical Female	Janet Wing Duchess	Catherine Surgical Ward - Female		430	GHS	Daily
+bed1	Catherine Surgical Ward - Male	Other	b1- Surgical Male	b2- Surgical Male	Janet Wing Empress	Catherine Surgical Ward - Male		430	GHS	Daily
+bed2	Catherine Surgical Ward - Male	Other	b2- Surgical Male	b2-double room	Janet Wing Mother & Child	Catherine Surgical Ward - Male		430	GHS	Daily
+bed3	Catherine Surgical Ward - Male	Other	b3- Surgical Male	b3 share room		Catherine Surgical Ward - Male		430	GHS	Daily
+bed1	Catherine ICU Vent	ICU	b1- ICU Vent	b3- Surgical Female		Catherine ICU Vent		874	GHS	Daily
+bed2	Catherine ICU Vent	ICU	b2- ICU Vent	b3- Surgical Male		Catherine ICU Vent		874	GHS	Daily
+bed1	Janet Wing Mother & Child	Labor	P1	D1		Janet Wing Mother & Child		546	GHS	Daily
+bed2	Janet Wing Mother & Child	Labor	P2	E1		Janet Wing Mother & Child		546	GHS	Daily
+bed1	Janet Wing Mother & Child	Labor	Q1	Janet Wing - NICU		Janet Wing Mother & Child		546	GHS	Daily
+bed2	Janet Wing Mother & Child	Labor	Q2	P1		Janet Wing Mother & Child		546	GHS	Daily
+bed1	Janet Wing Duchess	Labor	D1	P2		Janet Wing Duchess		1319	GHS	Daily
+bed1	Janet Wing Empress	Labor	E1	Q1		Janet Wing Empress		1619	GHS	Daily
+NICU COT - Bed 1	Janet Wing - NICU COT	NICU	Janet Wing - NICU	Q2		Janet Wing - NICU COT		546	GHS	Daily
+NICU COT - Bed 2	Janet Wing - NICU COT	NICU	Janet Wing - NICU			Janet Wing - NICU COT		546	GHS	Daily
+INCUBATOR- bed 1	Janet Wing - NICU INCUBATOR	NICU	Janet Wing - NICU			Janet Wing - NICU INCUBATOR		683	GHS	Daily
+INCUBATOR- bed 2	Janet Wing - NICU INCUBATOR	NICU	Janet Wing - NICU			Janet Wing - NICU INCUBATOR		683	GHS	Daily

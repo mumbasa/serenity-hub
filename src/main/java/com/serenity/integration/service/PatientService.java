@@ -3,8 +3,12 @@ package com.serenity.integration.service;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
@@ -34,13 +38,17 @@ public class PatientService {
     PatientRepository patientRepository;
 
     @Autowired
-@Qualifier(value="hisJdbcTemplate")
-JdbcTemplate hisJdbcTemplate;
+    @Qualifier(value = "hisJdbcTemplate")
+    JdbcTemplate hisJdbcTemplate;
 
     Logger LOGGER = LoggerFactory.getLogger(this.getClass().getCanonicalName());
-   
+
     @Value("${serenity.token}")
     private String serenityToken;
+
+     static final String DIGITS = "0123456789";
+     static final String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+     static final SecureRandom RANDOM = new SecureRandom();
 
     public void loadPatients() {
         List<PatientData> patients = new ArrayList<>();
@@ -65,7 +73,7 @@ JdbcTemplate hisJdbcTemplate;
             for (CSVRecord record : records) {
                 PatientData data = new PatientData(record);
                 patients.add(data);
-             
+
             }
 
         } catch (IOException e) {
@@ -73,79 +81,99 @@ JdbcTemplate hisJdbcTemplate;
             e.printStackTrace();
         }
 
-       for(int i=0;i<patients.size() /1000;i++){
-           patientRepository.saveAllAndFlush(patients.subList((i*1000),(i*1000)+1000 ));
+        for (int i = 0; i < patients.size() / 1000; i++) {
+            patientRepository.saveAllAndFlush(patients.subList((i * 1000), (i * 1000) + 1000));
 
         }
 
     }
 
-
-        public PatientData migrate(PatientData stock) {
-        LOGGER.info("Searching for "+stock.getFullName());
+    public PatientData migrate(PatientData stock) {
+        LOGGER.info("Searching for " + stock.getFullName());
         String url = "https://stag.api.cloud.serenity.health/v2/emr/patients";
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
-        headers.set("Authorization", "Bearer "+serenityToken); // Add token if needed
+        headers.set("Authorization", "Bearer " + serenityToken); // Add token if needed
         HttpEntity<String> httpEntity = new HttpEntity<>(headers);
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<PatientData> response = restTemplate.exchange(url, HttpMethod.POST, httpEntity, PatientData.class);
-//setting the stock with the data in serenity
-    System.err.println(stock);
-         System.err.println(response.getBody());
-       
+        ResponseEntity<PatientData> response = restTemplate.exchange(url, HttpMethod.POST, httpEntity,
+                PatientData.class);
+        // setting the stock with the data in serenity
+        System.err.println(stock);
+        System.err.println(response.getBody());
+
         return response.getBody();
     }
 
-
- public  void  getHisNote(){
+    public void getHisNote() {
         List<PatientData> fallouts = new ArrayList<>();
 
         String sql = "SELECT * FROM patient_master";
-        SqlRowSet record =hisJdbcTemplate.queryForRowSet(sql);
-        while(record.next()){
+        SqlRowSet record = hisJdbcTemplate.queryForRowSet(sql);
+        while (record.next()) {
             System.err.println(record.getString(1));
             PatientData pd = new PatientData();
-           
-        pd.setMrNumber(record.getString("patient_id"));
-        pd.setLastName(record.getString("plastname"));
-        pd.setFirstName(record.getString("pfirstname"));
-        pd.setMobile(record.getString("mobile").replaceAll("-", ""));
-        pd.setEmail(record.getString("email"));
-        pd.setBirthDate(record.getString("dob"));
-      //  nationalId(record.getString("countryid");
-        pd.setGender(record.getString("gender"));
-        pd.setExternalSystem("his");
-        pd.setNationalMobileNumber(record.getString("phone"));
-        pd.setFullName(record.getString("pname"));
-        pd.setTitle(record.getString("title"));
-        pd.setOccupation(record.getString("occupation"));
-        pd.setEmployer(record.getString("employer"));
-        pd.setBloodType(record.getString("bloodgroup"));
-        pd.setMaritalStatus(record.getString("maritalstatus"));
-        pd.setNationality(record.getString("country"));
-        pd.setPassportNumber(record.getString("passport_no"));
-        pd.setBirthTime(record.getString("timeofbirth"));
-        pd.setReligiousAffiliation(record.getString("religiousaffiliation"));
-       // managingOrganizationId(record.getString("membership");
-       fallouts.add(pd);
-        } 
-        int rounds =Math.round(fallouts.size()/1000)+1;
-       for(int i=0;i<rounds;i++){
-        LOGGER.info("adding round "+rounds);
-        try{
-        patientRepository.saveAllAndFlush(fallouts.subList(i*1000, (i*1000)+1000));
-        }catch(Exception e){
 
+            pd.setMrNumber(record.getString("patient_id"));
+            pd.setLastName(record.getString("plastname"));
+            pd.setFirstName(record.getString("pfirstname"));
+            pd.setMobile(record.getString("mobile").isEmpty()?"":record.getString("mobile").replaceAll("-", ""));
+            pd.setEmail(record.getString("email"));
+            pd.setBirthDate(record.getString("dob"));
+            pd.setExternalId(String.valueOf(record.getLong(1)));
+            pd.setCreatedAt(LocalDateTime.parse(record.getString("dateenrolled")));
+            pd.setExternalId(generateMRNumber("NMC", pd.getCreatedAt()));
+            // nationalId(record.getString("countryid");
+            pd.setGender(record.getString("gender"));
+            pd.setExternalSystem("his");
+            pd.setNationalMobileNumber(record.getString("phone"));
+            pd.setFullName(record.getString("pname"));
+            pd.setTitle(record.getString("title"));
+            pd.setOccupation(record.getString("occupation"));
+            pd.setEmployer(record.getString("employer"));
+            pd.setBloodType(record.getString("bloodgroup"));
+            pd.setMaritalStatus(record.getString("maritalstatus"));
+            pd.setNationality(record.getString("country"));
+            pd.setPassportNumber(record.getString("passport_no"));
+            pd.setBirthTime(record.getString("timeofbirth"));
+            pd.setReligiousAffiliation(record.getString("religiousaffiliation"));
+            // managingOrganizationId(record.getString("membership");
+            fallouts.add(pd);
+        }
+        int cycle = 0;
+        int rounds = Math.round(fallouts.size() / 100);
+        for (int i = 0; i < rounds; i++) {
+            LOGGER.info("adding round " + rounds);
+            try {
 
+                if (cycle < rounds) {
+                    patientRepository.saveAllAndFlush(fallouts.subList(i * 100, (i * 100) + 100));
+                } else {
+                    patientRepository.saveAllAndFlush(fallouts.subList(cycle * 100, fallouts.size()));
+
+                }
+                cycle++;
+
+            } catch (Exception e) {
+
+            }
 
         }
 
-       }
-        
-    
-        }
+    }
+
+
+    public static String generateMRNumber(String prefix, LocalDateTime createdAt) {
+        // Format the date for a more precise timestamp (e.g., YYMMDD)
+        String dateSuffix = createdAt.format(DateTimeFormatter.ofPattern("yy"));
+
+      
+
+        // Generate a short UUID (for uniqueness)
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+        // Format the MR number with prefix, date, random suffix, and unique ID
+        return String.format("%s-%s-%s", prefix.toUpperCase(), dateSuffix, uniqueId);
+    }
 }
-
-
