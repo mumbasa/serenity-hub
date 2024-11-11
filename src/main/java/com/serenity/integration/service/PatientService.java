@@ -123,11 +123,11 @@ public class PatientService {
             pd.setBirthDate(record.getString("dob"));
             // pd.setId(String.valueOf(record.getLong(1)));
             String str = record.getString("dateenrolled");
-            if(str !=null){
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-            LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
-            pd.setCreatedAt(dateTime);
-            pd.setMrNumber(generateMRNumber("NMC", pd.getCreatedAt()));
+            if (str != null) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+                LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
+                pd.setCreatedAt(dateTime);
+                pd.setMrNumber(generateMRNumber("NMC", pd.getCreatedAt()));
             }
             // nationalId(record.getString("countryid");
             pd.setGender(record.getString("gender"));
