@@ -280,7 +280,7 @@ public class NoteService {
         }
         int rounds = (notes.size() / 1000);
         int cycle = 0;
-        for (int i = 0; i < rounds; i++) {
+        for (int i = 0; i <= rounds; i++) {
             logger.info("adding round care plan " + i);
             try {
                 if (cycle < rounds) {
@@ -373,7 +373,7 @@ public class NoteService {
         }
         int rounds = (notes.size() / 1000);
         int cycle = 0;
-        for (int i = 0; i < rounds; i++) {
+        for (int i = 0; i <= rounds; i++) {
             logger.info("adding round progress " + i);
             try {
                 if (cycle < rounds) {

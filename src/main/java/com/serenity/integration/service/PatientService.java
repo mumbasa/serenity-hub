@@ -148,7 +148,7 @@ public class PatientService {
         }
         int cycle = 0;
         int rounds =(fallouts.size() / 100);
-        for (int i = 0; i < rounds; i++) {
+        for (int i = 0; i <= rounds; i++) {
             LOGGER.info("adding round " + rounds);
             try {
 
