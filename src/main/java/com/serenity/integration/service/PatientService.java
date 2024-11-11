@@ -115,15 +115,15 @@ public class PatientService {
             System.err.println(record.getString(1));
             PatientData pd = new PatientData();
 
-            pd.setMrNumber(record.getString("patient_id"));
+            pd.setExternalId(record.getString("patient_id"));
             pd.setLastName(record.getString("plastname"));
             pd.setFirstName(record.getString("pfirstname"));
             pd.setMobile(record.getString("mobile").isEmpty()?"":record.getString("mobile").replaceAll("-", ""));
             pd.setEmail(record.getString("email"));
             pd.setBirthDate(record.getString("dob"));
-            pd.setExternalId(String.valueOf(record.getLong(1)));
+            //pd.setId(String.valueOf(record.getLong(1)));
             pd.setCreatedAt(LocalDateTime.parse(record.getString("dateenrolled")));
-            pd.setExternalId(generateMRNumber("NMC", pd.getCreatedAt()));
+            pd.setMrNumber(generateMRNumber("NMC", pd.getCreatedAt()));
             // nationalId(record.getString("countryid");
             pd.setGender(record.getString("gender"));
             pd.setExternalSystem("his");
