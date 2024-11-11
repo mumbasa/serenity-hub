@@ -46,9 +46,9 @@ public class PatientService {
     @Value("${serenity.token}")
     private String serenityToken;
 
-     static final String DIGITS = "0123456789";
-     static final String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-     static final SecureRandom RANDOM = new SecureRandom();
+    static final String DIGITS = "0123456789";
+    static final String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    static final SecureRandom RANDOM = new SecureRandom();
 
     public void loadPatients() {
         List<PatientData> patients = new ArrayList<>();
@@ -112,17 +112,20 @@ public class PatientService {
         String sql = "SELECT * FROM patient_master";
         SqlRowSet record = hisJdbcTemplate.queryForRowSet(sql);
         while (record.next()) {
-            System.err.println(record.getString(1));
+            System.err.println(record.getString("dateenrolled"));
             PatientData pd = new PatientData();
 
             pd.setExternalId(record.getString("patient_id"));
             pd.setLastName(record.getString("plastname"));
             pd.setFirstName(record.getString("pfirstname"));
-            pd.setMobile(record.getString("mobile").isEmpty()?"":record.getString("mobile").replaceAll("-", ""));
+            pd.setMobile(record.getString("mobile").isEmpty() ? "" : record.getString("mobile").replaceAll("-", ""));
             pd.setEmail(record.getString("email"));
             pd.setBirthDate(record.getString("dob"));
-            //pd.setId(String.valueOf(record.getLong(1)));
-            pd.setCreatedAt(LocalDateTime.parse(record.getString("dateenrolled")));
+            // pd.setId(String.valueOf(record.getLong(1)));
+            String str = record.getString("dateenrolled");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
+            pd.setCreatedAt(dateTime);
             pd.setMrNumber(generateMRNumber("NMC", pd.getCreatedAt()));
             // nationalId(record.getString("countryid");
             pd.setGender(record.getString("gender"));
@@ -163,12 +166,9 @@ public class PatientService {
 
     }
 
-
     public static String generateMRNumber(String prefix, LocalDateTime createdAt) {
         // Format the date for a more precise timestamp (e.g., YYMMDD)
         String dateSuffix = createdAt.format(DateTimeFormatter.ofPattern("yy"));
-
-      
 
         // Generate a short UUID (for uniqueness)
         String uniqueId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
