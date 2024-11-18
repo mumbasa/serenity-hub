@@ -129,7 +129,7 @@ public class PatientService {
             pd.setLastName(record.getString("plastname"));
             pd.setFirstName(record.getString("pfirstname"));
             pd.setMobile(record.getString("mobile").isEmpty() ? "" :record.getString("mobile").charAt(0)=='0' ? "233"+record.getString("mobile").replaceAll("-", ""):record.getString("mobile").replaceAll("-", ""));
-            pd.getMrNumber().replaceAll("\u0000", "");
+            pd.getMobile().replaceAll("\u0000", "");
             pd.setEmail(record.getString("email"));
             pd.setBirthDate(record.getString("dob"));
             // pd.setId(String.valueOf(record.getLong(1)));
