@@ -122,7 +122,6 @@ public class PatientService {
         String sql = "SELECT * FROM patient_master";
         SqlRowSet record = hisJdbcTemplate.queryForRowSet(sql);
         while (record.next()) {
-            System.err.println(record.getString("dateenrolled"));
             PatientData pd = new PatientData();
 
             pd.setExternalId(record.getString("patient_id"));
