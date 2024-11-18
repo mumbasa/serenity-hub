@@ -140,7 +140,7 @@ public class PatientService {
                 pd.setMrNumber(generateMRNumber("NMC", dateTime));
             }
             // nationalId(record.getString("countryid");
-            pd.setGender(record.getString("gender"));
+            pd.setGender(record.getString("gender").toUpperCase());
             pd.setExternalSystem("his");
             pd.setNationalMobileNumber(record.getString("phone"));
             pd.setFullName(record.getString("pname"));
@@ -168,12 +168,12 @@ public class PatientService {
                     patientRepository.saveAllAndFlush(fallouts.subList(cycle * 100, fallouts.size()));
 
                 }
-                cycle++;
+             
 
             } catch (Exception e) {
-
+e.printStackTrace();
             }
-
+            cycle++;
         }
 
     }
