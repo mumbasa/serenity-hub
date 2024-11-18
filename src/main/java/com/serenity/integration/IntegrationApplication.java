@@ -29,7 +29,7 @@ public class IntegrationApplication {
 	EncounterService encounterService;
 
 	@Autowired
-	WardSetupService setupService;
+	SetupService setupService;
 
 
 	Logger logger = LoggerFactory.getLogger(getClass());
@@ -41,13 +41,13 @@ public class IntegrationApplication {
 	public void coke(){
 		//String[] ac = {"NMC/OG/15/024341","NMC/OG/15/024341"};
 		//List<String> ad = Arrays.asList(ac);
-		//noteService.getHisNote();
+	//	service.loadPatients();
 		logger.info("Starting import");
 
 //setupService.setPricing("161380e9-22d3-4627-a97f-0f918ce3e4a9", "161380e9-22d3-4627-a97f-0f918ce3e4a9");
 //setupService.healthServiceSetup("161380e9-22d3-4627-a97f-0f918ce3e4a9","RR.csv");;
 //System.err.println(setupService.getWards("161380e9-22d3-4627-a97f-0f918ce3e4a9").size());
-service.getHisNote();
+service.setupSerenity();
 //setupService.setWard("161380e9-22d3-4627-a97f-0f918ce3e4a9");
 	logger.info("finishing import");
 

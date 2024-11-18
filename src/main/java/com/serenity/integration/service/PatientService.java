@@ -7,11 +7,15 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang3.StringUtils;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.RestTemplate;
 
+import com.google.gson.Gson;
 import com.serenity.integration.models.EncounterNote;
 import com.serenity.integration.models.PatientData;
 import com.serenity.integration.repository.PatientRepository;
@@ -73,6 +78,10 @@ public class PatientService {
             for (CSVRecord record : records) {
                 PatientData data = new PatientData(record);
                 patients.add(data);
+                Gson j = new Gson();
+                String k = j.toJson(data);
+                System.err.println(k);
+                migrate(k);
 
             }
 
@@ -81,21 +90,22 @@ public class PatientService {
             e.printStackTrace();
         }
 
-        for (int i = 0; i < patients.size() / 1000; i++) {
-            patientRepository.saveAllAndFlush(patients.subList((i * 1000), (i * 1000) + 1000));
+        for (int i = 0; i < 10; i++) {
+            // patientRepository.saveAllAndFlush(patients.subList((i * 1000), (i * 1000) +
+            // 1000));
 
         }
 
     }
 
-    public PatientData migrate(PatientData stock) {
-        LOGGER.info("Searching for " + stock.getFullName());
+    public PatientData migrate(String stock) {
         String url = "https://stag.api.cloud.serenity.health/v2/emr/patients";
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
-        headers.set("Authorization", "Bearer " + serenityToken); // Add token if needed
-        HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+        headers.add("x-api-key", "efomrddi");
+        // Add token if needed
+        HttpEntity<String> httpEntity = new HttpEntity<>(stock, headers);
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<PatientData> response = restTemplate.exchange(url, HttpMethod.POST, httpEntity,
                 PatientData.class);
@@ -118,7 +128,7 @@ public class PatientService {
             pd.setExternalId(record.getString("patient_id"));
             pd.setLastName(record.getString("plastname"));
             pd.setFirstName(record.getString("pfirstname"));
-            pd.setMobile(record.getString("mobile").isEmpty() ? "" : record.getString("mobile").replaceAll("-", ""));
+            pd.setMobile(record.getString("mobile").isEmpty() ? "" : "233"+record.getString("mobile").replaceAll("-", ""));
             pd.setEmail(record.getString("email"));
             pd.setBirthDate(record.getString("dob"));
             // pd.setId(String.valueOf(record.getLong(1)));
@@ -126,8 +136,8 @@ public class PatientService {
             if (str != null) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
                 LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
-                pd.setCreatedAt(dateTime);
-                pd.setMrNumber(generateMRNumber("NMC", pd.getCreatedAt()));
+                pd.setCreatedAt(dateTime.toString());
+                pd.setMrNumber(generateMRNumber("NMC", dateTime));
             }
             // nationalId(record.getString("countryid");
             pd.setGender(record.getString("gender"));
@@ -143,11 +153,11 @@ public class PatientService {
             pd.setPassportNumber(record.getString("passport_no"));
             pd.setBirthTime(record.getString("timeofbirth"));
             pd.setReligiousAffiliation(record.getString("religiousaffiliation"));
-            // managingOrganizationId(record.getString("membership");
+            pd.setManagingOrganizationId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
             fallouts.add(pd);
         }
         int cycle = 0;
-        int rounds =(fallouts.size() / 100);
+        int rounds = (fallouts.size() / 100);
         for (int i = 0; i <= rounds; i++) {
             LOGGER.info("adding round " + rounds);
             try {
@@ -177,5 +187,54 @@ public class PatientService {
 
         // Format the MR number with prefix, date, random suffix, and unique ID
         return String.format("%s-%s-%s", prefix.toUpperCase(), dateSuffix, uniqueId);
+
+    }
+
+    private static String removeNullValues(String obj) {
+        JSONObject jsonObject = new JSONObject(obj);
+        Iterator<String> keys = jsonObject.keys();
+
+        while (keys.hasNext()) {
+            String key = keys.next();
+            Object value = jsonObject.get(key);
+
+            // Remove the key if the value is null or an empty string
+            if (value == null || (value instanceof String && ((String) value).isEmpty())) {
+                keys.remove(); // Removes the current key
+            }
+
+            
+        }
+        return jsonObject.toString();
+    }
+
+    public void setupSerenity() {
+        List<PatientData> data = patientRepository.findAll();
+        data.stream().forEach(e -> {
+            e.setGender(e.getGender().toUpperCase());
+            if(!e.getMobile().isEmpty()){
+                e.setMobile("233"+e.getMobile());
+            }
+            e.setNationality(StringUtils.capitalize(e.getNationality().toLowerCase()));
+            e.setManagingOrganizationId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+
+        });
+        System.err.println(data.size() + " patients");
+
+
+        
+        for (PatientData g : data) {
+            Gson j = new Gson();
+            String k = removeNullValues(j.toJson(g));
+          
+            try{
+            migrate(k);
+            System.err.println("Correct");
+            }catch (Exception e ){
+                System.err.println(k);
+                e.printStackTrace();
+            }
+        } 
+
     }
 }

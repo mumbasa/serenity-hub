@@ -1,5 +1,7 @@
 package com.serenity.integration.models;
 
+import java.util.UUID;
+
 import org.apache.commons.csv.CSVRecord;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -76,12 +78,14 @@ public class ServicePricing {
     @JsonProperty("validity_period_start")
     private String validityPeriodStart;
 
+
     @JsonProperty("validity_period_end")
     private String validityPeriodEnd;
 
     public ServicePricing (CSVRecord record){
+        this.uuid=UUID.randomUUID().toString();
         this.amount=record.get(4);
-        this.amountType=record.get(2);
+        this.amountType="price";
         this.name=record.get(0);
         this.currency=record.get(3);
         this.createdById="8aaf05f8-741e-4e66-86df-a595f981d963";

@@ -147,7 +147,7 @@ public class SetupService {
         String url = "https://stag.api.cloud.serenity.health/v2/billing/service-prices?managing_organization=" + orgId;
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Content-Type", "application/json");
+        headers.set("   Content-Type", "application/json");
         headers.add("x-api-key", "efomrddi");
         HttpEntity<String> httpEntity = new HttpEntity<>(headers);
         RestTemplate restTemplate = new RestTemplate();
@@ -164,7 +164,7 @@ public class SetupService {
         System.err.println(url);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
-        headers.add("Authorization", "Bearer " + token);
+        headers.add("Authorization", "Bearer " + getToken().getAccess());
         headers.add("PROVIDER-PORTAL-ID", "j&4P8F<6+dF7/HASJ^hI92/6a&jdJOj*O\"[pHsh}t{o\"&7]\"}1~wg&SI%--,h{/");
         HttpEntity<String> httpEntity = new HttpEntity<>(headers);
         RestTemplate restTemplate = new RestTemplate();
@@ -232,7 +232,6 @@ public class SetupService {
 
             Iterable<CSVRecord> records = csvFormat.parse(in);
             for (CSVRecord record : records) {
-                LOGGER.info("New Record");
                 if (!pricings.containsKey(record.get(0))) {
 
                     ServicePricing servicePricing = new ServicePricing(record);
@@ -244,12 +243,19 @@ public class SetupService {
                     }
                     if (healthMap.containsKey(servicePricing.getHealthcareServiceName())) {
                         servicePricing
-                                .setCustomerGroupId(healthMap.get(servicePricing.getHealthcareServiceName()).getId());
+                                .setHealthcareServiceId(healthMap.get(servicePricing.getHealthcareServiceName()).getId());
 
                     }
 
                     if (servicePricing.getHealthcareServiceId() != null) {
+                        System.err.println("saving prices");
+                        try{
                         savePricing(servicePricing);
+                        }catch(Exception e){
+                            System.err.println(e.getMessage());
+                            Gson k = new Gson();
+                            System.err.println("error" +k.toJson(servicePricing));
+                        }
                     }
 
                 } else {
