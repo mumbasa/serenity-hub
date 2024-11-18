@@ -164,14 +164,25 @@ public class PatientService {
             try {
 
                 if (cycle < rounds) {
-                    patientRepository.saveAllAndFlush(fallouts.subList(i * 100, (i * 100) + 100));
-                } else {
-                    patientRepository.saveAllAndFlush(fallouts.subList(cycle * 100, fallouts.size()));
+                    if(i==310 | i==1205){
+                        for(PatientData dd : fallouts.subList(i * 100, (i * 100) + 100)){
+                            try{
+                            patientRepository.save(dd);
+                            }catch (Exception e){
+                                System.err.println(dd);
+                            }
 
-                }
+                        }
+
+                  //  patientRepository.saveAllAndFlush(fallouts.subList(i * 100, (i * 100) + 100));
+                } 
+                // else {
+                //     patientRepository.saveAllAndFlush(fallouts.subList(cycle * 100, fallouts.size()));
+
+                // }
              
 
-            } catch (Exception e) {
+            }} catch (Exception e) {
                 System.err.println("error at"+i);
 e.printStackTrace();
             }
