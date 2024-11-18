@@ -129,6 +129,7 @@ public class PatientService {
             pd.setLastName(record.getString("plastname"));
             pd.setFirstName(record.getString("pfirstname"));
             pd.setMobile(record.getString("mobile").isEmpty() ? "" :record.getString("mobile").charAt(0)=='0' ? "233"+record.getString("mobile").replaceAll("-", ""):record.getString("mobile").replaceAll("-", ""));
+            pd.getMrNumber().replaceAll("\u0000", "");
             pd.setEmail(record.getString("email"));
             pd.setBirthDate(record.getString("dob"));
             // pd.setId(String.valueOf(record.getLong(1)));
@@ -159,7 +160,7 @@ public class PatientService {
         int cycle = 0;
         int rounds = (fallouts.size() / 100);
         for (int i = 0; i <= rounds; i++) {
-            LOGGER.info("adding round " + rounds);
+            LOGGER.info("adding round " + i);
             try {
 
                 if (cycle < rounds) {
@@ -171,6 +172,7 @@ public class PatientService {
              
 
             } catch (Exception e) {
+                System.err.println("error at"+i);
 e.printStackTrace();
             }
             cycle++;
