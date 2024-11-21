@@ -31,6 +31,7 @@ public class NoteServiceCron {
     public void getChiefNote() {
         String sqls ="SELECT max(createdat) from encounternote e where e.encountertype ='chief-complaint'";
         String  lastDate= vectorJdbcTemplate.queryForObject(sqls, String.class);
+        lastDate=lastDate==null?"":lastDate;
         logger.info("Last Date is "+lastDate);
 
         List<EncounterNote> notes = new ArrayList<>();
@@ -99,7 +100,7 @@ public class NoteServiceCron {
         String sqls ="SELECT max(createdat) from encounternote e where e.encountertype ='history-of-presenting-illness'";
         String  lastDate= vectorJdbcTemplate.queryForObject(sqls, String.class);
         logger.info("Last Date is "+lastDate);
-
+        lastDate=lastDate==null?"":lastDate;
         List<EncounterNote> notes = new ArrayList<>();
         String query = "SELECT " +
                 "    Transaction_ID AS \"uuid\", " +
@@ -169,6 +170,7 @@ public class NoteServiceCron {
     public void getCarePlan() {
         String sqls ="SELECT max(createdat) from encounternote e where e.encountertype ='plan-of-care'";
         String  lastDate= vectorJdbcTemplate.queryForObject(sqls, String.class);
+        lastDate=lastDate==null?"":lastDate;
         logger.info("Last Date is "+lastDate);
 
         List<EncounterNote> notes = new ArrayList<>();
@@ -239,7 +241,8 @@ public class NoteServiceCron {
     public void getProgressNote() {
         String sqls ="SELECT max(createdat) from encounternote e where e.encountertype ='progress note'";
         String  lastDate= vectorJdbcTemplate.queryForObject(sqls, String.class);
-       logger.info("Last Date is "+lastDate);
+        lastDate=lastDate==null?"":lastDate;
+        logger.info("Last Date is "+lastDate);
         List<EncounterNote> notes = new ArrayList<>();
         String sqlQuery = "SELECT " +
                 "    `source`.`created_at` AS `created_at`, " +
