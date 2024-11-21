@@ -26,14 +26,14 @@ import jakarta.persistence.EntityManagerFactory;
 public class VectorDatasource {
     @Bean
     @Primary
-    @ConfigurationProperties("spring.datasource")
+    @ConfigurationProperties("spring.datasource.dl")
     public DataSourceProperties primaryDataSourceProperties() {
         return new DataSourceProperties();
     }
 
     @Bean
     @Primary
-    @ConfigurationProperties("spring.datasource")
+    @ConfigurationProperties("spring.datasource.dl")
     public DataSource primaryDataSource() {
         return primaryDataSourceProperties().initializeDataSourceBuilder().build();
     }
@@ -65,8 +65,9 @@ public class VectorDatasource {
             @Qualifier("entityManagerFactory") EntityManagerFactory entityManagerFactory) {
         return new JpaTransactionManager(entityManagerFactory);
     }
+    @Bean
 @Primary
-    public JdbcTemplate vectorJdbcTemplate(@Qualifier("vectorDataSource") DataSource dataSource){
+    public JdbcTemplate vectorJdbcTemplate(@Qualifier("primaryDataSource") DataSource dataSource){
         return new JdbcTemplate(dataSource);
     }
 }

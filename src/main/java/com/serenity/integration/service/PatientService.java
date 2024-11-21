@@ -4,6 +4,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.security.SecureRandom;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -25,6 +27,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -45,6 +48,11 @@ public class PatientService {
     @Autowired
     @Qualifier(value = "hisJdbcTemplate")
     JdbcTemplate hisJdbcTemplate;
+
+    @Autowired
+    @Qualifier(value = "vectorJdbcTemplate")
+    JdbcTemplate vectorJdbcTemplate;
+
 
     Logger LOGGER = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
@@ -224,11 +232,10 @@ e.printStackTrace();
         List<PatientData> data = patientRepository.findAll();
         data.stream().forEach(e -> {
             e.setGender(e.getGender().toUpperCase());
-            if(!e.getMobile().isEmpty()){
+          /*   if(!e.getMobile().isEmpty()){
                 e.setMobile("233"+e.getMobile());
-            }
+            } */
             e.setNationality(StringUtils.capitalize(e.getNationality().toLowerCase()));
-            e.setManagingOrganizationId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
 
         });
         System.err.println(data.size() + " patients");
@@ -247,6 +254,94 @@ e.printStackTrace();
                 e.printStackTrace();
             }
         } 
+
+    }
+
+
+public void updateCountiers(){
+
+    final String[] countryNames = {
+        "Afghanistan", "Åland Islands", "Albania", "Algeria", "American Samoa", 
+        "Andorra", "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda", 
+        "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", 
+        "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", 
+        "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia (Plurinational State of)", 
+        "Bonaire, Sint Eustatius and Saba", "Bosnia and Herzegovina", "Botswana", 
+        "Bouvet Island", "Brazil", "British Indian Ocean Territory", "Brunei Darussalam", 
+        "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", 
+        "Canada", "Cayman Islands", "Central African Republic", "Chad", "Chile", 
+        "China", "Christmas Island", "Cocos (Keeling) Islands", "Colombia", "Comoros", 
+        "Congo (the Democratic Republic of the)", "Congo", "Cook Islands", "Costa Rica", 
+        "Croatia", "Cuba", "Curaçao", "Cyprus", "Czechia", "Denmark", "Djibouti", 
+        "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", 
+        "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Falkland Islands (Malvinas)", 
+        "Faroe Islands", "Fiji", "Finland", "France", "French Guiana", "French Polynesia", 
+        "French Southern Territories", "Gabon", "Gambia", "Georgia", "Germany", 
+        "Ghana", "Gibraltar", "Greece", "Greenland", "Grenada", "Guadeloupe", 
+        "Guam", "Guatemala", "Guernsey", "Guinea", "Guinea-Bissau", "Guyana", 
+        "Haiti", "Heard Island and McDonald Islands", "Holy See", "Honduras", 
+        "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran (Islamic Republic of)", 
+        "Iraq", "Ireland", "Isle of Man", "Israel", "Italy", "Jamaica", "Japan", 
+        "Jersey", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea (the Democratic People's Republic of)", 
+        "Korea (the Republic of)", "Kuwait", "Kyrgyzstan", "Lao People's Democratic Republic", 
+        "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", 
+        "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", 
+        "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritania", "Mauritius", 
+        "Mayotte", "Mexico", "Micronesia (Federated States of)", "Moldova (the Republic of)", 
+        "Monaco", "Mongolia", "Montenegro", "Montserrat", "Morocco", "Mozambique", 
+        "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Caledonia", 
+        "New Zealand", "Nicaragua", "Niger", "Nigeria", "Niue", "Norfolk Island", 
+        "North Macedonia", "Northern Mariana Islands", "Norway", "Oman", "Pakistan", 
+        "Palau", "Palestine, State of", "Panama", "Papua New Guinea", "Paraguay", 
+        "Peru", "Philippines", "Pitcairn", "Poland", "Portugal", "Puerto Rico", 
+        "Qatar", "Romania", "Russian Federation", "Rwanda", "Réunion", "Saint Barthélemy", 
+        "Saint Helena, Ascension and Tristan da Cunha", "Saint Kitts and Nevis", 
+        "Saint Lucia", "Saint Martin (French part)", "Saint Pierre and Miquelon", 
+        "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", 
+        "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", 
+        "Singapore", "Sint Maarten (Dutch part)", "Slovakia", "Slovenia", "Solomon Islands", 
+        "Somalia", "South Africa", "South Georgia and the South Sandwich Islands", 
+        "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", 
+        "Switzerland", "Syrian Arab Republic", "Taiwan (Province of China)", "Tajikistan", 
+        "Tanzania, United Republic of", "Thailand", "Timor-Leste", "Togo", "Tokelau", 
+        "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", 
+        "Turks and Caicos Islands", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", 
+        "United Kingdom of Great Britain and Northern Ireland", "United States of America", 
+        "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela (Bolivarian Republic of)", 
+        "Viet Nam", "Western Sahara", "Yemen", "Zambia", "Zimbabwe"
+    };
+
+    String sql ="UPDATE patient_information set nationality=? WHERE nationality=?";
+    vectorJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+        public void setValues(PreparedStatement ps, int i) throws SQLException {
+						
+						ps.setString(1, countryNames[i]);
+						ps.setString(2,countryNames[i].toUpperCase());
+					}
+					public int getBatchSize() {
+						return countryNames.length;
+					}
+				
+    });
+  
+
+}
+
+
+    public void searchCountries(){
+
+        String url = "https://stag.api.cloud.serenity.health/v2/valuesets/countries";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/json");
+        headers.add("x-api-key", "efomrddi");
+        // Add token if needed
+        HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, httpEntity,
+                String.class);
+        // setting the stock with the data in serenity
+        System.err.println(response.getBody());
 
     }
 }

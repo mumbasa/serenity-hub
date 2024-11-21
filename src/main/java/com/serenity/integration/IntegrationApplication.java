@@ -7,8 +7,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+import com.serenity.integration.cron.NoteServiceCron;
 import com.serenity.integration.service.EncounterService;
-import com.serenity.integration.service.NoteService;
 import com.serenity.integration.service.PatientService;
 import com.serenity.integration.service.SetupService;
 import com.serenity.integration.service.WardSetupService;
@@ -23,7 +23,7 @@ public class IntegrationApplication {
 	PatientService service;
 
 	@Autowired
-	NoteService noteService;
+	NoteServiceCron noteService;
 
 	@Autowired
 	EncounterService encounterService;
@@ -47,8 +47,13 @@ public class IntegrationApplication {
 //setupService.setPricing("161380e9-22d3-4627-a97f-0f918ce3e4a9", "161380e9-22d3-4627-a97f-0f918ce3e4a9");
 //setupService.healthServiceSetup("161380e9-22d3-4627-a97f-0f918ce3e4a9","RR.csv");;
 //System.err.println(setupService.getWards("161380e9-22d3-4627-a97f-0f918ce3e4a9").size());
-	service.getHisNote();
+//	service.getHisNote();
 //setupService.setWard("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+//.searchCountries();;
+noteService.getProgressNote();
+noteService.getCarePlan();
+noteService.getPresentingIllness();
+noteService.getChiefNote();
 	logger.info("finishing import");
 
 	}
