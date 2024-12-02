@@ -24,43 +24,44 @@ public class VisitsCron {
         List<Visit> visits = new ArrayList<>();
         String query = 
         "SELECT " +
-        "    encounter.uuid AS uuid, " +
-        "    encounter.created_at AS created_at, " +
-        "    encounter.modified_at AS updated_at, " +
-        "    encounter.encounter_class AS encounter_class, " +
-        "    encounter.status AS status, " +
-        "    encounter.type AS type, " +
-        "    encounter.start_time AS started_at, " +
-        "    encounter.end_time AS ended_at, " +
-        "    encounter.appointment_id AS appointment_id, " +
-        "    patient.uuid AS patient_id, " +
-        "    encounter.service_provider_id AS service_provider_id, " +
-        "    encounter.service_type_id AS service_type_id, " +
-        "    encounter.slot_id AS slot_id, " +
-        "    encounter.visit_id AS visit_id, " +
-        "    encounter.primary_location_id AS location_id, " +
-        "    Location.name AS location_name, " +
-        "    Slot.id AS slot_id, " +
-        "    Slot.practitionerid AS practitioner_id, " +
-        "    Slot.practitioner_name AS practitioner_name, " +
-        "    \"Healthcare Service - Service Type\".name AS service_type_name, " +
-        "    \"Serenity Provider Role - Role\".name AS practitioner_role_type " +
+        "  visit.id AS uuid, " +
+        "  visit.created_at AS created_at, " +
+        "  visit.modified_at AS updated_at, " +
+        "  visit.visit_class AS encounter_class, " +
+        "  visit.status AS status, " +
+        "  visit.priority AS priority, " +
+        "  visit.arrived_at AS started_at, " +
+        "  visit.ended_at AS ended_at, " +
+        "  visit.appointment_id AS appointment_id, " +
+        "  visit.primary_location_id AS location_id, " +
+        "  location.name AS location_name, " +
+        "  visit.assigned_to_id AS assigned_to_id, " +
+        "  visit.service_provider_id AS service_provider_id, " +
+        "  patient.birth_date AS patient_birth_date, " +
+        "  patient.mr_number AS patient_mr_number, " +
+        "  patient.gender AS patient_gender, " +
+        "  CONCAT(" +
+        "    patient.first_name, ' ', " +
+        "    patient.other_names, ' ', " +
+        "    patient.last_name" +
+        "  ) AS patient_full_name, " +
+        "  patient.uuid AS patient_id, " +
+        "  provider.name AS service_provider_name, " +
+        "  CONCAT(" +
+        "    practitioner.first_name, ' ', " +
+        "    practitioner.last_name" +
+        "  ) AS assigned_to_name " +
         "FROM " +
-        "    encounter " +
-        "LEFT JOIN slot AS Slot " +
-        "    ON encounter.slot_id = Slot.id " +
+        "  visit " +
         "LEFT JOIN patient AS patient " +
-        "    ON encounter.patient_id = patient.id " +
-        "LEFT JOIN location AS Location " +
-        "    ON encounter.primary_location_id = Location.id " +
-        "LEFT JOIN ChargeItem AS ChargeItem " +
-        "    ON encounter.charge_item_id = ChargeItem.id " +
-        "LEFT JOIN healthcare_service AS \"Healthcare Service - Service Type\" " +
-        "    ON encounter.service_type_id = \"Healthcare Service - Service Type\".id " +
-        "LEFT JOIN practitioner_role AS \"Practitioner Role - Practitionerid\" " +
-        "    ON CAST(Slot.practitionerid AS text) = \"Practitioner Role - Practitionerid\".id " +
-        "LEFT JOIN serenity_provider_role AS \"Serenity Provider Role - Role\" " +
-        "    ON \"Practitioner Role - Practitionerid\".role_id = \"Serenity Provider Role - Role\".id;";
+        "  ON visit.patient_id = patient.id " +
+        "LEFT JOIN location AS location " +
+        "  ON visit.primary_location_id = location.id " +
+        "LEFT JOIN organization AS provider " +
+        "  ON visit.service_provider_id = provider.id " +
+        "LEFT JOIN practitioner_role AS practitioner " +
+        "  ON visit.assigned_to_id = practitioner.id " +
+        "WHERE ";
     
     
        SqlRowSet set = legJdbcTemplate.queryForRowSet(query);
@@ -71,19 +72,21 @@ public class VisitsCron {
             visit.setUpdatedAt(set.getString(3));
             visit.setEncounterClass(set.getString(4));
             visit.setStatus(set.getString(5));
-            visit.setStartedAt(set.getString(6));
-            visit.setEndedAt(set.getString(7));
-            visit.setAppointmentId(set.getString(8));
-            visit.setPatientId(set.getString(8));
-            visit.setServiceProviderId(set.getString(9));
+            visit.setPriority(set.getString(6));
+            visit.setStartedAt(set.getString(7));
+            visit.setEndedAt(set.getString(8));
+            visit.setAppointmentId(set.getString(9));
+            visit.setServiceProviderId(set.getString(13));
             visit.setServiceTypeId(set.getString(10));
-            visit.setSlotId(set.getString(11));
-            visit.setUuid(set.getString(12));
-            visit.setLocationId(set.getString(13));
-            visit.setLocationName(set.getString(14));
-            //visit.setPractitionerId(set.getString(16));
-            //visit.setPractitionerName(set.getString(17));
-            visit.setServiceTypeName(set.getString(18));
+            visit.setPatientMrNumber(set.getString(15));
+            visit.setLocationId(set.getString(10));
+            visit.setLocationName(set.getString(11));
+            visit.setAssignedToId(set.getString(12));
+            visit.setPatientFullName(set.getString(17));
+            visit.setServiceTypeName(set.getString(19));
+            visit.setPatientId(set.getString(18));
+            visit.setAssignedToName(set.getString(20));
+
             visits.add(visit);
         }
     
