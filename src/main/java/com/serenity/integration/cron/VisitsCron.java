@@ -60,8 +60,8 @@ public class VisitsCron {
         "LEFT JOIN organization AS provider " +
         "  ON visit.service_provider_id = provider.id " +
         "LEFT JOIN practitioner_role AS practitioner " +
-        "  ON visit.assigned_to_id = practitioner.id " +
-        "WHERE ";
+        "  ON visit.assigned_to_id = practitioner.id ";
+
     
     
        SqlRowSet set = legJdbcTemplate.queryForRowSet(query);
