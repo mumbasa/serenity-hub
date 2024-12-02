@@ -22,6 +22,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.RestTemplate;
@@ -142,7 +143,7 @@ public class SetupService {
     }
 
     public List<ServicePricing> getServicePrice(String orgId) {
-
+        List<ServicePricing> prices =  new ArrayList<>();
         // LOGGER.info("Searching for "+stock.getFullName());
         String url = "https://stag.api.cloud.serenity.health/v2/billing/service-prices?managing_organization=" + orgId;
 
@@ -154,9 +155,43 @@ public class SetupService {
         ResponseEntity<ServicePriceResponse> response = restTemplate.exchange(url, HttpMethod.GET, httpEntity,
                 ServicePriceResponse.class);
 
-        return (response.getBody().getData());
+        int total = response.getBody().getTotal();
+        int rounds = 100/50;
+        for(int i=1;i<=(rounds+1);i++){
+            System.err.println("goint for round "+i);
+            response = restTemplate.exchange(url+"&page="+i, HttpMethod.GET, httpEntity,
+            ServicePriceResponse.class);
+            System.err.println(response.getBody().getData());
+            prices.addAll(response.getBody().getData());
+
+        }
+     
+        return prices;
     }
 
+
+    public ServicePricing getServicePrices(int id) {
+        // LOGGER.info("Searching for "+stock.getFullName());
+        String url = "https://stag.api.cloud.serenity.health/v2/billing/service-prices/" + id;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("   Content-Type", "application/json");
+        headers.add("x-api-key", "efomrddi");
+        HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<ServicePricing> response = restTemplate.exchange(url, HttpMethod.GET, httpEntity,
+        ServicePricing.class);
+System.err.println(response.getBody());
+        
+        return response.getBody();
+    }
+
+
+
+
+
+
+    
     public List<Healthcare> getHealthService(String orgId) {
         // LOGGER.info("Searching for "+stock.getFullName());
         String url = "https://staging.nyaho.serenity.health/v1/providers/" + orgId
@@ -214,10 +249,13 @@ public class SetupService {
 
    
     public void setPricing(String orgId, String v1Provider) {
+          int count=1;
         List<CustomerGroup> groups = getCustomerGroups(orgId);
         Map<String, CustomerGroup> groupMap = groups.stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
         Map<String, ServicePricing> pricings = getServicePrice(orgId).stream()
                 .collect(Collectors.toMap(e -> e.getName(), e -> e));
+
+              System.err.println(pricings.keySet().size());
         Map<String, Healthcare> healthMap = getHealthService(v1Provider).stream()
                 .collect(Collectors.toMap(e -> e.getHealthcareServiceName(), e -> e));
 
@@ -232,7 +270,7 @@ public class SetupService {
 
             Iterable<CSVRecord> records = csvFormat.parse(in);
             for (CSVRecord record : records) {
-                if (!pricings.containsKey(record.get(0))) {
+              
 
                     ServicePricing servicePricing = new ServicePricing(record);
                     servicePricing.setManagingOrganization(orgId);
@@ -248,19 +286,29 @@ public class SetupService {
                     }
 
                     if (servicePricing.getHealthcareServiceId() != null) {
-                        System.err.println("saving prices");
+                      
                         try{
-                        savePricing(servicePricing);
+                            if (!pricings.containsKey(record.get(0))) {
+                                System.err.println("saving prices "+(count++));
+
+                      //  savePricing(servicePricing);
+                            }
+                            else {
+                               ServicePricing p = pricings.get(record.get(0));
+                               p.setAmount(record.get("basePrice"));
+                                System.err.println("already exit prices");
+
+                              //  LOGGER.info("already exist");
+                               updatePricing(servicePricing);
+                            }
                         }catch(Exception e){
                             System.err.println(e.getMessage());
                             Gson k = new Gson();
-                            System.err.println("error" +k.toJson(servicePricing));
+                           // System.err.println("error" +k.toJson(servicePricing));
                         }
                     }
 
-                } else {
-                    LOGGER.info("already exist");
-                }
+                
             }
         } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -540,7 +588,7 @@ public class SetupService {
         reportRepo.saveAllAndFlush(daps);
     }
 
-    private void savePricing(ServicePricing price) {
+    public  void savePricing(ServicePricing price) {
 
         String url = "https://stag.api.cloud.serenity.health/v2/billing/service-prices";
 
@@ -555,4 +603,23 @@ public class SetupService {
 
     }
 
+
+    private void updatePricing(ServicePricing price) {
+
+        String url = "https://stag.api.cloud.serenity.health/v2/billing/service-prices/"+price.getHealthcareServiceId();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/json");
+        headers.add("x-api-key", "efomrddi");
+        HttpEntity<ServicePricing> httpEntity = new HttpEntity<>(price, headers);
+        RestTemplate restTemplate = new RestTemplate();
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+
+
+restTemplate.setRequestFactory(requestFactory);
+        ResponseEntity<ServicePriceResponse> response = restTemplate.exchange(url, HttpMethod.PATCH, httpEntity,
+                ServicePriceResponse.class);
+        LOGGER.info(response.getBody().toString());
+
+    }
 }

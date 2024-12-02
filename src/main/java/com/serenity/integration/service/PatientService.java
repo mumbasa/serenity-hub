@@ -229,13 +229,13 @@ e.printStackTrace();
     }
 
     public void setupSerenity() {
-        List<PatientData> data = patientRepository.findAll();
+        List<PatientData> data = patientRepository.findTop5();
         data.stream().forEach(e -> {
             e.setGender(e.getGender().toUpperCase());
           /*   if(!e.getMobile().isEmpty()){
                 e.setMobile("233"+e.getMobile());
             } */
-            e.setNationality(StringUtils.capitalize(e.getNationality().toLowerCase()));
+          //  e.setNationality(StringUtils.capitalize(e.getNationality().toLowerCase()));
 
         });
         System.err.println(data.size() + " patients");

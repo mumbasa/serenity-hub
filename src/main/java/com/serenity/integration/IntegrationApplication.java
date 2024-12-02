@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import com.serenity.integration.cron.NoteServiceCron;
+import com.serenity.integration.cron.VisitsCron;
 import com.serenity.integration.service.EncounterService;
 import com.serenity.integration.service.PatientService;
 import com.serenity.integration.service.SetupService;
@@ -26,7 +27,7 @@ public class IntegrationApplication {
 	NoteServiceCron noteService;
 
 	@Autowired
-	EncounterService encounterService;
+	VisitsCron vCron;
 
 	@Autowired
 	SetupService setupService;
@@ -41,19 +42,22 @@ public class IntegrationApplication {
 	public void coke(){
 		//String[] ac = {"NMC/OG/15/024341","NMC/OG/15/024341"};
 		//List<String> ad = Arrays.asList(ac);
-	//	service.loadPatients();
+		//service.loadPatients();
 		logger.info("Starting import");
-
+		//setupService.getServicePrices(1000);
+//service.setupSerenity();
+//setupService.getServicePrice("161380e9-22d3-4627-a97f-0f918ce3e4a9");
 //setupService.setPricing("161380e9-22d3-4627-a97f-0f918ce3e4a9", "161380e9-22d3-4627-a97f-0f918ce3e4a9");
 //setupService.healthServiceSetup("161380e9-22d3-4627-a97f-0f918ce3e4a9","RR.csv");;
 //System.err.println(setupService.getWards("161380e9-22d3-4627-a97f-0f918ce3e4a9").size());
 //	service.getHisNote();
 //setupService.setWard("161380e9-22d3-4627-a97f-0f918ce3e4a9");
 //.searchCountries();;
-noteService.getProgressNote();
-noteService.getCarePlan();
-noteService.getPresentingIllness();
-noteService.getChiefNote();
+//noteService.getProgressNote();
+//noteService.getCarePlan();
+//noteService.getPresentingIllness();
+//noteService.getChiefNote();
+vCron.setupVisits();
 	logger.info("finishing import");
 
 	}
