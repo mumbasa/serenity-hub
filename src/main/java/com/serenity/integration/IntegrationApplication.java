@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import com.serenity.integration.cron.NoteServiceCron;
 import com.serenity.integration.cron.VisitsCron;
+import com.serenity.integration.service.AdmissionService;
 import com.serenity.integration.service.EncounterService;
 import com.serenity.integration.service.PatientService;
 import com.serenity.integration.service.SetupService;
@@ -31,6 +32,8 @@ public class IntegrationApplication {
 
 	@Autowired
 	SetupService setupService;
+	@Autowired
+	AdmissionService admissionService;
 
 
 	Logger logger = LoggerFactory.getLogger(getClass());
@@ -53,11 +56,12 @@ public class IntegrationApplication {
 //	service.getHisNote();
 //setupService.setWard("161380e9-22d3-4627-a97f-0f918ce3e4a9");
 //.searchCountries();;
-noteService.getProgressNote();
-noteService.getCarePlan();
-noteService.getPresentingIllness();
-noteService.getChiefNote();
-vCron.setupVisits();
+//noteService.getProgressNote();
+//noteService.getCarePlan();
+//noteService.getPresentingIllness();
+//noteService.getChiefNote();
+admissionService.getAdmission();
+//vCron.setupVisits();
 	logger.info("finishing import");
 
 	}
