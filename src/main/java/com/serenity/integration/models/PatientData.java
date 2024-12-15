@@ -41,7 +41,7 @@ public class PatientData {
 
   @SerializedName("created_at")
   private String createdAt;
-
+  @Column(columnDefinition = "TEXT")
   private String mobile;
   @Column(nullable = true)
   @SerializedName("national_mobile_number")
