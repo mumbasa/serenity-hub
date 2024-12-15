@@ -165,38 +165,26 @@ public class PatientService {
             fallouts.add(pd);
         }
         int cycle = 0;
-        int rounds = (fallouts.size() / 100);
+        int rounds = (fallouts.size() / 1000);
         for (int i = 0; i <= rounds; i++) {
             LOGGER.info("adding round " + i);
-            try {
+        
+                 if (cycle < rounds) {
+                //     if(i==310 | i==1205){
 
-                if (cycle < rounds) {
-                    if(i==310 | i==1205){
-                        for(PatientData dd : fallouts.subList(i * 100, (i * 100) + 100)){
-                            try{
-                            patientRepository.save(dd);
-                            }catch (Exception e){
-                                System.err.println(dd);
-                            }
-
-                        }
-
-                  //  patientRepository.saveAllAndFlush(fallouts.subList(i * 100, (i * 100) + 100));
-                } 
-                // else {
-                //     patientRepository.saveAllAndFlush(fallouts.subList(cycle * 100, fallouts.size()));
-
-                // }
-             
-
-            }} catch (Exception e) {
-                System.err.println("error at"+i);
-e.printStackTrace();
+             patientRepository.saveAll(fallouts.subList(i * 1000, (i * 1000) + 1000));    
             }
-            cycle++;
+                else {
+                  patientRepository.saveAll(fallouts.subList(cycle * 1000, fallouts.size()));
+
+             }
+             
+             cycle++;
+            } 
+         
         }
 
-    }
+    
 
     public static String generateMRNumber(String prefix, LocalDateTime createdAt) {
         // Format the date for a more precise timestamp (e.g., YYMMDD)
