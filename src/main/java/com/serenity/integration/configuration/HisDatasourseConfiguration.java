@@ -31,7 +31,7 @@ public class HisDatasourseConfiguration {
  
 
    
-    @Bean
+    @Bean(name = "hisJdbcTemplate")
     public JdbcTemplate hisJdbcTemplate(@Qualifier("hisDataSource") DataSource dataSource){
         return new JdbcTemplate(dataSource);
     }

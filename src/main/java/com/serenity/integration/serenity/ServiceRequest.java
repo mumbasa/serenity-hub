@@ -24,7 +24,6 @@ public class ServiceRequest {
     private String purpose;
     private String passportNumber;
     private ZonedDateTime sampleReceivedDateTime;
-    private List<Object> collectedSpecimen;
     private String priority;
     private String healthcareServiceId;
     private String healthcareServiceName;

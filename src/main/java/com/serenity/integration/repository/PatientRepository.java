@@ -12,4 +12,5 @@ public interface PatientRepository extends JpaRepository<PatientData,Long>{
     @Query(value = "SELECT * FROM patient_information WHERE nationality ='Ghana' LIMIT 1000",nativeQuery = true)
     public List<PatientData> findTop5();
 
+    public List<PatientData> findByExternalIdNotIn (List<String> mrnumbers);
 }

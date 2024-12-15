@@ -19,31 +19,31 @@ import jakarta.persistence.EntityManagerFactory;
 
 @Configuration
 @EnableJpaRepositories(
-    basePackages = "com.serenity.integration.repos",
+    basePackages = "com.serenity.integration.serenity-models",
     entityManagerFactoryRef = "entityManagerFactory",
     transactionManagerRef = "transactionManager"
 )
-public class LegacyDataSource {
+public class SerenityDataSource {
     @Bean
-    @ConfigurationProperties("spring.datasource.leg")
-    public DataSourceProperties legacyDataSourceProperties() {
+    @ConfigurationProperties("spring.datasource.sere")
+    public DataSourceProperties serenityDataSourceProperties() {
         return new DataSourceProperties();
     }
 
-    @Bean
-    @ConfigurationProperties("spring.datasource.leg")
-    public DataSource legacyDataSourcer() {
-        return legacyDataSourceProperties().initializeDataSourceBuilder().build();
+    @Bean(name="SerenityDataSource")
+    @ConfigurationProperties("spring.datasource.sere")
+    public DataSource dataSource() {
+        return serenityDataSourceProperties().initializeDataSourceBuilder().build();
     }
 
     @Bean
     @Primary
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(
             EntityManagerFactoryBuilder builder,
-            @Qualifier("legacyDataSource") DataSource legacyDataSource) {
+            @Qualifier("SerenityDataSource") DataSource serenityDataSource) {
         return builder
-                .dataSource(legacyDataSource)
-                .packages("com.serenity.integration.cron")
+                .dataSource(serenityDataSource)
+                .packages("serenity-models")
                 .persistenceUnit("primary")
                 .properties(getPrimaryJpaProperties())
                 .build();
@@ -64,8 +64,8 @@ public class LegacyDataSource {
         return new JpaTransactionManager(entityManagerFactory);
     }
 
-    @Bean(name = "legJdbcTemplate")
-    public JdbcTemplate legJdbcTemplate(@Qualifier("legacyDataSourcer") DataSource legacyDataSourcer){
-        return new JdbcTemplate(legacyDataSourcer);
+    @Bean(name = "serenityJdbcTemplate")
+    public JdbcTemplate serenityJdbcTemplate(){
+        return new JdbcTemplate(dataSource());
     }
 }
