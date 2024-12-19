@@ -31,7 +31,7 @@ public class PractitionerService {
             d.setEmpId(set.getString(2));
             d.setTitle(set.getString("title"));
             d.setMobile(set.getString("mobile"));
-            d.setHomeAddress(set.getString("house_no"+" "+set.getString("locality")+" "+set.getString("city")));
+            d.setHomeAddress(set.getString("house_no")+" "+(set.getString("locality"))+" "+(set.getString("city")));
             d.setDateOfBirth(set.getString("dob"));
             d.setEmail(set.getString("email"));
             d.setHisId(set.getString(3));
