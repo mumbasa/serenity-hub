@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.serenity.integration.models.PatientData;
 @Repository
 public interface PatientRepository extends JpaRepository<PatientData,Long>{
-    @Query(value = "SELECT * FROM patient_information WHERE nationality ='Ghana' LIMIT 1000",nativeQuery = true)
+    @Query(value = "select * from patient_information pi2 where externalid   in ( 'NMC/EX/15/000003', 'NMC/EX/15/000004', 'NMC/EX/15/000005') ; ",nativeQuery = true)
     public List<PatientData> findTop5();
 
     public List<PatientData> findByExternalIdNotIn (List<String> mrnumbers);
