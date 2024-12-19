@@ -28,13 +28,13 @@ public class PractitionerService {
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
         while (set.next()) {
             Doctors d = new Doctors();
-            d.setEmpId(set.getString(4));
-            d.setTitle(set.getString(5));
+            d.setEmpId(set.getString(2));
+            d.setTitle(set.getString("title"));
             d.setMobile(set.getString("mobile"));
-            d.setHomeAddress(set.getString("house_no"+" "+set.getString("locality")+" "+set.getString("City")));
+            d.setHomeAddress(set.getString("house_no"+" "+set.getString("locality")+" "+set.getString("city")));
             d.setDateOfBirth(set.getString("dob"));
             d.setEmail(set.getString("email"));
-            d.setHisId(set.getString(2));
+            d.setHisId(set.getString(3));
             d.setFirstName(set.getString("name"));
             d.setPostalAddress(set.getString("street_name"));
             doctors.add(d);
