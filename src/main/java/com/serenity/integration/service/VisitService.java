@@ -113,10 +113,11 @@ String sql ="select pmh.Transaction_ID as \"uuid\",\n" + //
         visit.setAssignedToId(set.getString(20));
         visit.setPatientName(set.getString(15));
         visit.setPatientStatus(set.getString(19));
-        visits.add(visit);
+//visits.add(visit);
+visitRepository.save(visit);
     }
 
-    int rounds = visits.size()/size;
+    /* int rounds = visits.size()/size;
         
     for (int i=0;i<=rounds;i++){
         if(i<rounds){
@@ -137,7 +138,7 @@ String sql ="select pmh.Transaction_ID as \"uuid\",\n" + //
                 
             };
         }
-
+ */
 
 
     }
