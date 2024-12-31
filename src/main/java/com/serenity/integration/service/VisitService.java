@@ -90,7 +90,7 @@ String sql ="select pmh.Transaction_ID as \"uuid\",\n" + //
         "  inner join patient_master pm on pm.Patient_ID = pmh.Patient_ID\n" + //
         "  inner join doctor_master dm on pmh.Doctor_ID = dm.Doctor_ID\n" + //
         "  inner join f_ledgertransaction lt on lt.`Transaction_ID` = pmh.`Transaction_ID`\n" + //
-        "  inner join appointment app on app.ledgertnxNo = lt.LedgerTransactionNo;";
+        "  inner join appointment app on app.ledgertnxNo = lt.LedgerTransactionNo LIMIT 0,4000";
     SqlRowSet set = hisJdbcTemplate.queryForRowSet(sql);
     while (set.next()) {
         Visits visit = new Visits();
