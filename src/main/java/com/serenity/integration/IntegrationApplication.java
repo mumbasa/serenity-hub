@@ -1,5 +1,7 @@
 package com.serenity.integration;
 
+import java.io.UnsupportedEncodingException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,11 +11,13 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import com.serenity.integration.cron.NoteServiceCron;
 import com.serenity.integration.cron.VisitsCron;
+import com.serenity.integration.repository.VisitRepository;
 import com.serenity.integration.service.AdmissionService;
 import com.serenity.integration.service.PatientMigrationService;
 import com.serenity.integration.service.PatientService;
 import com.serenity.integration.service.PractitionerService;
 import com.serenity.integration.service.SetupService;
+import com.serenity.integration.service.VisitService;
 
 import jakarta.annotation.PostConstruct;
 
@@ -29,6 +33,9 @@ public class IntegrationApplication {
 
 	@Autowired
 	VisitsCron vCron;
+
+	@Autowired
+	VisitService visitService;
 
 	@Autowired
 	SetupService setupService;
@@ -65,7 +72,9 @@ public class IntegrationApplication {
 //admissionService.getAdmission();
 //vCron.setupVisits();
 
-practitionerService.saveHisPractioner();
+		visitService.loadVisits(1000);
+	//practitionerService.getPractitioner();
+
 	logger.info("finishing import");
 
 	}
