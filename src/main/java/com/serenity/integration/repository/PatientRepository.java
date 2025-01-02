@@ -13,4 +13,6 @@ public interface PatientRepository extends JpaRepository<PatientData,Long>{
     public List<PatientData> findTop5();
 
     public List<PatientData> findByExternalIdNotIn (List<String> mrnumbers);
+
+    public PatientData findByExternalId(String hisNumber);
 }

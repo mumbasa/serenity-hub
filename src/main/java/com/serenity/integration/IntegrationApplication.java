@@ -72,7 +72,7 @@ public class IntegrationApplication {
 //admissionService.getAdmission();
 //vCron.setupVisits();
 
-		visitService.loadVisits(1000);
+    visitService.setITem();
 	//practitionerService.getPractitioner();
 
 	logger.info("finishing import");

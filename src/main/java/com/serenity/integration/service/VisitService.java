@@ -1,17 +1,21 @@
 package com.serenity.integration.service;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
 import com.serenity.integration.models.PatientData;
 import com.serenity.integration.models.Visits;
+import com.serenity.integration.repository.DoctorRepository;
 import com.serenity.integration.repository.PatientRepository;
 import com.serenity.integration.repository.VisitRepository;
 
@@ -27,6 +31,12 @@ public class VisitService {
     @Autowired
     @Qualifier(value = "hisJdbcTemplate")
     JdbcTemplate hisJdbcTemplate;
+
+    @Autowired
+    PatientRepository patientRepository;
+
+    @Autowired
+    DoctorRepository doctorRepository;
 
 
     public void loadVisits(int size){
@@ -143,6 +153,96 @@ String sql ="select pmh.Transaction_ID as \"uuid\",\n" + //
     }
 
 
-      
+    public void setITem(){
+    int rounds =640871/1000;
+    
+    for(int i=0;i<=rounds;i++){
+List<Visits> visits = visitRepository.getfirst100k(i*1000, 1000);
+System.err.println(visits.size()+"-----------");
+if(i==0){
+    System.err.println("doing");
+insertIntoSerenity(visits);
+break;
+}
+
+    }
+
+        
+
+    }
+
+
+
+
+
+
+      public void insertIntoSerenity(List<Visits> visits){
+        System.err.println("Settting variables ");
+        visits.stream().forEach( e-> {e.setPatient(patientRepository.findByExternalId(e.getHisNumber()));
+            e.setDoctors(doctorRepository.findByEmpId(e.getAssignedToId()));
+         ;});
+
+
+
+        String sql ="INSERT INTO public.visits " + //
+                        "(created_at,  id,  \"uuid\", encounter_class, status,"+
+                         "priority,  started_at, ended_at, external_id, external_system,"+
+                         "service_provider_id, service_provider_name, patient_mr_number, patient_id, patient_full_name,"+
+                         "patient_mobile, patient_birth_date, patient_gender, patient_status, assigned_to_name, assigned_to_id,display)\n" + //
+                        "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),nextval('visits_id_seq'::regclass),uuid(?),?  ,?,"+
+                        "?,to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),?,?,"+
+                        "uuid(?),?,?,(select uuid from patients p where external_id =?),?,"+
+                        "?,TO_DATE(?, 'YYYY/MM/DD'),?,?,?,uuid(?),?)";
+
+        
+                        System.err.println("Settting Insert values ");
+
+                        serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                // TODO Auto-generated method stub
+                ps.setString(1, visits.get(i).getCreatedAt()+" 08:03:02.226");
+                ps.setString(2,visits.get(i).getUuid().toString());
+                ps.setString(3, visits.get(i).getEncounterClass());
+                ps.setString(4,visits.get(i).getStatus());
+                
+                ps.setString(5, visits.get(i).getPriority());
+                ps.setString(6,visits.get(i).getStartedAt().replaceAll("T", " "));
+                ps.setString(7, visits.get(i).getEndedAt().replaceAll("T", " "));
+                ps.setString(8,visits.get(i).getExternalId());
+                
+                ps.setString(9,"his");
+
+                ps.setString(10, visits.get(i).getServiceProviderId());
+                ps.setString(11,visits.get(i).getServiceProviderName());
+                ps.setString(12, visits.get(i).getPatient().getMrNumber());
+                ps.setString(13,visits.get(i).getHisNumber());
+
+                ps.setString(14,visits.get(i).getPatientName());
+                ps.setString(15, visits.get(i).getPatientMobile());
+                ps.setString(16,visits.get(i).getPatientDob());
+
+                ps.setString(17,visits.get(i).getGender());
+                ps.setString(18, visits.get(i).getPatientStatus());
+                ps.setString(19,visits.get(i).getAssignedToName());
+                ps.setString(20, visits.get(i).getDoctors().getSerenityId());
+                ps.setString(21,visits.get(i).getHisNumber());
+
+                
+                
+                
+                
+                            }
+
+            @Override
+            public int getBatchSize() {
+                // TODO Auto-generated method stub
+                return visits.size();
+            }
+            
+        });
+
+      }
 
 }

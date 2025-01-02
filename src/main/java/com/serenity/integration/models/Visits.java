@@ -1,5 +1,6 @@
 package com.serenity.integration.models;
 
+import java.beans.Transient;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -39,5 +40,12 @@ public class Visits {
     private String gender;
     private String hisNumber;
     private String patientStatus;
+    private String practitionerId;
+
+    @jakarta.persistence.Transient
+    private PatientData patient;
+
+    @jakarta.persistence.Transient 
+    private Doctors doctors;
 
 }
