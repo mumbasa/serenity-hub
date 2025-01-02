@@ -154,10 +154,10 @@ String sql ="select pmh.Transaction_ID as \"uuid\",\n" + //
 
 
     public void setITem(){
-    int rounds =640871/100;
+    int rounds =640871/1000;
     
     for(int i=0;i<=rounds;i++){
-List<Visits> visits = visitRepository.getfirst100k(i*100, 100);
+List<Visits> visits = visitRepository.getfirst100k((i*1000)+3900, 1000);
 System.err.println(visits.size()+"-----------");
 
     System.err.println("doing");
@@ -176,12 +176,18 @@ insertIntoSerenity(visits);
 
 
 
-      public void insertIntoSerenity(List<Visits> visits){
+      public void insertIntoSerenity(List<Visits> visitss){
+        List<Visits> visits = new ArrayList<>();
+        
         System.err.println("Settting variables ");
-        visits.stream().forEach( e-> {
-            e.setPatient(patientRepository.findByExternalId(e.getHisNumber()));
-            e.setDoctors(doctorRepository.findByEmpId(e.getAssignedToId()));
-         ;});
+        visitss.stream().forEach( e-> {
+if(patientRepository.findByExternalId(e.getHisNumber()).isPresent()){
+
+    e.setPatient(patientRepository.findByExternalId(e.getHisNumber()).get());
+    e.setDoctors(doctorRepository.findByEmpId(e.getAssignedToId()));
+    visits.add(e);
+}});
+         
 
 
 

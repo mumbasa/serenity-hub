@@ -1,6 +1,7 @@
 package com.serenity.integration.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,5 +15,5 @@ public interface PatientRepository extends JpaRepository<PatientData,Long>{
 
     public List<PatientData> findByExternalIdNotIn (List<String> mrnumbers);
 
-    public PatientData findByExternalId(String hisNumber);
+    public Optional<PatientData> findByExternalId(String hisNumber);
 }
