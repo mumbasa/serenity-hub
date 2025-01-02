@@ -154,16 +154,16 @@ String sql ="select pmh.Transaction_ID as \"uuid\",\n" + //
 
 
     public void setITem(){
-    int rounds =640871/1000;
+    int rounds =640871/100;
     
     for(int i=0;i<=rounds;i++){
-List<Visits> visits = visitRepository.getfirst100k(i*1000, 1000);
+List<Visits> visits = visitRepository.getfirst100k(i*100, 100);
 System.err.println(visits.size()+"-----------");
-if(i==0){
+
     System.err.println("doing");
 insertIntoSerenity(visits);
-break;
-}
+
+
 
     }
 
@@ -178,7 +178,8 @@ break;
 
       public void insertIntoSerenity(List<Visits> visits){
         System.err.println("Settting variables ");
-        visits.stream().forEach( e-> {e.setPatient(patientRepository.findByExternalId(e.getHisNumber()));
+        visits.stream().forEach( e-> {
+            e.setPatient(patientRepository.findByExternalId(e.getHisNumber()));
             e.setDoctors(doctorRepository.findByEmpId(e.getAssignedToId()));
          ;});
 
@@ -216,7 +217,12 @@ break;
 
                 ps.setString(10, visits.get(i).getServiceProviderId());
                 ps.setString(11,visits.get(i).getServiceProviderName());
+                try{
                 ps.setString(12, visits.get(i).getPatient().getMrNumber());
+                }catch(Exception e){
+                    System.err.println("cannot find patient");
+                   
+                }
                 ps.setString(13,visits.get(i).getHisNumber());
 
                 ps.setString(14,visits.get(i).getPatientName());
@@ -226,7 +232,12 @@ break;
                 ps.setString(17,visits.get(i).getGender());
                 ps.setString(18, visits.get(i).getPatientStatus());
                 ps.setString(19,visits.get(i).getAssignedToName());
+                try{
                 ps.setString(20, visits.get(i).getDoctors().getSerenityId());
+            }catch(Exception e ){
+                System.err.println("cannot find doctor");
+
+            }
                 ps.setString(21,visits.get(i).getHisNumber());
 
                 
