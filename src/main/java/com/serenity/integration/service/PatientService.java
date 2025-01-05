@@ -150,7 +150,7 @@ public class PatientService {
                 pd.setMrNumber(checkAndGenereate(mrs, mr, "NMC", dateTime));
             }
 
-            pd.setUuid(checkAndGenereateUUID(uuids, UUID.randomUUID()));
+            pd.setUuid(checkAndGenereateUUID(uuids, UUID.randomUUID()).toString());
             // nationalId(record.getString("countryid");
             pd.setGender(record.getString("gender").toUpperCase());
             pd.setExternalSystem("his");

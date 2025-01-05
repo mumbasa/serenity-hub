@@ -32,7 +32,7 @@ public class PatientData {
   private long id;
 
 
-  private UUID  uuid;
+  private String  uuid;
   
   @Column(nullable = true)
   @SerializedName("external_id")
@@ -149,11 +149,11 @@ public class PatientData {
     this.id = id;
   }
 
-  public UUID getUuid() {
+  public String getUuid() {
     return uuid;
   }
 
-  public void setUuid(UUID uuid) {
+  public void setUuid(String uuid) {
     this.uuid = uuid;
   }
 
