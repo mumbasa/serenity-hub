@@ -31,7 +31,7 @@ public class PatientData {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private long id;
 
-  @Column(columnDefinition = "gen_random_uuid()")
+
   private UUID  uuid;
   
   @Column(nullable = true)

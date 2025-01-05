@@ -128,7 +128,7 @@ public class PatientService {
 
     public void getHisNote() {
         List<PatientData> fallouts = new ArrayList<>();
-        Set<String> uuids = new HashSet<>();
+        Set<UUID> uuids = new HashSet<>();
         Set<String> mrs = new HashSet<>();
         String sql = "SELECT * FROM patient_master";
         SqlRowSet record = hisJdbcTemplate.queryForRowSet(sql);
@@ -149,6 +149,8 @@ public class PatientService {
                 String mr = generateMRNumber("NMC", dateTime);
                 pd.setMrNumber(checkAndGenereate(mrs, mr, "NMC", dateTime));
             }
+
+            pd.setUuid(checkAndGenereateUUID(uuids, UUID.randomUUID()));
             // nationalId(record.getString("countryid");
             pd.setGender(record.getString("gender").toUpperCase());
             pd.setExternalSystem("his");
@@ -255,17 +257,19 @@ public class PatientService {
         return mrNumber;
     }
 
-    public static String checkAndGenereateUUID(Set<String> uuids, String uuid, String prefix, LocalDateTime createdAt) {
+    public static UUID checkAndGenereateUUID(Set<UUID> uuids, UUID uuid) {
         if (uuids.contains(uuid)) {
-            uuid = UUID.randomUUID().toString();
+            uuid = UUID.randomUUID();
             while (uuids.contains(uuid)) {
-                uuid = generateMRNumber(prefix, createdAt);
+                uuid =  UUID.randomUUID();
                 if (!uuids.contains(uuid)) {
                     uuids.add(uuid);
                 }
 
             }
 
+        }else{
+            uuids.add(uuid);
         }
         return uuid;
     }
