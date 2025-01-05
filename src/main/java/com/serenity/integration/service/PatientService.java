@@ -186,7 +186,7 @@ public class PatientService {
                     // }
 
                     //
-                    patientRepository.saveAllAndFlush(fallouts.subList(i * 100, (i * 1000) + 1000));
+                    patientRepository.saveAllAndFlush(fallouts.subList(i * 1000, (i * 1000) + 1000));
                 } else {
                     patientRepository.saveAllAndFlush(fallouts.subList(cycle * 1000, fallouts.size()));
 
