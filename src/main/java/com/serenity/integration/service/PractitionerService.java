@@ -6,10 +6,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
@@ -53,6 +56,8 @@ public class PractitionerService {
 
     public void saveHisPractioner() {
         List<Doctors> doctors = new ArrayList<>();
+      Set<UUID> uuids = new HashSet<>();
+
         List<String> docsId= doctorRepository.findAll().stream().map(Doctors::getNationalMobileNumber).toList();
         String query = "SELECT * from employee_master";
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
@@ -69,6 +74,7 @@ public class PractitionerService {
             d.setFirstName(set.getString("name"));
             d.setPostalAddress(set.getString("street_name"));
             d.setNationalMobileNumber((set.getString("mobile")));
+            d.setSerenityId(PatientService.checkAndGenereateUUID(uuids, UUID.randomUUID()).toString());
             doctors.add(d);
             }else{
                 Optional<Doctors> doctor = doctorRepository.findByMobile(set.getString("mobile"));
@@ -79,6 +85,7 @@ public class PractitionerService {
                     doc2.setExternalSystem("his");
                     doc2.setDateOfBirth(set.getString("dob"));
                     doc2.setNationalMobileNumber((set.getString("mobile")));
+                    doc2.setTitle(set.getString("title"));
 
                     doctors.add(doc2);
                 }
@@ -473,7 +480,8 @@ public class PractitionerService {
 
 
     public void savePracttioner(){
-      //  addSerenityPractitioner();
+      
+        addSerenityPractitioner();
         saveHisPractioner();
        
 
