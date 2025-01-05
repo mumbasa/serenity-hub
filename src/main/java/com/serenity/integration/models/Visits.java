@@ -36,14 +36,13 @@ public class Visits {
     private String serviceProviderName;
     private String patientName;
     private String patientMobile;
+    private String patientMrNumber;
     private String patientDob;
     private String gender;
     private String hisNumber;
     private String patientStatus;
     private String practitionerId;
 
-    @jakarta.persistence.Transient
-    private PatientData patient;
 
     @jakarta.persistence.Transient 
     private Doctors doctors;

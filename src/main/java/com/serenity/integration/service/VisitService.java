@@ -3,7 +3,10 @@ package com.serenity.integration.service;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +16,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
+import com.serenity.integration.models.Doctors;
 import com.serenity.integration.models.PatientData;
+import com.serenity.integration.models.Practitioner;
 import com.serenity.integration.models.Visits;
 import com.serenity.integration.repository.DoctorRepository;
 import com.serenity.integration.repository.PatientRepository;
@@ -101,9 +106,14 @@ public class VisitService {
                 "  inner join f_ledgertransaction lt on lt.`Transaction_ID` = pmh.`Transaction_ID`\n" + //
                 "  inner join appointment app on app.ledgertnxNo = lt.LedgerTransactionNo LIMIT 204000,680000";
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(sql);
+        Set<UUID> uuids = new HashSet<>();
         while (set.next()) {
+            Optional<PatientData> patient = patientRepository.findByExternalId(set.getString("patient_mr_number"));
+            Doctors practitioner=doctorRepository.findByEmpId(set.getString(20));
+            
+
             Visits visit = new Visits();
-            visit.setUuid(UUID.randomUUID());
+            visit.setUuid(PatientService.checkAndGenereateUUID(uuids, UUID.randomUUID()));
             visit.setCreatedAt(set.getString(2));
             visit.setEncounterClass(set.getString(3));
             visit.setStatus(set.getString(4));
@@ -122,6 +132,9 @@ public class VisitService {
             visit.setAssignedToId(set.getString(20));
             visit.setPatientName(set.getString(15));
             visit.setPatientStatus(set.getString(19));
+            visit.setPatientId(patient.get().getUuid());
+            visit.setPatientMrNumber(patient.get().getMrNumber());
+            visit.setPractitionerId(practitioner.getSerenityUUid());
             visits.add(visit);
         }
 
@@ -174,8 +187,6 @@ public class VisitService {
         visitss.stream().forEach(e -> {
             if (patientRepository.findByExternalId(e.getHisNumber()).isPresent()) {
 
-                e.setPatient(patientRepository.findByExternalId(e.getHisNumber()).get());
-                e.setDoctors(doctorRepository.findByEmpId(e.getAssignedToId()));
                 visits.add(e);
             }
         });
@@ -213,7 +224,7 @@ public class VisitService {
                 ps.setString(10, visits.get(i).getServiceProviderId());
                 ps.setString(11, visits.get(i).getServiceProviderName());
                 try {
-                    ps.setString(12, visits.get(i).getPatient().getMrNumber());
+                    ps.setString(12, visits.get(i).getPatientMrNumber());
                 } catch (Exception e) {
                     System.err.println("cannot find patient");
 
