@@ -78,9 +78,9 @@ public class IntegrationApplication {
 //admissionService.getAdmission();
 //vCron.setupVisits();
 		//encounterService.setEncounterNotes();
-		patientService.getLegacyPatients();
-    //visitService.setITem();
-	//practitionerService.getPractitioner();
+		//patientService.getLegacyPatients();
+    //\visitService.setITem();
+	practitionerService.savePracttioner();
 
 	logger.info("finishing import");
 

@@ -8,13 +8,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
-
-import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
-import org.aspectj.internal.lang.annotation.ajcITD;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
@@ -45,23 +43,45 @@ public class PractitionerService {
     @Autowired
     SetupService setupService;
 
+    @Autowired
+    @Qualifier("serenityJdbcTemplate")
+    JdbcTemplate serenityJdbcTemplate;
+
+    @Autowired
+    @Qualifier(value = "legJdbcTemplate")
+    JdbcTemplate legJdbcTemplate;
+
     public void saveHisPractioner() {
         List<Doctors> doctors = new ArrayList<>();
-        String query = "SELECT   em.employee_id,   de.doctor_id,   em.locality,   em.house_no,   em.city,   em.mobile,   em.dob,   em.title,   em.street_name,   em.email,   dm.name FROM   employee_master em   JOIN doctor_employee de ON de.Employee_id = em.Employee_ID   JOIN doctor_master dm ON dm.doctor_id = de.doctor_id";
+        List<String> docsId= doctorRepository.findAll().stream().map(Doctors::getNationalMobileNumber).toList();
+        String query = "SELECT * from employee_master";
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
         while (set.next()) {
+            if(docsId.contains(set.getString("mobile"))){
             Doctors d = new Doctors();
-            d.setEmpId(set.getString(1));
+            d.setExternalId(set.getString("Employee_ID"));
             d.setTitle(set.getString("title"));
-            d.setMobile(set.getString("mobile"));
-            d.setHomeAddress(
-                    set.getString("house_no") + " " + (set.getString("locality")) + " " + (set.getString("city")));
+            d.setMobile(PatientService.generateMobile(set.getString("mobile")));
+            d.setHomeAddress(set.getString("house_no") + " " + (set.getString("locality")) + " " + (set.getString("city")));
             d.setDateOfBirth(set.getString("dob"));
-            d.setEmail(set.getString("email"));
-            d.setHisId(set.getString(2));
+            d.setEmail(set.getString("mobile")+"@nyahomedical.com");
+            d.setExternalSystem("his");
             d.setFirstName(set.getString("name"));
             d.setPostalAddress(set.getString("street_name"));
             doctors.add(d);
+            }else{
+                Optional<Doctors> doctor = doctorRepository.findByMobile(set.getString("mobile"));
+                if(doctor.isPresent()){
+                    Doctors doc2 = doctor.get();
+                    doc2.setCountryCode("+233");
+                    doc2.setExternalId(set.getString("Employee_ID"));
+                    doc2.setExternalSystem("his");
+                    doc2.setDateOfBirth(set.getString("dob"));
+
+                    doctors.add(doc2);
+                }
+
+            }
         }
 
         doctorRepository.saveAll(doctors);
@@ -424,4 +444,36 @@ public class PractitionerService {
         return map;
     }
 
+    public void addSerenityPractitioner() {
+        List<Doctors> doctors = new ArrayList<>();
+        String sql = "SELECT * FROM practitioners";
+        SqlRowSet set = serenityJdbcTemplate.queryForRowSet(sql);
+        while (set.next()) {
+            Doctors doc = new Doctors();
+            doc.setCreatedAt(set.getString("created_at"));
+            doc.setSerenityUUid(set.getString("uuid"));
+            doc.setEmail(set.getString("email"));
+            doc.setMobile(set.getString("mobile"));
+            doc.setFirstName(set.getString("first_name"));
+            doc.setLastName(set.getString("last_name"));
+            doc.setGender(set.getString("gender"));
+            doc.setFullName(set.getString("full_name"));
+            doc.setManagingOrganisation(set.getString("managing_organization_name"));
+            doc.setManagingOrganisationId(set.getString("managing_organization_id"));
+            doc.setNationalMobileNumber(set.getString("national_mobile_number"));
+            doctors.add(doc);
+
+        }
+
+        doctorRepository.saveAll(doctors);
+
+    }
+
+
+    public void savePracttioner(){
+        addSerenityPractitioner();
+        saveHisPractioner();
+       
+
+    }
 }

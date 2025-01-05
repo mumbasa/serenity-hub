@@ -6,4 +6,5 @@ import com.serenity.integration.models.Doctors;
 
 public interface DoctorRepository extends JpaRepository<Doctors,Long>{
 public Doctors findByEmpId(String id);
+public Doctors findByMobile(String mobile);
 }

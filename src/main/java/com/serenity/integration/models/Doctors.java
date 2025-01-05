@@ -20,8 +20,8 @@ import lombok.ToString;
 @Table(name = "doctors")
 public class Doctors {
      @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private long id;
 
     @Column(name = "country_code")
     private String countryCode;
@@ -49,10 +49,16 @@ public class Doctors {
     @Column(name = "home_address")
     private String homeAddress;
     
+    private String fullName;
     private String hisId;
     private String empId;
     private String serenityId;
     private String serenityUUid;
-
+    private String createdAt;
+    private String externalId;
+    private String externalSystem;
+    private String managingOrganisation;
+    private String managingOrganisationId;
+    private String nationalMobileNumber;
 
 }

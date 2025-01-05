@@ -454,4 +454,12 @@ public class PatientService {
         patientRepository.saveAll(patientData);
 
     }
+
+
+
+    public void setupAllPatients(){
+    
+        this.getHisNote();
+        this.getLegacyPatients();
+    }
 }
