@@ -68,6 +68,7 @@ public class PractitionerService {
             d.setExternalSystem("his");
             d.setFirstName(set.getString("name"));
             d.setPostalAddress(set.getString("street_name"));
+            d.setNationalMobileNumber((set.getString("mobile")));
             doctors.add(d);
             }else{
                 Optional<Doctors> doctor = doctorRepository.findByMobile(set.getString("mobile"));
@@ -77,6 +78,7 @@ public class PractitionerService {
                     doc2.setExternalId(set.getString("Employee_ID"));
                     doc2.setExternalSystem("his");
                     doc2.setDateOfBirth(set.getString("dob"));
+                    doc2.setNationalMobileNumber((set.getString("mobile")));
 
                     doctors.add(doc2);
                 }
@@ -471,7 +473,7 @@ public class PractitionerService {
 
 
     public void savePracttioner(){
-        addSerenityPractitioner();
+      //  addSerenityPractitioner();
         saveHisPractioner();
        
 

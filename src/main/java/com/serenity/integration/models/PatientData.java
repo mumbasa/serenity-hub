@@ -1,8 +1,5 @@
 package com.serenity.integration.models;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 import org.apache.commons.csv.CSVRecord;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -15,8 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
+
 import lombok.ToString;
 
 @ToString
