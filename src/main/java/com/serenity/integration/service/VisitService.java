@@ -104,7 +104,7 @@ public class VisitService {
                 "  inner join patient_master pm on pm.Patient_ID = pmh.Patient_ID\n" + //
                 "  inner join doctor_master dm on pmh.Doctor_ID = dm.Doctor_ID\n" + //
                 "  inner join f_ledgertransaction lt on lt.`Transaction_ID` = pmh.`Transaction_ID`\n" + //
-                "  inner join appointment app on app.ledgertnxNo = lt.LedgerTransactionNo";
+                "  inner join appointment app on app.ledgertnxNo = lt.LedgerTransactionNo LIMIT 10000";
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(sql);
         Set<UUID> uuids = new HashSet<>();
         while (set.next()) {
