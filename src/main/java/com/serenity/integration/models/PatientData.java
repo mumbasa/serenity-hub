@@ -105,6 +105,8 @@ public class PatientData {
   @SerializedName("managing_organization_id")
   private String managingOrganizationId;
 
+
+
   public PatientData() {
 
   }

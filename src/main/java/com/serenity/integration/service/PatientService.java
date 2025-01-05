@@ -6,11 +6,14 @@ import java.io.Reader;
 import java.security.SecureRandom;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -53,8 +56,7 @@ public class PatientService {
     @Qualifier(value = "vectorJdbcTemplate")
     JdbcTemplate vectorJdbcTemplate;
 
-
-    Logger LOGGER = LoggerFactory.getLogger(this.getClass().getCanonicalName());
+     Logger LOGGER = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
     @Value("${serenity.token}")
     private String serenityToken;
@@ -126,26 +128,26 @@ public class PatientService {
 
     public void getHisNote() {
         List<PatientData> fallouts = new ArrayList<>();
-
+        Set<String> uuids = new HashSet<>();
+        Set<String> mrs = new HashSet<>();
         String sql = "SELECT * FROM patient_master";
         SqlRowSet record = hisJdbcTemplate.queryForRowSet(sql);
         while (record.next()) {
             PatientData pd = new PatientData();
-
             pd.setExternalId(record.getString("patient_id"));
             pd.setLastName(record.getString("plastname"));
             pd.setFirstName(record.getString("pfirstname"));
-            pd.setMobile(record.getString("mobile").isEmpty() ? "" :record.getString("mobile").replaceAll("-", ""));
-            pd.getMobile().replaceAll("\u0000", "");
+            pd.setMobile(record.getString("mobile").isEmpty() ? "" : record.getString("mobile").replaceAll("-", ""));
+            pd.setMobile(generateMobile(pd.getMobile().replaceAll("\u0000", "")));
             pd.setEmail(record.getString("email"));
             pd.setBirthDate(record.getString("dob"));
-            // pd.setId(String.valueOf(record.getLong(1)));
             String str = record.getString("dateenrolled");
             if (str != null) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
                 LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
                 pd.setCreatedAt(dateTime.toString());
-                pd.setMrNumber(generateMRNumber("NMC", dateTime));
+                String mr = generateMRNumber("NMC", dateTime);
+                pd.setMrNumber(checkAndGenereate(mrs, mr, "NMC", dateTime));
             }
             // nationalId(record.getString("countryid");
             pd.setGender(record.getString("gender").toUpperCase());
@@ -165,35 +167,32 @@ public class PatientService {
             fallouts.add(pd);
         }
         int cycle = 0;
-        int rounds = (fallouts.size() / 100);
+        int rounds = (fallouts.size() / 1000);
         for (int i = 0; i <= rounds; i++) {
             LOGGER.info("adding round " + i);
             try {
 
-                 if (cycle < rounds) {
-                //     if(i==310 | i==1205){
-                //         for(PatientData dd : fallouts.subList(i * 100, (i * 100) + 100)){
-                //             try{
-                //             patientRepository.save(dd);
-                //             }catch (Exception e){
-                //                 System.err.println(dd);
-                //             }
+                if (cycle < rounds) {
+                    // if(i==310 | i==1205){
+                    // for(PatientData dd : fallouts.subList(i * 100, (i * 100) + 100)){
+                    // try{
+                    // patientRepository.save(dd);
+                    // }catch (Exception e){
+                    // System.err.println(dd);
+                    // }
 
-                //         }
+                    // }
 
-                  
-                // 
-             patientRepository.saveAllAndFlush(fallouts.subList(i * 100, (i * 100) + 100));    
-            }
-                else {
-                  patientRepository.saveAllAndFlush(fallouts.subList(cycle * 100, fallouts.size()));
+                    //
+                    patientRepository.saveAllAndFlush(fallouts.subList(i * 100, (i * 1000) + 1000));
+                } else {
+                    patientRepository.saveAllAndFlush(fallouts.subList(cycle * 1000, fallouts.size()));
 
-             }
-             
+                }
 
             } catch (Exception e) {
-                System.err.println("error at"+i);
-            e.printStackTrace();
+                System.err.println("error at" + i);
+                e.printStackTrace();
             }
             cycle++;
         }
@@ -212,6 +211,73 @@ public class PatientService {
 
     }
 
+
+
+    public static String generateMobile(String number) {
+        // Format the date for a more precise timestamp (e.g., YYMMDD)
+       try{
+         number=number.replaceAll("[^0-9]", "");
+       if(number.length()==10 & number.startsWith("0")){
+        return number= "+233"+number.substring(1,number.length());
+
+       }else if(number.length()==9){
+        return number= "+233"+number;
+
+       }
+        else{
+        return number;
+        }
+    }catch(Exception e){
+        return "";
+
+    }
+    }
+
+    public static String checkAndGenereate(Set<String> mrNumbers, String mrNumber, String prefix,
+            LocalDateTime createdAt) {
+        int attempts = 0;
+        final int MAX_ATTEMPTS = 100;
+        if (!mrNumbers.contains(mrNumber)) {
+            mrNumbers.add(mrNumber);
+            return mrNumber;
+        }
+        do {
+            mrNumber = generateMRNumber(prefix, createdAt);
+            attempts++;
+
+            if (attempts >= MAX_ATTEMPTS) {
+                throw new RuntimeException("Failed to generate unique MR number after " + MAX_ATTEMPTS + " attempts");
+            }
+        } while (mrNumbers.contains(mrNumber));
+
+        mrNumbers.add(mrNumber);
+
+        return mrNumber;
+    }
+
+    public static String checkAndGenereateUUID(Set<String> uuids, String uuid, String prefix, LocalDateTime createdAt) {
+        if (uuids.contains(uuid)) {
+            uuid = UUID.randomUUID().toString();
+            while (uuids.contains(uuid)) {
+                uuid = generateMRNumber(prefix, createdAt);
+                if (!uuids.contains(uuid)) {
+                    uuids.add(uuid);
+                }
+
+            }
+
+        }
+        return uuid;
+    }
+
+    public static void main(String[] args) {
+        Set<String> data = new HashSet<>();
+        data.add("NMC-15-6E0DED30");
+        System.err.println(checkAndGenereate(data, "NMC-15-6E0DED30", "NMC", LocalDateTime.parse("2015-05-28T00:00")));
+        System.err.println(generateMobile(null));
+    
+    }
+
     private static String removeNullValues(String obj) {
         JSONObject jsonObject = new JSONObject(obj);
         Iterator<String> keys = jsonObject.keys();
@@ -225,7 +291,6 @@ public class PatientService {
                 keys.remove(); // Removes the current key
             }
 
-            
         }
         return jsonObject.toString();
     }
@@ -234,103 +299,101 @@ public class PatientService {
         List<PatientData> data = patientRepository.findTop5();
         data.stream().forEach(e -> {
             e.setGender(e.getGender().toUpperCase());
-          /*   if(!e.getMobile().isEmpty()){
-                e.setMobile("233"+e.getMobile());
-            } */
-          //  e.setNationality(StringUtils.capitalize(e.getNationality().toLowerCase()));
+            /*
+             * if(!e.getMobile().isEmpty()){
+             * e.setMobile("233"+e.getMobile());
+             * }
+             */
+            // e.setNationality(StringUtils.capitalize(e.getNationality().toLowerCase()));
 
         });
         System.err.println(data.size() + " patients");
 
-
-        
         for (PatientData g : data) {
             Gson j = new Gson();
             String k = removeNullValues(j.toJson(g));
-          
-            try{
-            migrate(k);
-            System.err.println("Correct");
-            }catch (Exception e ){
+
+            try {
+                migrate(k);
+                System.err.println("Correct");
+            } catch (Exception e) {
                 System.err.println(k);
                 e.printStackTrace();
             }
-        } 
+        }
 
     }
 
+    public void updateCountiers() {
 
-public void updateCountiers(){
+        final String[] countryNames = {
+                "Afghanistan", "Åland Islands", "Albania", "Algeria", "American Samoa",
+                "Andorra", "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda",
+                "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan",
+                "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium",
+                "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia (Plurinational State of)",
+                "Bonaire, Sint Eustatius and Saba", "Bosnia and Herzegovina", "Botswana",
+                "Bouvet Island", "Brazil", "British Indian Ocean Territory", "Brunei Darussalam",
+                "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon",
+                "Canada", "Cayman Islands", "Central African Republic", "Chad", "Chile",
+                "China", "Christmas Island", "Cocos (Keeling) Islands", "Colombia", "Comoros",
+                "Congo (the Democratic Republic of the)", "Congo", "Cook Islands", "Costa Rica",
+                "Croatia", "Cuba", "Curaçao", "Cyprus", "Czechia", "Denmark", "Djibouti",
+                "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador",
+                "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Falkland Islands (Malvinas)",
+                "Faroe Islands", "Fiji", "Finland", "France", "French Guiana", "French Polynesia",
+                "French Southern Territories", "Gabon", "Gambia", "Georgia", "Germany",
+                "Ghana", "Gibraltar", "Greece", "Greenland", "Grenada", "Guadeloupe",
+                "Guam", "Guatemala", "Guernsey", "Guinea", "Guinea-Bissau", "Guyana",
+                "Haiti", "Heard Island and McDonald Islands", "Holy See", "Honduras",
+                "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran (Islamic Republic of)",
+                "Iraq", "Ireland", "Isle of Man", "Israel", "Italy", "Jamaica", "Japan",
+                "Jersey", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea (the Democratic People's Republic of)",
+                "Korea (the Republic of)", "Kuwait", "Kyrgyzstan", "Lao People's Democratic Republic",
+                "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein",
+                "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives",
+                "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritania", "Mauritius",
+                "Mayotte", "Mexico", "Micronesia (Federated States of)", "Moldova (the Republic of)",
+                "Monaco", "Mongolia", "Montenegro", "Montserrat", "Morocco", "Mozambique",
+                "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Caledonia",
+                "New Zealand", "Nicaragua", "Niger", "Nigeria", "Niue", "Norfolk Island",
+                "North Macedonia", "Northern Mariana Islands", "Norway", "Oman", "Pakistan",
+                "Palau", "Palestine, State of", "Panama", "Papua New Guinea", "Paraguay",
+                "Peru", "Philippines", "Pitcairn", "Poland", "Portugal", "Puerto Rico",
+                "Qatar", "Romania", "Russian Federation", "Rwanda", "Réunion", "Saint Barthélemy",
+                "Saint Helena, Ascension and Tristan da Cunha", "Saint Kitts and Nevis",
+                "Saint Lucia", "Saint Martin (French part)", "Saint Pierre and Miquelon",
+                "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe",
+                "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone",
+                "Singapore", "Sint Maarten (Dutch part)", "Slovakia", "Slovenia", "Solomon Islands",
+                "Somalia", "South Africa", "South Georgia and the South Sandwich Islands",
+                "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden",
+                "Switzerland", "Syrian Arab Republic", "Taiwan (Province of China)", "Tajikistan",
+                "Tanzania, United Republic of", "Thailand", "Timor-Leste", "Togo", "Tokelau",
+                "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan",
+                "Turks and Caicos Islands", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates",
+                "United Kingdom of Great Britain and Northern Ireland", "United States of America",
+                "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela (Bolivarian Republic of)",
+                "Viet Nam", "Western Sahara", "Yemen", "Zambia", "Zimbabwe"
+        };
 
-    final String[] countryNames = {
-        "Afghanistan", "Åland Islands", "Albania", "Algeria", "American Samoa", 
-        "Andorra", "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda", 
-        "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", 
-        "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", 
-        "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia (Plurinational State of)", 
-        "Bonaire, Sint Eustatius and Saba", "Bosnia and Herzegovina", "Botswana", 
-        "Bouvet Island", "Brazil", "British Indian Ocean Territory", "Brunei Darussalam", 
-        "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", 
-        "Canada", "Cayman Islands", "Central African Republic", "Chad", "Chile", 
-        "China", "Christmas Island", "Cocos (Keeling) Islands", "Colombia", "Comoros", 
-        "Congo (the Democratic Republic of the)", "Congo", "Cook Islands", "Costa Rica", 
-        "Croatia", "Cuba", "Curaçao", "Cyprus", "Czechia", "Denmark", "Djibouti", 
-        "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", 
-        "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Falkland Islands (Malvinas)", 
-        "Faroe Islands", "Fiji", "Finland", "France", "French Guiana", "French Polynesia", 
-        "French Southern Territories", "Gabon", "Gambia", "Georgia", "Germany", 
-        "Ghana", "Gibraltar", "Greece", "Greenland", "Grenada", "Guadeloupe", 
-        "Guam", "Guatemala", "Guernsey", "Guinea", "Guinea-Bissau", "Guyana", 
-        "Haiti", "Heard Island and McDonald Islands", "Holy See", "Honduras", 
-        "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran (Islamic Republic of)", 
-        "Iraq", "Ireland", "Isle of Man", "Israel", "Italy", "Jamaica", "Japan", 
-        "Jersey", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea (the Democratic People's Republic of)", 
-        "Korea (the Republic of)", "Kuwait", "Kyrgyzstan", "Lao People's Democratic Republic", 
-        "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", 
-        "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", 
-        "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritania", "Mauritius", 
-        "Mayotte", "Mexico", "Micronesia (Federated States of)", "Moldova (the Republic of)", 
-        "Monaco", "Mongolia", "Montenegro", "Montserrat", "Morocco", "Mozambique", 
-        "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Caledonia", 
-        "New Zealand", "Nicaragua", "Niger", "Nigeria", "Niue", "Norfolk Island", 
-        "North Macedonia", "Northern Mariana Islands", "Norway", "Oman", "Pakistan", 
-        "Palau", "Palestine, State of", "Panama", "Papua New Guinea", "Paraguay", 
-        "Peru", "Philippines", "Pitcairn", "Poland", "Portugal", "Puerto Rico", 
-        "Qatar", "Romania", "Russian Federation", "Rwanda", "Réunion", "Saint Barthélemy", 
-        "Saint Helena, Ascension and Tristan da Cunha", "Saint Kitts and Nevis", 
-        "Saint Lucia", "Saint Martin (French part)", "Saint Pierre and Miquelon", 
-        "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", 
-        "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", 
-        "Singapore", "Sint Maarten (Dutch part)", "Slovakia", "Slovenia", "Solomon Islands", 
-        "Somalia", "South Africa", "South Georgia and the South Sandwich Islands", 
-        "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", 
-        "Switzerland", "Syrian Arab Republic", "Taiwan (Province of China)", "Tajikistan", 
-        "Tanzania, United Republic of", "Thailand", "Timor-Leste", "Togo", "Tokelau", 
-        "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", 
-        "Turks and Caicos Islands", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", 
-        "United Kingdom of Great Britain and Northern Ireland", "United States of America", 
-        "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela (Bolivarian Republic of)", 
-        "Viet Nam", "Western Sahara", "Yemen", "Zambia", "Zimbabwe"
-    };
+        String sql = "UPDATE patient_information set nationality=? WHERE nationality=?";
+        vectorJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
 
-    String sql ="UPDATE patient_information set nationality=? WHERE nationality=?";
-    vectorJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
-        public void setValues(PreparedStatement ps, int i) throws SQLException {
-						
-						ps.setString(1, countryNames[i]);
-						ps.setString(2,countryNames[i].toUpperCase());
-					}
-					public int getBatchSize() {
-						return countryNames.length;
-					}
-				
-    });
-  
+                ps.setString(1, countryNames[i]);
+                ps.setString(2, countryNames[i].toUpperCase());
+            }
 
-}
+            public int getBatchSize() {
+                return countryNames.length;
+            }
 
+        });
 
-    public void searchCountries(){
+    }
+
+    public void searchCountries() {
 
         String url = "https://stag.api.cloud.serenity.health/v2/valuesets/countries";
 

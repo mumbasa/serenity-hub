@@ -13,6 +13,7 @@ import com.serenity.integration.cron.NoteServiceCron;
 import com.serenity.integration.cron.VisitsCron;
 import com.serenity.integration.repository.VisitRepository;
 import com.serenity.integration.service.AdmissionService;
+import com.serenity.integration.service.EncounterService;
 import com.serenity.integration.service.PatientMigrationService;
 import com.serenity.integration.service.PatientService;
 import com.serenity.integration.service.PractitionerService;
@@ -41,9 +42,14 @@ public class IntegrationApplication {
 	SetupService setupService;
 	@Autowired
 	PractitionerService practitionerService;
+	@Autowired
+	EncounterService encounterService;
 
 	@Autowired
 	PatientMigrationService migrationService;
+
+	@Autowired
+	PatientService patientService;
 
 	Logger logger = LoggerFactory.getLogger(getClass());
 	public static void main(String[] args) {
@@ -71,8 +77,9 @@ public class IntegrationApplication {
 //noteService.getChiefNote();
 //admissionService.getAdmission();
 //vCron.setupVisits();
-
-    visitService.setITem();
+		//encounterService.setEncounterNotes();
+		patientService.getHisNote();
+    //visitService.setITem();
 	//practitionerService.getPractitioner();
 
 	logger.info("finishing import");
