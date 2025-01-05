@@ -152,6 +152,7 @@ public class PatientService {
 
             pd.setUuid(checkAndGenereateUUID(uuids, UUID.randomUUID()).toString());
             // nationalId(record.getString("countryid");
+            pd.setNationalMobileNumber(record.getString("mobile"));
             pd.setGender(record.getString("gender").toUpperCase());
             pd.setExternalSystem("his");
             pd.setNationalMobileNumber(record.getString("phone"));
