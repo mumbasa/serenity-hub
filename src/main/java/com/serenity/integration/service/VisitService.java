@@ -109,6 +109,7 @@ public class VisitService {
         Set<UUID> uuids = new HashSet<>();
         while (set.next()) {
             Optional<PatientData> patient = patientRepository.findByExternalId(set.getString("patient_mr_number"));
+            System.err.println(set.getString("assigned_to_id")+"-----------------");
             Doctors practitioner=doctorRepository.findByExternalId(set.getString("assigned_to_id"));
             
 
