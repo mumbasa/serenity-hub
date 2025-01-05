@@ -449,9 +449,9 @@ public class PatientService {
             }
             LOGGER.info("Patient Exists");
 
-            patientRepository.saveAll(patientData);
 
         }
+        patientRepository.saveAll(patientData);
 
     }
 }
