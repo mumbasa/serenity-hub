@@ -74,7 +74,9 @@ public class PractitionerService {
             d.setFirstName(set.getString("name"));
             d.setPostalAddress(set.getString("street_name"));
             d.setNationalMobileNumber((set.getString("mobile")));
-            d.setSerenityId(PatientService.checkAndGenereateUUID(uuids, UUID.randomUUID()).toString());
+            d.setManagingOrganisation("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+            d.setManagingOrganisationId("Nyaho Medical Center");
+            d.setSerenityUUid(PatientService.checkAndGenereateUUID(uuids, UUID.randomUUID()).toString());
             doctors.add(d);
             }else{
                 Optional<Doctors> doctor = doctorRepository.findByMobile(set.getString("mobile"));
