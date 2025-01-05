@@ -79,7 +79,7 @@ public class PractitionerService {
             d.setSerenityUUid(PatientService.checkAndGenereateUUID(uuids, UUID.randomUUID()).toString());
             doctors.add(d);
             }else{
-                Optional<Doctors> doctor = doctorRepository.findByMobile(set.getString("mobile"));
+                Optional<Doctors> doctor = doctorRepository.NationalMobileNumber(set.getString("mobile"));
                 if(doctor.isPresent()){
                     Doctors doc2 = doctor.get();
                     doc2.setCountryCode("+233");
