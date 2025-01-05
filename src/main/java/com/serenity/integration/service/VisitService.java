@@ -104,12 +104,12 @@ public class VisitService {
                 "  inner join patient_master pm on pm.Patient_ID = pmh.Patient_ID\n" + //
                 "  inner join doctor_master dm on pmh.Doctor_ID = dm.Doctor_ID\n" + //
                 "  inner join f_ledgertransaction lt on lt.`Transaction_ID` = pmh.`Transaction_ID`\n" + //
-                "  inner join appointment app on app.ledgertnxNo = lt.LedgerTransactionNo LIMIT 204000,680000";
+                "  inner join appointment app on app.ledgertnxNo = lt.LedgerTransactionNo";
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(sql);
         Set<UUID> uuids = new HashSet<>();
         while (set.next()) {
             Optional<PatientData> patient = patientRepository.findByExternalId(set.getString("patient_mr_number"));
-            Doctors practitioner=doctorRepository.findByEmpId(set.getString(20));
+            Doctors practitioner=doctorRepository.findByExternalId(set.getString("assigned_to_id"));
             
 
             Visits visit = new Visits();
