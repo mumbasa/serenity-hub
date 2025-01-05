@@ -31,7 +31,9 @@ public class PatientData {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private long id;
 
+  @Column(columnDefinition = "gen_random_uuid()")
   private UUID  uuid;
+  
   @Column(nullable = true)
   @SerializedName("external_id")
   private String externalId;
