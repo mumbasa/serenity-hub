@@ -1,6 +1,7 @@
 package com.serenity.integration.models;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.apache.commons.csv.CSVRecord;
 
@@ -30,7 +31,7 @@ public class PatientData {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private long id;
 
-  private String uuid;
+  private UUID  uuid;
   @Column(nullable = true)
   @SerializedName("external_id")
   private String externalId;
@@ -146,11 +147,11 @@ public class PatientData {
     this.id = id;
   }
 
-  public String getUuid() {
+  public UUID getUuid() {
     return uuid;
   }
 
-  public void setUuid(String uuid) {
+  public void setUuid(UUID uuid) {
     this.uuid = uuid;
   }
 
