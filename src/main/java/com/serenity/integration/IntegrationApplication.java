@@ -78,7 +78,7 @@ public class IntegrationApplication {
 //admissionService.getAdmission();
 //vCron.setupVisits();
 		//encounterService.setEncounterNotes();
-		patientService.getHisNote();
+		patientService.getLegacyPatients();
     //visitService.setITem();
 	//practitionerService.getPractitioner();
 

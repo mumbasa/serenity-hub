@@ -29,8 +29,7 @@ public class LegacyDataSource {
     public DataSourceProperties legacyDataSourceProperties() {
         return new DataSourceProperties();
     }
-
-    @Bean
+    @Bean(name="LegacyDataSource")
     @ConfigurationProperties("spring.datasource.leg")
     public DataSource legacyDataSourcer() {
         return legacyDataSourceProperties().initializeDataSourceBuilder().build();
@@ -65,7 +64,7 @@ public class LegacyDataSource {
     }
 
     @Bean(name = "legJdbcTemplate")
-    public JdbcTemplate legJdbcTemplate(@Qualifier("legacyDataSourcer") DataSource legacyDataSourcer){
+    public JdbcTemplate legJdbcTemplate(@Qualifier("LegacyDataSource") DataSource legacyDataSourcer){
         return new JdbcTemplate(legacyDataSourcer);
     }
 }

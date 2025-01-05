@@ -53,10 +53,14 @@ public class PatientService {
     JdbcTemplate hisJdbcTemplate;
 
     @Autowired
+    @Qualifier(value = "legJdbcTemplate")
+    JdbcTemplate legJdbcTemplate;
+
+    @Autowired
     @Qualifier(value = "vectorJdbcTemplate")
     JdbcTemplate vectorJdbcTemplate;
 
-     Logger LOGGER = LoggerFactory.getLogger(this.getClass().getCanonicalName());
+    Logger LOGGER = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
     @Value("${serenity.token}")
     private String serenityToken;
@@ -214,26 +218,23 @@ public class PatientService {
 
     }
 
-
-
     public static String generateMobile(String number) {
         // Format the date for a more precise timestamp (e.g., YYMMDD)
-       try{
-         number=number.replaceAll("[^0-9]", "");
-       if(number.length()==10 & number.startsWith("0")){
-        return number= "+233"+number.substring(1,number.length());
+        try {
+            number = number.replaceAll("[^0-9]", "");
+            if (number.length() == 10 & number.startsWith("0")) {
+                return number = "+233" + number.substring(1, number.length());
 
-       }else if(number.length()==9){
-        return number= "+233"+number;
+            } else if (number.length() == 9) {
+                return number = "+233" + number;
 
-       }
-        else{
-        return number;
+            } else {
+                return number;
+            }
+        } catch (Exception e) {
+            return "";
+
         }
-    }catch(Exception e){
-        return "";
-
-    }
     }
 
     public static String checkAndGenereate(Set<String> mrNumbers, String mrNumber, String prefix,
@@ -262,14 +263,14 @@ public class PatientService {
         if (uuids.contains(uuid)) {
             uuid = UUID.randomUUID();
             while (uuids.contains(uuid)) {
-                uuid =  UUID.randomUUID();
+                uuid = UUID.randomUUID();
                 if (!uuids.contains(uuid)) {
                     uuids.add(uuid);
                 }
 
             }
 
-        }else{
+        } else {
             uuids.add(uuid);
         }
         return uuid;
@@ -280,7 +281,7 @@ public class PatientService {
         data.add("NMC-15-6E0DED30");
         System.err.println(checkAndGenereate(data, "NMC-15-6E0DED30", "NMC", LocalDateTime.parse("2015-05-28T00:00")));
         System.err.println(generateMobile(null));
-    
+
     }
 
     private static String removeNullValues(String obj) {
@@ -412,6 +413,45 @@ public class PatientService {
                 String.class);
         // setting the stock with the data in serenity
         System.err.println(response.getBody());
+
+    }
+
+    public void getLegacyPatients() {
+        List<PatientData> patientData = new ArrayList<>();
+        Set<String> mrNumbers = new HashSet<>();
+        List<String> extNumber = patientRepository.findAll().stream().map(PatientData::getExternalId).toList();
+        String sql = "SELECT * FROM patient";
+        SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
+        while (set.next()) {
+            if (!extNumber.contains(set.getString("mr_number"))) {
+                PatientData data = new PatientData();
+                data.setUuid(set.getString("uuid"));
+                data.setCreatedAt(set.getString("created_at"));
+                data.setExternalId(set.getString("mr_number"));
+                data.setExternalSystem("opd");
+                String str = set.getString("created_at").split("\\.")[0];
+                if (str != null) {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
+                    data.setCreatedAt(dateTime.toString());
+                    String mr = generateMRNumber("NMC", dateTime);
+                    data.setMrNumber(checkAndGenereate(mrNumbers, mr, "NMC", dateTime));
+                }
+                data.setBirthDate(set.getString("birth_date"));
+                data.setFirstName(set.getString("first_name"));
+                data.setLastName(set.getString("last_name"));
+                data.setGender(set.getString("gender"));
+                data.setEmail(set.getString("email"));
+                data.setMobile(set.getString("mobile"));
+                data.setNationalMobileNumber(set.getString("national_mobile_number"));
+                patientData.add(data);
+               // System.err.println(patientData);
+            }
+            LOGGER.info("Patient Exists");
+
+            patientRepository.saveAll(patientData);
+
+        }
 
     }
 }
