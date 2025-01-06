@@ -62,6 +62,7 @@ public class PractitionerService {
         String query = "SELECT * from employee_master";
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
         while (set.next()) {
+            
             if(!docsId.contains(set.getString("mobile"))){
             Doctors d = new Doctors();
             d.setExternalId(set.getString("Employee_ID"));
@@ -79,6 +80,7 @@ public class PractitionerService {
             d.setSerenityUUid(PatientService.checkAndGenereateUUID(uuids, UUID.randomUUID()).toString());
             doctors.add(d);
             }else{
+                System.err.println(set.getString("mobile"));
                 Optional<Doctors> doctor = doctorRepository.NationalMobileNumber(set.getString("mobile"));
                 if(doctor.isPresent()){
                     Doctors doc2 = doctor.get();
