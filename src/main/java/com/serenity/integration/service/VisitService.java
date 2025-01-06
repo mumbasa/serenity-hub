@@ -110,7 +110,7 @@ public class VisitService {
         while (set.next()) {
             Optional<PatientData> patient = patientRepository.findByExternalId(set.getString("patient_mr_number"));
             System.err.println(set.getString("assigned_to_id")+"-----------------");
-            Doctors practitioner=doctorRepository.findByExternalId(set.getString("assigned_to_id"));
+            Optional<Doctors> practitioner=doctorRepository.findByExternalId(set.getString("assigned_to_id"));
             
 
             Visits visit = new Visits();
@@ -135,7 +135,9 @@ public class VisitService {
             visit.setPatientStatus(set.getString(19));
             visit.setPatientId(patient.get().getUuid());
             visit.setPatientMrNumber(patient.get().getMrNumber());
-            visit.setPractitionerId(practitioner.getSerenityUUid());
+            if(practitioner.isPresent()){
+            visit.setPractitionerId(practitioner.get().getSerenityUUid());
+            }
             visits.add(visit);
         }
 
