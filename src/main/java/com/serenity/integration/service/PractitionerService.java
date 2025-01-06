@@ -91,7 +91,7 @@ public class PractitionerService {
                     doc2.setNationalMobileNumber((set.getString("mobile")));
                     doc2.setTitle(set.getString("title"));
 
-                    doctors.add(doc2);
+                    doctorRepository.save(doc2);
                 
 
             }
