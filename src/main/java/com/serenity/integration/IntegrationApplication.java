@@ -80,6 +80,7 @@ public class IntegrationApplication {
 		//encounterService.setEncounterNotes();
 		//patientService.getLegacyPatients();
    visitService.saveVisits(1000);
+   
 	//practitionerService.savePracttioner();
 	
 	logger.info("finishing import");

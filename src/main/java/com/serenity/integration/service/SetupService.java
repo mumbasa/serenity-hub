@@ -616,7 +616,7 @@ System.err.println(response.getBody());
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
 
 
-restTemplate.setRequestFactory(requestFactory);
+        restTemplate.setRequestFactory(requestFactory);
         ResponseEntity<ServicePriceResponse> response = restTemplate.exchange(url, HttpMethod.PATCH, httpEntity,
                 ServicePriceResponse.class);
         LOGGER.info(response.getBody().toString());

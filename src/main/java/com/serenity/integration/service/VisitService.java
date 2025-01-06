@@ -37,6 +37,11 @@ public class VisitService {
     @Qualifier(value = "hisJdbcTemplate")
     JdbcTemplate hisJdbcTemplate;
 
+
+    @Autowired
+    @Qualifier(value = "legJdbcTemplate")
+    JdbcTemplate legJdbcTemplate;
+
     @Autowired
     PatientRepository patientRepository;
 
@@ -143,7 +148,7 @@ public class VisitService {
 
         int rounds = visits.size() / size;
 
-        for (int i = 0; i <= rounds; i++) {
+        for (int i = 0; i <rounds; i++) {
             if (i < rounds) {
                 System.err.println("Round submission " + i);
                 List<Visits> ds = visits.subList(i * size, (i * size) + size);
@@ -262,15 +267,66 @@ public class VisitService {
     }
 
     public void saveVisits(int size){
-        int rounds = 68000/size;
+        int rounds = 640871/size;
 
-        for(int a=0;a<rounds;a++){
+        for(int a=0;a<=rounds;a++){
 
             loadVisits(size, a);
 
         }
 
+        getLegacyVisit();
 
+
+
+    }
+
+
+    public void getLegacyVisit(){
+        List<Visits> visits = new ArrayList<>();
+        String sql = "SELECT * FROM visit v join patient p  on p.id = v.patient_id limit 1000";
+        SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
+        
+        while(set.next()){
+            Optional<PatientData> data = patientRepository.findByExternalId(set.getString("mr_number"));
+            Visits visit = new Visits();
+            visit.setUuid(UUID.fromString(set.getString("uuid")));
+            visit.setCreatedAt(set.getString("created_at"));
+            visit.setStatus(set.getString("status"));
+            visit.setStartedAt(set.getString("arrived_at"));
+            visit.setEndedAt(set.getString("ended_at"));
+            visit.setHisNumber(set.getString("mr_number"));
+            visit.setExternalSystem("opd");
+            visit.setLocationId(set.getString("primary_location_id"));
+            visit.setPatientMobile(set.getString("mobile"));
+            visit.setPatientName(set.getString("first_name")+" "+set.getString("last_name"));
+            visit.setPatientDob(set.getString("birth_date"));
+            visit.setGender(set.getString("gender"));
+            visit.setEncounterClass(set.getString("visit_class"));
+            visit.setPatientId(set.getString("patient_uuid"));
+            visit.setPatientMrNumber(data.get().getMrNumber());
+            visit.setDisplay("opd-"+visit.getHisNumber());
+            visits.add(visit);
+
+
+
+        }
+
+
+        if (visits.isEmpty()) {
+            return;
+        }
+        
+        int batchSize = 100;
+        int totalSize = visits.size();
+        int rounds = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+        
+        for (int i = 0; i < rounds; i++) {
+            int startIndex = i * batchSize;
+            int endIndex = Math.min(startIndex + batchSize, totalSize);
+            
+            visitRepository.saveAll(visits.subList(startIndex, endIndex));
+        }
 
     }
 
