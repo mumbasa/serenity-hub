@@ -12,5 +12,6 @@ import com.serenity.integration.models.Visits;
 public interface VisitRepository extends JpaRepository<Visits,Long>{
     @Query(value = "SELECT * FROM visits OFFSET ?1  LIMIT ?2",nativeQuery = true)
     List<Visits> getfirst100k(int offset,int limit);
+    
 
 }

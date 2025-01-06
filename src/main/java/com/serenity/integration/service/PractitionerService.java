@@ -483,8 +483,8 @@ public class PractitionerService {
 
     public void savePracttioner(){
       
-        addSerenityPractitioner();
-        saveHisPractioner();
+       addSerenityPractitioner();
+        //saveHisPractioner();
        
 
     }
