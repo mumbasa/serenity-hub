@@ -82,9 +82,7 @@ public class PractitionerService {
             }else{
                 System.err.println(set.getString("mobile"));
                 List<Doctors> doctor = doctorRepository.NationalMobileNumber(set.getString("mobile"));
-            if(doctor.size()>1){
-                doctorRepository.deleteAll(doctors.subList(1, doctors.size()));
-            } 
+           
                     Doctors doc2 = doctor.get(0);
                     doc2.setCountryCode("+233");
                     doc2.setExternalId(set.getString("Employee_ID"));
