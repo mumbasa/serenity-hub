@@ -81,9 +81,11 @@ public class PractitionerService {
             doctors.add(d);
             }else{
                 System.err.println(set.getString("mobile"));
-                Optional<Doctors> doctor = doctorRepository.NationalMobileNumber(set.getString("mobile"));
-                if(doctor.isPresent()){
-                    Doctors doc2 = doctor.get();
+                List<Doctors> doctor = doctorRepository.NationalMobileNumber(set.getString("mobile"));
+            if(doctor.size()>1){
+                doctorRepository.deleteAll(doctors.subList(1, doctors.size()));
+            } 
+                    Doctors doc2 = doctor.get(0);
                     doc2.setCountryCode("+233");
                     doc2.setExternalId(set.getString("Employee_ID"));
                     doc2.setExternalSystem("his");
@@ -92,7 +94,7 @@ public class PractitionerService {
                     doc2.setTitle(set.getString("title"));
 
                     doctors.add(doc2);
-                }
+                
 
             }
         }
