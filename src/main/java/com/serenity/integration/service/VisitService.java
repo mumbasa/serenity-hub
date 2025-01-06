@@ -43,7 +43,7 @@ public class VisitService {
     @Autowired
     DoctorRepository doctorRepository;
 
-    public void loadVisits(int size) {
+    public void loadVisits(int size,int round) {
         List<Visits> visits = new ArrayList<>();
         String sql = "select pmh.Transaction_ID as \"uuid\",\n" + //
                 "  pmh.DateOfVisit created_at,\n" + //
@@ -104,8 +104,8 @@ public class VisitService {
                 "  inner join patient_master pm on pm.Patient_ID = pmh.Patient_ID\n" + //
                 "  inner join doctor_master dm on pmh.Doctor_ID = dm.Doctor_ID\n" + //
                 "  inner join f_ledgertransaction lt on lt.`Transaction_ID` = pmh.`Transaction_ID`\n" + //
-                "  inner join appointment app on app.ledgertnxNo = lt.LedgerTransactionNo LIMIT 10000";
-        SqlRowSet set = hisJdbcTemplate.queryForRowSet(sql);
+                "  inner join appointment app on app.ledgertnxNo = lt.LedgerTransactionNo LIMIT ?,1000";
+        SqlRowSet set = hisJdbcTemplate.queryForRowSet(sql,round*size);
         Set<UUID> uuids = new HashSet<>();
         while (set.next()) {
             Optional<PatientData> patient = patientRepository.findByExternalId(set.getString("patient_mr_number"));
@@ -258,6 +258,19 @@ public class VisitService {
             }
 
         });
+
+    }
+
+    public void saveVisits(int size){
+        int rounds = 68000/size;
+
+        for(int a=0;a<rounds;a++){
+
+            loadVisits(size, a);
+
+        }
+
+
 
     }
 
