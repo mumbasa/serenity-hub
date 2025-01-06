@@ -62,7 +62,7 @@ public class PractitionerService {
         String query = "SELECT * from employee_master";
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
         while (set.next()) {
-            if(docsId.contains(set.getString("mobile"))){
+            if(!docsId.contains(set.getString("mobile"))){
             Doctors d = new Doctors();
             d.setExternalId(set.getString("Employee_ID"));
             d.setTitle(set.getString("title"));
@@ -484,7 +484,7 @@ public class PractitionerService {
     public void savePracttioner(){
       
        addSerenityPractitioner();
-        //saveHisPractioner();
+        saveHisPractioner();
        
 
     }
