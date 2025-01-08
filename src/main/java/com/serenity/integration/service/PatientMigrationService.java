@@ -15,12 +15,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
 import com.serenity.integration.models.PatientData;
@@ -60,7 +58,7 @@ public void getPatientsThreads(){
     List<PatientData> patientData = patientRepository.findAll();
     ExecutorService executorService =  Executors.newFixedThreadPool(10);
     try {
-        List<Future<Integer>> futures = executorService.invokeAll(sumitTask(patientData, set, 1000));
+        List<Future<Integer>> futures = executorService.invokeAll(sumitTask(patientData, set, 100));
         for(Future<Integer> future : futures){
             System.out.println("future.get = " + future.get());
         }
@@ -93,8 +91,8 @@ for (int i=0;i<=rounds;i++){
             @Override
             public Integer call() throws Exception {
                 // TODO Auto-generated method stub
-                task(ds, ids);
-                throw new UnsupportedOperationException("Unimplemented method 'call'");
+                return  task(ds, ids);
+                
             }
 
             
@@ -108,8 +106,7 @@ for (int i=0;i<=rounds;i++){
             @Override
             public Integer call() throws Exception {
                 // TODO Auto-generated method stub
-                task(ds, ids);
-                throw new UnsupportedOperationException("Unimplemented method 'call'");
+            return    task(ds, ids);
             }
 
             
@@ -214,10 +211,10 @@ public int task(List<PatientData> data,List<String> ids){
         public void setValues(PreparedStatement ps, int i) throws SQLException {
             PatientData k = datas.get(i);
             ps.setString(1, k.getCreatedAt().split("T")[0]+" 00:00:00.000 +0000");
-            ps.setString(2, UUID.randomUUID().toString());
+            ps.setString(2, k.getUuid());
             ps.setString(3, k.getFirstName());
             ps.setString(4, k.getLastName());
-            ps.setString(5, k.getFullName());
+            ps.setString(5, k.getFullName()==null? k.getFirstName() +" "+k.getLastName():k.getLastName());
             ps.setString(6, k.getOtherNames()==null?"":k.getOtherNames());
             ps.setString(7, k.getMobile());
             ps.setString(8, k.getEmail());
@@ -265,7 +262,7 @@ public int task2(List<PatientData> data){
               
 
                }
-               ps.setString(2, UUID.randomUUID().toString());
+               ps.setString(2, k.getUuid());
                ps.setString(3, k.getFirstName());
                ps.setString(4, k.getLastName());
                ps.setString(5, k.getFullName());

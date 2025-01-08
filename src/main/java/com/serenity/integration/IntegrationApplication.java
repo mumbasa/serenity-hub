@@ -18,6 +18,7 @@ import com.serenity.integration.service.PatientMigrationService;
 import com.serenity.integration.service.PatientService;
 import com.serenity.integration.service.PractitionerService;
 import com.serenity.integration.service.SetupService;
+import com.serenity.integration.service.VisitMigration;
 import com.serenity.integration.service.VisitService;
 
 import jakarta.annotation.PostConstruct;
@@ -44,6 +45,8 @@ public class IntegrationApplication {
 	PractitionerService practitionerService;
 	@Autowired
 	EncounterService encounterService;
+	@Autowired
+	VisitMigration visitMigration;
 
 	@Autowired
 	PatientMigrationService migrationService;
@@ -79,10 +82,10 @@ public class IntegrationApplication {
 //vCron.setupVisits();
 		//encounterService.setEncounterNotes();
 		//patientService.getLegacyPatients();
-   visitService.getLegacyVisit();
+   //visitService.getLegacyVisit();
    
 	//practitionerService.savePracttioner();
-	
+	visitMigration.getPatientsThreads();
 	logger.info("finishing import");
 
 	}
