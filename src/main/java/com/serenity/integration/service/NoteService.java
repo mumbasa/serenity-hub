@@ -2,9 +2,17 @@ package com.serenity.integration.service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +22,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
+import com.serenity.integration.models.Encounter;
 import com.serenity.integration.models.EncounterNote;
+import com.serenity.integration.models.PatientData;
+import com.serenity.integration.models.Visits;
+import com.serenity.integration.repository.DoctorRepository;
 import com.serenity.integration.repository.EncounterNoteRepository;
+import com.serenity.integration.repository.EncounterRepository;
+import com.serenity.integration.repository.PatientRepository;
+import com.serenity.integration.repository.VisitRepository;
 
 @Service
 public class NoteService {
@@ -26,6 +41,18 @@ public class NoteService {
     @Autowired
     EncounterNoteRepository encounterNoteRepository;
     Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Autowired
+    VisitRepository visitRepository;
+
+    @Autowired
+    PatientRepository patientRepository;
+
+    @Autowired
+    DoctorRepository doctorRepository;
+
+    @Autowired
+    EncounterRepository encounterRepository;
 
     public List<EncounterNote> getHisNote(List<String> numbers) {
         List<EncounterNote> notes = new ArrayList<>();
@@ -85,7 +112,7 @@ public class NoteService {
             EncounterNote note = new EncounterNote();
             note.setUuid(UUID.randomUUID().toString());
             note.setEncounterDate(set.getString(1));
-            
+
             note.setCreatedAt(set.getString(1));
             note.setUpdatedAt(set.getString(2));
             note.setNote(set.getString(3));
@@ -106,9 +133,11 @@ public class NoteService {
 
     }
 
-    public void getChiefNote() {
+    public int getChiefNote(int size, Map<String, PatientData> mps, Map<String, String> doc) {
 
         List<EncounterNote> notes = new ArrayList<>();
+        List<Encounter> encounters = new ArrayList<>();
+
         String sqlQuery = "SELECT " +
                 "  Transaction_ID AS \"uuid\", " +
                 "  Transaction_ID AS \"encounter_id\", " +
@@ -127,9 +156,9 @@ public class NoteService {
                 "  NULL AS \"edit_history\" " +
                 "FROM " +
                 "  cpoe_hpexam " +
-                "  LEFT JOIN employee_master AS practitioners ON cpoe_hpexam.EntryBy = practitioners.Employee_ID;";
+                "  LEFT JOIN employee_master AS practitioners ON cpoe_hpexam.EntryBy = practitioners.Employee_ID LIMIT ?, 1000";
 
-        SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery);
+        SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery, size);
         while (set.next()) {
             EncounterNote note = new EncounterNote();
             note.setUuid(UUID.randomUUID().toString());
@@ -140,36 +169,31 @@ public class NoteService {
             note.setNote(set.getString(4));
             note.setNoteType(set.getString(9));
             note.setEncounterDate(set.getString(6));
-            note.setPatientMrNumber(set.getString(3));
+            note.setPatientMrNumber(mps.get(set.getString(3)).getMrNumber());
             note.setEncounterType(set.getString(10));
             note.setRecalled(set.getBoolean(12));
             note.setPractitionerRoleType(set.getString(13));
             note.setPractitionerName(set.getString(14));
             note.setPractitionerId(set.getString(5));
-            
+
             note.setEdited(set.getBoolean(11));
             note.setDataSource("his");
-            notes.add(note);
-        }
-        int rounds = (notes.size() / 1000);
-        int cycle = 0;
-        for (int i = 0; i < rounds; i++) {
-            logger.info("adding chief note care plan " + i);
+            Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate(),
+                    doc.get(set.getString(5)), set.getString(3));
             try {
-                if (cycle < rounds) {
-                    encounterNoteRepository.saveAllAndFlush(notes.subList(i * 1000, (i * 1000) + 1000));
-                } else {
-                    encounterNoteRepository.saveAllAndFlush(notes.subList(cycle * 1000, notes.size()));
-
-                }
-
-                cycle++;
+                Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
+                encounters.add(encounter);
             } catch (Exception e) {
+                Encounter encounter = new Encounter(note, mps.get(set.getString(3)));
+                encounters.add(encounter);
 
             }
-
+            notes.add(note);
         }
+encounterRepository.saveAll(encounters);
+encounterNoteRepository.saveAll(notes);
 
+return 1;
     }
 
     public void getPresentingIllness() {
@@ -308,8 +332,8 @@ public class NoteService {
     }
 
     public void getProgressNote() {
-     Map<String,String> patient = new HashMap<String,String>();
-        Map<String,String> practitioners = new HashMap<String,String>();
+        Map<String, String> patient = new HashMap<String, String>();
+        Map<String, String> practitioners = new HashMap<String, String>();
         List<EncounterNote> notes = new ArrayList<>();
         String sqlQuery = "SELECT " +
                 "    `source`.`created_at` AS `created_at`, " +
@@ -371,7 +395,7 @@ public class NoteService {
             note.setEncounterDate(set.getString(5));
             note.setPatientMrNumber(set.getString(6));
             note.setEncounterType(set.getString(7));
-         
+
             note.setPractitionerRoleType(set.getString(9).replaceAll("\u0000", ""));
             note.setPractitionerName(set.getString(10).replaceAll("\u0000", ""));
             note.setPractitionerId(set.getString(11));
@@ -400,4 +424,57 @@ public class NoteService {
         }
 
     }
+
+
+
+
+public void CHIEFHisThreads(){
+
+int rows =5909;//89;
+    Map<String,PatientData> mps = patientRepository.findAll().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+        Map<String,String> doc = doctorRepository.findHisPractitioners().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+
+    ExecutorService executorService =  Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows,1000,mps,doc));
+            for(Future<Integer> future : futures){
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+        executorService.shutdown();
+        System.err.println("patiend count is ");
+        
+        
+            
+        }
+    
+    
+
+
+public Set<Callable<Integer>> submitTask2(int visits, int batchSize, Map<String,PatientData> mps,Map<String,String> doc) {
+    
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = visits;
+        int batches = (totalSize + batchSize - 1) / batchSize;  // Ceiling division
+    
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i;  // For use in lambda
+            
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                
+                logger.debug("Processing batch {}/{}, indices [{}]", 
+                         batchNumber + 1, batches, startIndex);
+                
+                return getChiefNote(startIndex, mps,doc);
+            });
+        }
+        
+        return callables;
+    }
+
 }

@@ -137,7 +137,7 @@ public Encounter (){}
         this.prescription =false;
         this.serviceRequest=false;
         this.createdAt=notes.getEncounterDate();
-        this.setEncounterClass("ambulatory");
+        this.setEncounterClass(note.getEncounterType());
         this.setAssignedToId(notes.getPractitionerId());
         this.setAssignedToName(notes.getPractitionerName());
         this.uuid=notes.getEncounterId();
@@ -156,6 +156,29 @@ public Encounter (){}
         this.setDisplay(note.getEncounterDate()+"-"+p.getMrNumber()+"- ambulatory");
         
     }
+    public Encounter(EncounterNote notes,PatientData p){
+        this.prescription =false;
+        this.serviceRequest=false;
+        this.createdAt=notes.getEncounterDate();
+        this.setEncounterClass("ambulatory");
+        this.setAssignedToId(notes.getPractitionerId());
+        this.setAssignedToName(notes.getPractitionerName());
+        this.uuid=notes.getEncounterId();
+        this.status="finished";
+        this.priority="routine";
+        this.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+        this.setServiceProviderName("Nyaho Medical Center");
+        this.setLocationId("23f59485-8518-4f4e-9146-d061dfe58175");
+        this.setLocationName("Airport Primary Care");
+        this.setPatientBirthDate(p.getBirthDate());
+        this.setPatientMrNumber(p.getMrNumber());
+        this.setPatientGender(p.getGender());
+        this.setPatientId(p.getUuid());
+        this.setPatientFullName(p.getFullName());
+        this.setDisplay(note.getEncounterDate()+"-"+p.getMrNumber()+"- ambulatory");
+        
+    }
+
 
 
 }
