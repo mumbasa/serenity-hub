@@ -178,8 +178,8 @@ public class NoteService {
 
             note.setEdited(set.getBoolean(11));
             note.setDataSource("his");
-            Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate(),
-                    doc.get(set.getString(5)), set.getString(3));
+            Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate(), set.getString(3),
+                    doc.get(set.getString(5)));
             try {
                 Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
                 encounters.add(encounter);
