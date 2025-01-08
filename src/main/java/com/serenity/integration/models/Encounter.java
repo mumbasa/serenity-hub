@@ -175,7 +175,7 @@ public Encounter (){}
         this.setPatientGender(p.getGender());
         this.setPatientId(p.getUuid());
         this.setPatientFullName(p.getFullName());
-        this.setDisplay(note.getEncounterDate()+"-"+p.getMrNumber()+"- ambulatory");
+        this.setDisplay(notes.getEncounterDate()+"-"+p.getMrNumber()+"- ambulatory");
         
     }
 
