@@ -314,7 +314,12 @@ public class VisitService {
             visit.setGender(set.getString("gender"));
             visit.setEncounterClass(set.getString("visit_class"));
             visit.setPatientId(set.getString("patient_uuid"));
+            try{
             visit.setPatientMrNumber(mps.get(set.getString("mr_number")));
+            }catch(Exception e){
+                logger.info("patient not found");
+
+            }
             visit.setDisplay("opd-"+visit.getHisNumber());
             visit.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
             visit.setServiceProviderName("Nyaho Medical Center");
