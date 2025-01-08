@@ -127,10 +127,10 @@ public class Encounter {
     private boolean serviceRequest;
     private boolean prescription;
 
-
+/* 
     @OneToOne(cascade = CascadeType.ALL,orphanRemoval = true)
     @JoinColumn(name = "encounter_d")
-    private EncounterNote note;
+    private EncounterNote note; */
 
 public Encounter (){}
     public Encounter(EncounterNote notes,Visits visit,PatientData p){
