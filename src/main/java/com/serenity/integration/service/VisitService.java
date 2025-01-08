@@ -288,7 +288,7 @@ public class VisitService {
 
     public int getLegacyVisit(int size){
         List<Visits> visits = new ArrayList<>();
-        String sql = "SELECT * FROM visit v join patient p  on p.id = v.patient_id   OFFSET ? LIMIT 5000";
+        String sql = "SELECT * FROM visit v join patient p  on p.id = v.patient_id   OFFSET ? LIMIT 3000";
         SqlRowSet set = legJdbcTemplate.queryForRowSet(sql,size);
         
         while(set.next()){
@@ -310,11 +310,14 @@ public class VisitService {
             visit.setPatientId(set.getString("patient_uuid"));
             visit.setPatientMrNumber(data.get().getMrNumber());
             visit.setDisplay("opd-"+visit.getHisNumber());
+            visit.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+            visit.setServiceProviderName("Nyaho Medical Center");
             visits.add(visit);
-            visitRepository.saveAll(visits);
         
 
     }
+    visitRepository.saveAll(visits);
+
 return visits.size();
 }
 
@@ -327,9 +330,9 @@ public void getlegacyThreads(){
 String sql ="SELECT count(*) from public.visit";
 int rows = legJdbcTemplate.queryForObject(sql, Integer.class);
 
-ExecutorService executorService =  Executors.newFixedThreadPool(20);
+ExecutorService executorService =  Executors.newFixedThreadPool(10);
     try {
-        List<Future<Integer>> futures = executorService.invokeAll(sumitTask(rows,5000));
+        List<Future<Integer>> futures = executorService.invokeAll(sumitTask(rows,3000));
         for(Future<Integer> future : futures){
             System.out.println("future.get = " + future.get());
         }
@@ -355,8 +358,9 @@ int rounds = Math.round(rows/size);
 
 for (int i=0;i<rounds;i++){
    
-        System.err.println("Round submission "+i);
         int now = i;
+        System.err.println("Round submission "+now);
+
         callables.add(new Callable<Integer>() {
 
             @Override
