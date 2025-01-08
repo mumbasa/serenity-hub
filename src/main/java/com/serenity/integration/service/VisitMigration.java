@@ -39,7 +39,7 @@ public void getPatientsThreads(){
     List<Visits> patientData = visitRepository.findAll();
     ExecutorService executorService =  Executors.newFixedThreadPool(10);
     try {
-        List<Future<Integer>> futures = executorService.invokeAll(sumitTask(patientData,  1000));
+        List<Future<Integer>> futures = executorService.invokeAll(sumitTask(patientData,  5000));
         for(Future<Integer> future : futures){
             System.out.println("future.get = " + future.get());
         }
