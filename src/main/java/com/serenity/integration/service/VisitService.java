@@ -307,7 +307,7 @@ String sql ="select count (*) "+
 //int rows = hisJdbcTemplate.queryForObject(sql,Integer.class);
 int rows =640871;
     Map<String,PatientData> mps = patientRepository.findAll().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
-        Map<String,String> doc = doctorRepository.findAll().stream().filter(e -> e.getExternalSystem().equalsIgnoreCase("his")).collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+        Map<String,String> doc = doctorRepository.findHisPractitioners().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
 
     ExecutorService executorService =  Executors.newFixedThreadPool(15);
         try {
