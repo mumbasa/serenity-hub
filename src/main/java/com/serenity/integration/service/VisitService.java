@@ -284,7 +284,7 @@ public class VisitService {
 
     public void getLegacyVisit(){
         List<Visits> visits = new ArrayList<>();
-        String sql = "SELECT * FROM visit v join patient p  on p.id = v.patient_id limit 1000";
+        String sql = "SELECT * FROM visit v join patient p  on p.id = v.patient_id ";
         SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
         
         while(set.next()){
@@ -317,7 +317,7 @@ public class VisitService {
             return;
         }
         
-        int batchSize = 100;
+        int batchSize = 10000;
         int totalSize = visits.size();
         int rounds = (totalSize + batchSize - 1) / batchSize; // Ceiling division
         

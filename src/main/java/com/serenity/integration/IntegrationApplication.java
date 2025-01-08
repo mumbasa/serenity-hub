@@ -79,7 +79,7 @@ public class IntegrationApplication {
 //vCron.setupVisits();
 		//encounterService.setEncounterNotes();
 		//patientService.getLegacyPatients();
-   visitService.saveVisits(1000);
+   visitService.getLegacyVisit();
    
 	//practitionerService.savePracttioner();
 	
