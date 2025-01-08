@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -13,7 +14,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -53,6 +57,7 @@ public class VisitService {
     @Autowired
     DoctorRepository doctorRepository;
 
+    Logger logger = LoggerFactory.getLogger(getClass());
     public void loadVisits(int size,int round) {
         List<Visits> visits = new ArrayList<>();
         String sql = "select pmh.Transaction_ID as \"uuid\",\n" + //
@@ -286,13 +291,14 @@ public class VisitService {
     }
 
 
-    public int getLegacyVisit(int size){
+    public List<Visits>  getLegacyVisit(){
         List<Visits> visits = new ArrayList<>();
-        String sql = "SELECT * FROM visit v join patient p  on p.id = v.patient_id   OFFSET ? LIMIT 3000";
-        SqlRowSet set = legJdbcTemplate.queryForRowSet(sql,size);
-        
+        String sql = "SELECT * FROM visit v join patient p  on p.id = v.patient_id";
+        SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
+        Map<String,String> mps = patientRepository.findAll().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getMrNumber()));
         while(set.next()){
-            Optional<PatientData> data = patientRepository.findByExternalId(set.getString("mr_number"));
+            System.err.println(set.getString(1) +"=========");
+          //  Optional<PatientData> data = patientRepository.findByExternalId(set.getString("mr_number"));
             Visits visit = new Visits();
             visit.setUuid(UUID.fromString(set.getString("uuid")));
             visit.setCreatedAt(set.getString("created_at"));
@@ -308,7 +314,7 @@ public class VisitService {
             visit.setGender(set.getString("gender"));
             visit.setEncounterClass(set.getString("visit_class"));
             visit.setPatientId(set.getString("patient_uuid"));
-            visit.setPatientMrNumber(data.get().getMrNumber());
+            visit.setPatientMrNumber(mps.get(set.getString("mr_number")));
             visit.setDisplay("opd-"+visit.getHisNumber());
             visit.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
             visit.setServiceProviderName("Nyaho Medical Center");
@@ -316,9 +322,8 @@ public class VisitService {
         
 
     }
-    visitRepository.saveAll(visits);
 
-return visits.size();
+return visits;
 }
 
 
@@ -327,12 +332,12 @@ return visits.size();
 
 
 public void getlegacyThreads(){
-String sql ="SELECT count(*) from public.visit";
-int rows = legJdbcTemplate.queryForObject(sql, Integer.class);
+List<Visits>visits = getLegacyVisit();
+//int rows = legJdbcTemplate.queryForObject(sql, Integer.class);
 
 ExecutorService executorService =  Executors.newFixedThreadPool(10);
     try {
-        List<Future<Integer>> futures = executorService.invokeAll(sumitTask(rows,3000));
+        List<Future<Integer>> futures = executorService.invokeAll(submitTask(visits,100));
         for(Future<Integer> future : futures){
             System.out.println("future.get = " + future.get());
         }
@@ -342,7 +347,7 @@ ExecutorService executorService =  Executors.newFixedThreadPool(10);
     }
     
     executorService.shutdown();
-    System.err.println("patiend count is "+rows);
+    System.err.println("patiend count is ");
     
     
         
@@ -352,35 +357,35 @@ ExecutorService executorService =  Executors.newFixedThreadPool(10);
 
     
 
-public Set<Callable<Integer>> sumitTask(int rows,int size){
-Set<Callable<Integer>> callables = new HashSet<Callable<Integer>>();
-int rounds = Math.round(rows/size);
-
-for (int i=0;i<rounds;i++){
-   
-        int now = i;
-        System.err.println("Round submission "+now);
-
-        callables.add(new Callable<Integer>() {
-
-            @Override
-            public Integer call() throws Exception {
-                // TODO Auto-generated method stub
-                return  getLegacyVisit(now*size);
-                
-            }
-
-            
-        });
+    public Set<Callable<Integer>> submitTask(List<Visits> visits, int batchSize) {
+        if (visits == null || visits.isEmpty() || batchSize <= 0) {
+            throw new IllegalArgumentException("Invalid input parameters");
+        }
     
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = visits.size();
+        int batches = (totalSize + batchSize - 1) / batchSize;  // Ceiling division
+    
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i;  // For use in lambda
+            
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                int endIndex = Math.min(startIndex + batchSize, totalSize);
+                
+                logger.debug("Processing batch {}/{}, indices [{}, {}]", 
+                         batchNumber + 1, batches, startIndex, endIndex);
+                
+                return saveVisits(visits.subList(startIndex, endIndex));
+            });
+        }
+        
+        return callables;
     }
 
+public int saveVisits(List<Visits> visits){
+    visitRepository.saveAll(visits);
+return 1;
 
-
-
-    return callables;
-} 
-
-
-
+}
 }
