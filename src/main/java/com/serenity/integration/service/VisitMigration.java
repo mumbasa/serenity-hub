@@ -2,29 +2,21 @@ package com.serenity.integration.service;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import com.serenity.integration.models.PatientData;
-import com.serenity.integration.models.Visit;
 import com.serenity.integration.models.Visits;
-import com.serenity.integration.repository.PatientRepository;
 import com.serenity.integration.repository.VisitRepository;
 
 @Service
@@ -109,53 +101,6 @@ for (int i=0;i<=rounds;i++){
 } 
 
 
-public void sumitTasker(int size){
-    String sql = "SELECT external_id from public.patients";
-    List<String> ids = serenityJdbcTemplate.queryForList(sql,String.class);
-    System.err.println("ids are "+ids.size());
-    List<Visits> patientData = visitRepository.findAll();//stream().filter(e -> !ids.contains(e.getExternalId())).collect(Collectors.toList());
-
-    int rounds = patientData.size()/size;
-    
-     for (int i=0;i<=rounds;i++){
-        if(i<rounds){
-            System.err.println("Round submission "+i);
-            List<Visits> ds =patientData.subList(i*size,(i*size)+size);
-            try{
-                    task2(ds);
-            }catch(Exception e){
-                e.printStackTrace();
-                for(Visits d : ds){
-                    List<Visits> f = new ArrayList<>();
-                    f.add(d);
-                    task2(f);
-
-                }
-
-            }
-        }else{
-            System.err.println("Finishing Round submission "+i);
-            List<Visits> ds =patientData.subList((i*size),patientData.size());
-
-            try{
-            task2(ds);
-            }catch(Exception e){
-                
-                for(Visits d : ds){
-                    List<Visits> f = new ArrayList<>();
-                    f.add(d);
-                    task2(f);
-
-                }
-                
-                e.printStackTrace();
-            }
-                
-            };
-        }
-    
-    
-    }
 
 
     public void sumitTask2(int size){
@@ -255,25 +200,4 @@ return visits.size();
         }
 
 
-public int task2(List<Visits> data){
-      String sql= "INSERT INTO public.patients(created_at, id,  \"uuid\", first_name, last_name, full_name, other_names, mobile, email, birth_date, gender, nationality, mr_number,  blood_type,  managing_organization_id, managing_organization_name,marital_status, name_prefix, occupation,  national_mobile_number, passport_number,  external_id, external_system) VALUES (CAST(? AS TIMESTAMP WITH TIME ZONE),nextval('patients_id_seq'::regclass),uuid(?),?,?,?,?,?,?,CAST(? AS DATE),?,?,?,?,CAST(? AS UUID),?,?,?,?,?,?,?,?)";
-       serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
-   
-           @SuppressWarnings("null")
-           @Override
-           public void setValues(PreparedStatement ps, int i) throws SQLException {
-            Visits k = data.get(i);
-            
-             
-           }
-   
-           @Override
-           public int getBatchSize() {
-               // TODO Auto-generated method stub
-               return data.size();
-           }
-           
-       });
-       return data.size();
-   }
 }
