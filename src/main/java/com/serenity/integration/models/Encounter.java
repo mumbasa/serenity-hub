@@ -137,7 +137,7 @@ public Encounter (){}
         this.prescription =false;
         this.serviceRequest=false;
         this.createdAt=notes.getEncounterDate();
-        this.setEncounterClass(note.getEncounterType());
+        this.setEncounterClass(notes.getEncounterType());
         this.setAssignedToId(notes.getPractitionerId());
         this.setAssignedToName(notes.getPractitionerName());
         this.uuid=notes.getEncounterId();
@@ -153,7 +153,7 @@ public Encounter (){}
         this.setPatientGender(p.getGender());
         this.setPatientId(p.getUuid());
         this.setPatientFullName(p.getFullName());
-        this.setDisplay(note.getEncounterDate()+"-"+p.getMrNumber()+"- ambulatory");
+        this.setDisplay(notes.getEncounterDate()+"-"+p.getMrNumber()+"- ambulatory");
         
     }
     public Encounter(EncounterNote notes,PatientData p){
