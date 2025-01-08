@@ -82,7 +82,7 @@ public class IntegrationApplication {
 //vCron.setupVisits();
 		//encounterService.setEncounterNotes();
 		//patientService.getLegacyPatients();
-   visitService.noi();
+   visitService.getHisThreads();
    
 	//practitionerService.savePracttioner();
 	//visitMigration.getPatientsThreads();
