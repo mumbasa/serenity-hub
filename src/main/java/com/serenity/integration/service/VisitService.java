@@ -56,10 +56,12 @@ public class VisitService {
 
     @Autowired
     DoctorRepository doctorRepository;
+  
 
     Logger logger = LoggerFactory.getLogger(getClass());
-    public void loadVisits(int size,int round) {
+    public int loadVisits(int size, Map<String,PatientData> mps,Map<String,String> doc ) {
         List<Visits> visits = new ArrayList<>();
+     
         String sql = "select pmh.Transaction_ID as \"uuid\",\n" + //
                 "  pmh.DateOfVisit created_at,\n" + //
                 "  case\n" + //
@@ -120,13 +122,8 @@ public class VisitService {
                 "  inner join doctor_master dm on pmh.Doctor_ID = dm.Doctor_ID\n" + //
                 "  inner join f_ledgertransaction lt on lt.`Transaction_ID` = pmh.`Transaction_ID`\n" + //
                 "  inner join appointment app on app.ledgertnxNo = lt.LedgerTransactionNo LIMIT ?,1000";
-        SqlRowSet set = hisJdbcTemplate.queryForRowSet(sql,round*size);
+        SqlRowSet set = hisJdbcTemplate.queryForRowSet(sql,size);
         while (set.next()) {
-            Optional<PatientData> patient = patientRepository.findByExternalId(set.getString("patient_mr_number"));
-            System.err.println(set.getString("assigned_to_id")+"-----------------");
-            Optional<Doctors> practitioner=doctorRepository.findByExternalId(set.getString("assigned_to_id"));
-    
-
             Visits visit = new Visits();
             visit.setUuid(UUID.randomUUID());
             visit.setCreatedAt(set.getString(2));
@@ -147,36 +144,16 @@ public class VisitService {
             visit.setAssignedToId(set.getString(20));
             visit.setPatientName(set.getString(15));
             visit.setPatientStatus(set.getString(19));
-            visit.setPatientId(patient.get().getUuid());
-            visit.setPatientMrNumber(patient.get().getMrNumber());
-            if(practitioner.isPresent()){
-            visit.setPractitionerId(practitioner.get().getSerenityUUid());
-            }
+            visit.setPatientId(mps.get(set.getString("patient_mr_number")).getUuid());
+            visit.setPatientMrNumber(mps.get(set.getString("patient_mr_number")).getMrNumber());
+     
+            visit.setPractitionerId(doc.get(set.getString("assigned_to_id")));
+            
             visits.add(visit);
         }
 
-        int rounds = visits.size() / size;
-
-        for (int i = 0; i <rounds; i++) {
-            if (i < rounds) {
-                System.err.println("Round submission " + i);
-                List<Visits> ds = visits.subList(i * size, (i * size) + size);
-                try {
-                    visitRepository.saveAll(ds);
-                } catch (Exception e) {
-
-                    e.printStackTrace();
-                }
-            } else {
-                System.err.println("Finishing Round submission " + i);
-
-                List<Visits> ds = visits.subList((i * size), visits.size());
-                visitRepository.saveAll(ds);
-
-            }
-            
-        }
-
+        visitRepository.saveAll(visits);
+return visits.size();
     }
 
     
@@ -276,20 +253,7 @@ public class VisitService {
 
     }
 
-    public void saveVisits(int size){
-        int rounds = 640871/size;
-
-        for(int a=0;a<=rounds;a++){
-
-            loadVisits(size, a);
-
-        }
-
-
-
-
-    }
-
+    
 
     public List<Visits>  getLegacyVisit(){
         List<Visits> visits = new ArrayList<>();
@@ -333,7 +297,37 @@ return visits;
 
 
 
+public void getHisThreads(){
+String sql ="select count (*) "+
+                " from patient_medical_history pmh\n" + //
+                "  inner join patient_master pm on pm.Patient_ID = pmh.Patient_ID\n" + //
+                "  inner join doctor_master dm on pmh.Doctor_ID = dm.Doctor_ID\n" + //
+                "  inner join f_ledgertransaction lt on lt.`Transaction_ID` = pmh.`Transaction_ID`\n" + //
+                "  inner join appointment app on app.ledgertnxNo = lt.LedgerTransactionNo";
+//int rows = hisJdbcTemplate.queryForObject(sql,Integer.class);
+int rows =640871;
+    Map<String,PatientData> mps = patientRepository.findAll().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+        Map<String,String> doc = doctorRepository.findAll().stream().filter(e -> e.getExternalSystem().equalsIgnoreCase("his")).collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
 
+    ExecutorService executorService =  Executors.newFixedThreadPool(15);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows,1000,mps,doc));
+            for(Future<Integer> future : futures){
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+        executorService.shutdown();
+        System.err.println("patiend count is ");
+        
+        
+            
+        }
+    
+    
 
 
 public void getlegacyThreads(){
@@ -388,9 +382,36 @@ ExecutorService executorService =  Executors.newFixedThreadPool(10);
         return callables;
     }
 
+
+
+
+public Set<Callable<Integer>> submitTask2(int visits, int batchSize, Map<String,PatientData> mps,Map<String,String> doc) {
+    
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = visits;
+        int batches = (totalSize + batchSize - 1) / batchSize;  // Ceiling division
+    
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i;  // For use in lambda
+            
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                
+                logger.debug("Processing batch {}/{}, indices [{}]", 
+                         batchNumber + 1, batches, startIndex);
+                
+                return loadVisits(startIndex, mps,doc);
+            });
+        }
+        
+        return callables;
+    }
+
 public int saveVisits(List<Visits> visits){
     visitRepository.saveAll(visits);
 return 1;
 
 }
+
+
 }
