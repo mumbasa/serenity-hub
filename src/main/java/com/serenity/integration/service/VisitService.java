@@ -120,10 +120,10 @@ public class VisitService {
             Optional<PatientData> patient = patientRepository.findByExternalId(set.getString("patient_mr_number"));
             System.err.println(set.getString("assigned_to_id")+"-----------------");
             Optional<Doctors> practitioner=doctorRepository.findByExternalId(set.getString("assigned_to_id"));
-            
+    
 
             Visits visit = new Visits();
-            visit.setUuid(PatientService.checkAndGenereateUUID(uuids, UUID.randomUUID()));
+            visit.setUuid(UUID.randomUUID());
             visit.setCreatedAt(set.getString(2));
             visit.setEncounterClass(set.getString(3));
             visit.setStatus(set.getString(4));
@@ -288,7 +288,7 @@ public class VisitService {
 
     public int getLegacyVisit(int size){
         List<Visits> visits = new ArrayList<>();
-        String sql = "SELECT * FROM visit v join patient p  on p.id = v.patient_id   OFFSET ?, LIMIT 5000";
+        String sql = "SELECT * FROM visit v join patient p  on p.id = v.patient_id   OFFSET ? LIMIT 5000";
         SqlRowSet set = legJdbcTemplate.queryForRowSet(sql,size);
         
         while(set.next()){

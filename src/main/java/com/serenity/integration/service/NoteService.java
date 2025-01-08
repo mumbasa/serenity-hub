@@ -1,7 +1,9 @@
 package com.serenity.integration.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -300,7 +302,8 @@ public class NoteService {
     }
 
     public void getProgressNote() {
-
+     Map<String,String> patient = new HashMap<String,String>();
+        Map<String,String> practitioners = new HashMap<String,String>();
         List<EncounterNote> notes = new ArrayList<>();
         String sqlQuery = "SELECT " +
                 "    `source`.`created_at` AS `created_at`, " +
@@ -362,7 +365,7 @@ public class NoteService {
             note.setEncounterDate(set.getString(5));
             note.setPatientMrNumber(set.getString(6));
             note.setEncounterType(set.getString(7));
-            // note.setRecalled(set.getBoolean(8));
+         
             note.setPractitionerRoleType(set.getString(9).replaceAll("\u0000", ""));
             note.setPractitionerName(set.getString(10).replaceAll("\u0000", ""));
             note.setPractitionerId(set.getString(11));

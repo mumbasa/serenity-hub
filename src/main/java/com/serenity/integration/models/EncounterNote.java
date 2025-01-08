@@ -32,6 +32,8 @@ public class EncounterNote {
 
     private String encounterId;
 
+    private String patientId;
+
     @Column(columnDefinition="TEXT")
     private String encounterDate;
     @Column(columnDefinition="TEXT")
