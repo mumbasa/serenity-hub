@@ -28,8 +28,8 @@ public class EncounterNote {
     private String updatedAt;
     @Column(columnDefinition="TEXT")
     private String note;
+ 
     @Column(columnDefinition="TEXT")
-
     private String encounterId;
 
     private String patientId;

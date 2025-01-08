@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +83,9 @@ public class NoteService {
         while (set.next()) {
             System.err.println(set.getString(1));
             EncounterNote note = new EncounterNote();
+            note.setUuid(UUID.randomUUID().toString());
+            note.setEncounterDate(set.getString(1));
+            
             note.setCreatedAt(set.getString(1));
             note.setUpdatedAt(set.getString(2));
             note.setNote(set.getString(3));
@@ -128,7 +132,8 @@ public class NoteService {
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery);
         while (set.next()) {
             EncounterNote note = new EncounterNote();
-            note.setUuid(set.getString(1));
+            note.setUuid(UUID.randomUUID().toString());
+            note.setEncounterId(UUID.randomUUID().toString());
             note.setEncounterId(set.getString(2));
             note.setCreatedAt(set.getString(7));
             note.setUpdatedAt(set.getString(8));
@@ -141,6 +146,7 @@ public class NoteService {
             note.setPractitionerRoleType(set.getString(13));
             note.setPractitionerName(set.getString(14));
             note.setPractitionerId(set.getString(5));
+            
             note.setEdited(set.getBoolean(11));
             note.setDataSource("his");
             notes.add(note);

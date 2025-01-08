@@ -309,7 +309,7 @@ int rows =640871;
     Map<String,PatientData> mps = patientRepository.findAll().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
         Map<String,String> doc = doctorRepository.findHisPractitioners().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
 
-    ExecutorService executorService =  Executors.newFixedThreadPool(15);
+    ExecutorService executorService =  Executors.newFixedThreadPool(10);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows,1000,mps,doc));
             for(Future<Integer> future : futures){

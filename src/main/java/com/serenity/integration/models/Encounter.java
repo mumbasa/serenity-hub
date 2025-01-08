@@ -1,11 +1,14 @@
 package com.serenity.integration.models;
 
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,9 +24,7 @@ import lombok.ToString;
 public class Encounter {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
-   
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "uuid", nullable = false, unique = true)
     private String uuid;
 
@@ -120,5 +121,41 @@ public class Encounter {
     @Column(name = "service_provider_name")
     private String serviceProviderName;
 
-  
+    @Column(name = "visit_id")
+    private String visitId;
+
+    private boolean serviceRequest;
+    private boolean prescription;
+
+
+    @OneToOne(cascade = CascadeType.ALL,orphanRemoval = true)
+    @JoinColumn(name = "encounter_d")
+    private EncounterNote note;
+
+public Encounter (){}
+    public Encounter(EncounterNote notes,Visits visit,PatientData p){
+        this.prescription =false;
+        this.serviceRequest=false;
+        this.createdAt=notes.getEncounterDate();
+        this.setEncounterClass("ambulatory");
+        this.setAssignedToId(notes.getPractitionerId());
+        this.setAssignedToName(notes.getPractitionerName());
+        this.uuid=notes.getEncounterId();
+        this.status="finished";
+        this.priority="routine";
+        this.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+        this.setServiceProviderName("Nyaho Medical Center");
+        this.setLocationId("23f59485-8518-4f4e-9146-d061dfe58175");
+        this.setLocationName("Airport Primary Care");
+        this.setVisitId(visit.getUuid().toString());
+        this.setPatientBirthDate(p.getBirthDate());
+        this.setPatientMrNumber(p.getMrNumber());
+        this.setPatientGender(p.getGender());
+        this.setPatientId(p.getUuid());
+        this.setPatientFullName(p.getFullName());
+        this.setDisplay(note.getEncounterDate()+"-"+p.getMrNumber()+"- ambulatory");
+        
+    }
+
+
 }
