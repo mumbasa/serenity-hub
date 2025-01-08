@@ -82,10 +82,10 @@ public class IntegrationApplication {
 //vCron.setupVisits();
 		//encounterService.setEncounterNotes();
 		//patientService.getLegacyPatients();
-   //visitService.getLegacyVisit();
+   visitService.getlegacyThreads();
    
 	//practitionerService.savePracttioner();
-	visitMigration.getPatientsThreads();
+	//visitMigration.getPatientsThreads();
 	logger.info("finishing import");
 
 	}

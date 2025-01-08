@@ -8,6 +8,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -111,7 +116,6 @@ public class VisitService {
                 "  inner join f_ledgertransaction lt on lt.`Transaction_ID` = pmh.`Transaction_ID`\n" + //
                 "  inner join appointment app on app.ledgertnxNo = lt.LedgerTransactionNo LIMIT ?,1000";
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(sql,round*size);
-        Set<UUID> uuids = new HashSet<>();
         while (set.next()) {
             Optional<PatientData> patient = patientRepository.findByExternalId(set.getString("patient_mr_number"));
             System.err.println(set.getString("assigned_to_id")+"-----------------");
@@ -165,11 +169,12 @@ public class VisitService {
                 visitRepository.saveAll(ds);
 
             }
-            ;
+            
         }
 
     }
 
+    
     public void setITem() {
         int rounds = 640871 / 1000;
 
@@ -275,17 +280,16 @@ public class VisitService {
 
         }
 
-        getLegacyVisit();
 
 
 
     }
 
 
-    public void getLegacyVisit(){
+    public int getLegacyVisit(int size){
         List<Visits> visits = new ArrayList<>();
-        String sql = "SELECT * FROM visit v join patient p  on p.id = v.patient_id LIMIT 100 ";
-        SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
+        String sql = "SELECT * FROM visit v join patient p  on p.id = v.patient_id   OFFSET ?, LIMIT 5000";
+        SqlRowSet set = legJdbcTemplate.queryForRowSet(sql,size);
         
         while(set.next()){
             Optional<PatientData> data = patientRepository.findByExternalId(set.getString("mr_number"));
@@ -307,27 +311,72 @@ public class VisitService {
             visit.setPatientMrNumber(data.get().getMrNumber());
             visit.setDisplay("opd-"+visit.getHisNumber());
             visits.add(visit);
-
-
-
-        }
-
-
-        if (visits.isEmpty()) {
-            return;
-        }
+            visitRepository.saveAll(visits);
         
-        int batchSize = 100;
-        int totalSize = visits.size();
-        int rounds = (totalSize + batchSize - 1) / batchSize; // Ceiling division
-        
-        for (int i = 0; i < rounds; i++) {
-            int startIndex = i * batchSize;
-            int endIndex = Math.min(startIndex + batchSize, totalSize);
-            
-            visitRepository.saveAll(visits.subList(startIndex, endIndex));
-        }
 
     }
+return visits.size();
+}
+
+
+
+
+
+
+public void getlegacyThreads(){
+String sql ="SELECT count(*) from public.visit";
+int rows = legJdbcTemplate.queryForObject(sql, Integer.class);
+
+ExecutorService executorService =  Executors.newFixedThreadPool(20);
+    try {
+        List<Future<Integer>> futures = executorService.invokeAll(sumitTask(rows,5000));
+        for(Future<Integer> future : futures){
+            System.out.println("future.get = " + future.get());
+        }
+    } catch (InterruptedException | ExecutionException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+    }
+    
+    executorService.shutdown();
+    System.err.println("patiend count is "+rows);
+    
+    
+        
+    }
+
+
+
+    
+
+public Set<Callable<Integer>> sumitTask(int rows,int size){
+Set<Callable<Integer>> callables = new HashSet<Callable<Integer>>();
+int rounds = Math.round(rows/size);
+
+for (int i=0;i<rounds;i++){
+   
+        System.err.println("Round submission "+i);
+        int now = i;
+        callables.add(new Callable<Integer>() {
+
+            @Override
+            public Integer call() throws Exception {
+                // TODO Auto-generated method stub
+                return  getLegacyVisit(now*size);
+                
+            }
+
+            
+        });
+    
+    }
+
+
+
+
+    return callables;
+} 
+
+
 
 }

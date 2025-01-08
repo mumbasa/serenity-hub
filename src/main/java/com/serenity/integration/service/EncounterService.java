@@ -3,7 +3,9 @@ package com.serenity.integration.service;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -41,7 +43,7 @@ public class EncounterService {
     Logger LOGGER = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
     public void encounter(int start, int end) {
-
+   
         List<Encounter> notes = new ArrayList<>();
         String sqlQuery = "SELECT " +
                 "    pmh.Transaction_ID AS \"uuid\", " +
