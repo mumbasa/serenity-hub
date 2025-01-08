@@ -14,6 +14,7 @@ import com.serenity.integration.cron.VisitsCron;
 import com.serenity.integration.repository.VisitRepository;
 import com.serenity.integration.service.AdmissionService;
 import com.serenity.integration.service.EncounterService;
+import com.serenity.integration.service.NoteService;
 import com.serenity.integration.service.PatientMigrationService;
 import com.serenity.integration.service.PatientService;
 import com.serenity.integration.service.PractitionerService;
@@ -31,7 +32,7 @@ public class IntegrationApplication {
 	PatientService service;
 
 	@Autowired
-	NoteServiceCron noteService;
+	NoteService noteService;
 
 	@Autowired
 	VisitsCron vCron;
@@ -82,8 +83,8 @@ public class IntegrationApplication {
 //vCron.setupVisits();
 		//encounterService.setEncounterNotes();
 		//patientService.getLegacyPatients();
-   visitService.getHisThreads();
-   
+  // visitService.getHisThreads();
+   noteService.chiefThreads();
 	//practitionerService.savePracttioner();
 	//visitMigration.getPatientsThreads();
 	logger.info("finishing import");

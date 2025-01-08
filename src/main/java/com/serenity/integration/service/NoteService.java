@@ -428,7 +428,7 @@ return 1;
 
 
 
-public void CHIEFHisThreads(){
+public void chiefThreads(){
 
 int rows =5909;//89;
     Map<String,PatientData> mps = patientRepository.findAll().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
