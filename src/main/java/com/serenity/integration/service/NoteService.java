@@ -1,5 +1,7 @@
 package com.serenity.integration.service;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -134,75 +136,92 @@ public class NoteService {
 
     }
 
-    public int getChiefNote(int size, Map<String, PatientData> mps, Map<String, String> doc) {
+    public int getChiefNote(int offset, Map<String, PatientData> patientDataMap, Map<String, String> doctorMap) {
+    final String sqlQuery = """
+        SELECT 
+            Transaction_ID AS uuid,
+            Transaction_ID AS encounter_id,
+            PatientID AS patient_mr_number,
+            MainComplaint AS note,
+            EntryBy AS practitioner_id,
+            DATE_FORMAT(EntryDate, '%Y-%m-%dT%TZ') AS encounter_date,
+            NULL AS created_at,
+            NULL AS updated_at,
+            'chief-complaint' AS note_type,
+            'outpatient-consultation' AS encounter_type,
+            FALSE AS is_edited,
+            FALSE AS is_recalled,
+            'unknown' AS practitioner_role_type,
+            CONCAT(practitioners.title, ' ', practitioners.Name) AS practitioner_name
+        FROM cpoe_hpexam 
+        LEFT JOIN employee_master AS practitioners ON cpoe_hpexam.EntryBy = practitioners.Employee_ID 
+        LIMIT ?, 1000
+    """;
 
-        List<EncounterNote> notes = new ArrayList<>();
-        List<Encounter> encounters = new ArrayList<>();
+    List<EncounterNote> notes = new ArrayList<>();
+    List<Encounter> encounters = new ArrayList<>();
 
-        String sqlQuery = "SELECT " +
-                "  Transaction_ID AS \"uuid\", " +
-                "  Transaction_ID AS \"encounter_id\", " +
-                "  PatientID AS \"patient_mr_number\", " +
-                "  MainComplaint AS \"note\", " +
-                "  EntryBy AS \"practitioner_id\", " +
-                "  DATE_FORMAT(EntryDate, '%Y-%m-%dT%TZ') AS \"encounter_date\", " +
-                "  NULL AS \"created_at\", " +
-                "  NULL AS \"updated_at\", " +
-                "  'chief-complaint' AS \"note-type\", " +
-                "  'outpatient-consultation' AS \"encounter_type\", " +
-                "  FALSE AS is_edited, " +
-                "  FALSE AS is_recalled, " +
-                "  'unknown' AS practitioner_role_type, " +
-                "  CONCAT(practitioners.title, ' ', practitioners.Name) AS \"practitioner_name\", " +
-                "  NULL AS \"edit_history\" " +
-                "FROM " +
-                "  cpoe_hpexam " +
-                "  LEFT JOIN employee_master AS practitioners ON cpoe_hpexam.EntryBy = practitioners.Employee_ID LIMIT ?, 1000";
-
-        SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery, size);
-        while (set.next()) {
-            EncounterNote note = new EncounterNote();
-            note.setUuid(UUID.randomUUID().toString());
-            note.setEncounterId(UUID.randomUUID().toString());
-            note.setCreatedAt(set.getString(7));
-            note.setUpdatedAt(set.getString(8));
-            note.setNote(set.getString(4));
-            note.setNoteType(set.getString(9));
-            note.setEncounterDate(set.getString(6).replaceAll("T", " "));
-            note.setPatientMrNumber(mps.get(set.getString(3)).getMrNumber());
-            note.setEncounterType(set.getString(10));
-            note.setRecalled(set.getBoolean(12));
-            note.setPractitionerRoleType(set.getString(13));
-            note.setPractitionerName(set.getString("practitioner_name"));
-            note.setPractitionerId(doc.get(set.getString("practitioner_id")));
-            note.setExternalId(set.getString("uuid"));
-            note.setEdited(set.getBoolean(11));
-            note.setDataSource("his");
-            
-            try {
-                System.err.println(note.getEncounterDate().split(" ")[0]+"========");
-                Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate().split(" ")[0], set.getString(3),
-                    doc.get(set.getString(5)));
-                Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
-                encounters.add(encounter);
-            } catch (Exception e) {
-
-                e.printStackTrace();
-                UUID visituuid =UUID.randomUUID();
-                Visits visits = new Visits(note,visituuid,mps.get(set.getString(3)));
-                visitRepository.save(visits);
-                Encounter encounter = new Encounter(note, visits,mps.get(set.getString(3)));
-                encounter.setVisitId(visituuid.toString());
-                encounters.add(encounter);
-
-            }
-            notes.add(note);
+    hisJdbcTemplate.query(sqlQuery, ps -> ps.setInt(1, offset), rs -> {
+        String patientId = rs.getString("patient_mr_number");
+        PatientData patientData = patientDataMap.get(patientId);
+        if (patientData == null) {
+            logger.warn("Patient data not found for ID: {}", patientId);
+            return;
         }
-        encounterRepository.saveAll(encounters);
-        encounterNoteRepository.saveAll(notes);
 
-        return 1;
+        EncounterNote note = createEncounterNote(rs, patientData, doctorMap);
+        notes.add(note);
+
+        try {
+            String encounterDate = note.getEncounterDate().split(" ")[0];
+            Visits visit = visitRepository.getVistByDateDoctorPatient(
+                encounterDate, 
+                patientId,
+                doctorMap.get(rs.getString("practitioner_id"))
+            );
+            encounters.add(new Encounter(note, visit, patientData));
+        } catch (Exception e) {
+            logger.error("Error finding visit, creating new: {}", e.getMessage());
+            UUID visitUuid = UUID.randomUUID();
+            Visits newVisit = new Visits(note, visitUuid, patientData);
+            visitRepository.save(newVisit);
+            
+            Encounter encounter = new Encounter(note, newVisit, patientData);
+            encounter.setVisitId(visitUuid.toString());
+            encounters.add(encounter);
+        }
+    });
+
+    if (!encounters.isEmpty()) {
+        encounterRepository.saveAll(encounters);
     }
+    if (!notes.isEmpty()) {
+        encounterNoteRepository.saveAll(notes);
+    }
+    
+    return 1;
+}
+
+private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData, Map<String, String> doctorMap) throws SQLException {
+    EncounterNote note = new EncounterNote();
+    note.setUuid(UUID.randomUUID().toString());
+    note.setEncounterId(UUID.randomUUID().toString());
+    note.setCreatedAt(rs.getString("created_at"));
+    note.setUpdatedAt(rs.getString("updated_at"));
+    note.setNote(rs.getString("note"));
+    note.setNoteType(rs.getString("note_type"));
+    note.setEncounterDate(rs.getString("encounter_date").replaceAll("T", " "));
+    note.setPatientMrNumber(patientData.getMrNumber());
+    note.setEncounterType(rs.getString("encounter_type"));
+    note.setRecalled(rs.getBoolean("is_recalled"));
+    note.setPractitionerRoleType(rs.getString("practitioner_role_type"));
+    note.setPractitionerName(rs.getString("practitioner_name"));
+    note.setPractitionerId(doctorMap.get(rs.getString("practitioner_id")));
+    note.setExternalId(rs.getString("uuid"));
+    note.setEdited(rs.getBoolean("is_edited"));
+    note.setDataSource("his");
+    return note;
+}
 
     public int getPresentingIllness(int size, Map<String, PatientData> mps, Map<String, String> doc) {
         List<Encounter> encounters = new ArrayList<>();
