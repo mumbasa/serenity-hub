@@ -178,9 +178,10 @@ public class NoteService {
             note.setExternalId(set.getString("uuid"));
             note.setEdited(set.getBoolean(11));
             note.setDataSource("his");
-            Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate(), set.getString(3),
-                    doc.get(set.getString(5)));
+            
             try {
+                Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate(), set.getString(3),
+                    doc.get(set.getString(5)));
                 Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
                 encounters.add(encounter);
             } catch (Exception e) {
@@ -242,9 +243,10 @@ public class NoteService {
             note.setExternalId(set.getString("uuid"));
             note.setEdited(set.getBoolean(11));
             note.setDataSource("his");
-            Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate(), set.getString(3),
-                    doc.get(set.getString(5)));
+          
             try {
+                Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate(), set.getString(3),
+                doc.get(set.getString(5)));
                 Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
                 encounters.add(encounter);
             } catch (Exception e) {
@@ -307,9 +309,10 @@ public class NoteService {
             note.setExternalId(set.getString("uuid"));
             note.setEdited(set.getBoolean(11));
             note.setDataSource("his");
-            Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate(), set.getString(3),
-                    doc.get(set.getString(5)));
+         
             try {
+                Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate(), set.getString(3),
+                doc.get(set.getString(5)));
                 Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
                 encounters.add(encounter);
             } catch (Exception e) {
