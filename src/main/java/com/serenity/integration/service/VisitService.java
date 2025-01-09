@@ -234,7 +234,7 @@ return visits.size();
                 ps.setString(18, visits.get(i).getPatientStatus());
                 ps.setString(19, visits.get(i).getAssignedToName());
                 try {
-                    ps.setString(20, visits.get(i).getDoctors().getSerenityId());
+                    ps.setString(20, visits.get(i).getPractitionerId());
                 } catch (Exception e) {
                     System.err.println("cannot find doctor");
 

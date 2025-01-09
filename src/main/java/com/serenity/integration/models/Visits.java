@@ -1,10 +1,7 @@
 package com.serenity.integration.models;
 
-import java.beans.Transient;
-import java.time.ZonedDateTime;
 import java.util.UUID;
 
-import jakarta.annotation.Generated;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -48,8 +45,24 @@ public class Visits {
     private String patientStatus;
     private String practitionerId;
 
+    public Visits(EncounterNote note, UUID uuid, PatientData data) {
+        this.externalSystem = note.getExternalSystem();
+        this.uuid = uuid;
+        this.createdAt = note.getEncounterDate();
+        this.serviceProviderId = "161380e9-22d3-4627-a97f-0f918ce3e4a9";
+        this.serviceProviderName = "Nyaho Medical Center";
+        this.encounterClass = note.getEncounterType();
+        this.patientDob = data.getBirthDate();
+        this.patientId = data.getUuid();
+        this.patientMrNumber = data.getMrNumber(); // Fixed method name
+        this.gender = data.getGender();
+        this.assignedToName = note.getPractitionerName(); // Fixed get/set
+        this.assignedToId = note.getPractitionerId();
+        this.setPatientName(data.getFullName());
+        this.setDisplay("HIS-Visit-"+data.getMrNumber());
+    }
 
-    @jakarta.persistence.Transient 
-    private Doctors doctors;
+    public Visits() {
 
+    }
 }
