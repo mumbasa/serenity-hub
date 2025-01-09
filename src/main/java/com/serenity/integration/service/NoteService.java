@@ -180,7 +180,7 @@ public class NoteService {
             note.setDataSource("his");
             
             try {
-                Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate(), set.getString(3),
+                Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate().split(" ")[0], set.getString(3),
                     doc.get(set.getString(5)));
                 Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
                 encounters.add(encounter);
@@ -245,7 +245,7 @@ public class NoteService {
             note.setDataSource("his");
           
             try {
-                Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate(), set.getString(3),
+                Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate().split(" ")[0], set.getString(3),
                 doc.get(set.getString(5)));
                 Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
                 encounters.add(encounter);
@@ -311,7 +311,7 @@ public class NoteService {
             note.setDataSource("his");
          
             try {
-                Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate(), set.getString(3),
+                Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate().split(" ")[0], set.getString(3),
                 doc.get(set.getString(5)));
                 Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
                 encounters.add(encounter);
@@ -400,7 +400,7 @@ public class NoteService {
             note.setEncounterId(UUID.randomUUID().toString());
             note.setDataSource("his");
 
-            Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate(), set.getString(3),
+            Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate().split(" ")[0], set.getString(3),
                     doc.get(set.getString(5)));
             try {
                 Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
