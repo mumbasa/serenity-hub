@@ -314,7 +314,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
                 "LEFT JOIN " +
                 "  employee_master em " +
                 "ON " +
-                "  cc.EntryBy = em.Employee_ID LIMIT ?,1000";
+                "  cc.EntryBy = em.Employee_ID LIMIT ?,100";
 
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(query, size);
         while (set.next()) {
@@ -453,7 +453,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows, 1000, mps, doc));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows, 100, mps, doc));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
