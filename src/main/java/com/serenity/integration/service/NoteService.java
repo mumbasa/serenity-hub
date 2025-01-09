@@ -155,7 +155,7 @@ public class NoteService {
             CONCAT(practitioners.title, ' ', practitioners.Name) AS practitioner_name
         FROM cpoe_hpexam 
         LEFT JOIN employee_master AS practitioners ON cpoe_hpexam.EntryBy = practitioners.Employee_ID 
-        LIMIT ?, 1000
+        LIMIT ?, 100
     """;
 
     List<EncounterNote> notes = new ArrayList<>();
@@ -314,7 +314,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
                 "LEFT JOIN " +
                 "  employee_master em " +
                 "ON " +
-                "  cc.EntryBy = em.Employee_ID LIMIT ?,100";
+                "  cc.EntryBy = em.Employee_ID LIMIT 50000";
 
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(query, size);
         while (set.next()) {
