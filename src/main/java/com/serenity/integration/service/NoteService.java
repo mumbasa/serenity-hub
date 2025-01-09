@@ -188,7 +188,11 @@ public class NoteService {
             } catch (Exception e) {
 
                 e.printStackTrace();
-                Encounter encounter = new Encounter(note, mps.get(set.getString(3)));
+                UUID visituuid =UUID.randomUUID();
+                Visits visits = new Visits(note,visituuid,mps.get(set.getString(3)));
+                visitRepository.save(visits);
+                Encounter encounter = new Encounter(note, visits,mps.get(set.getString(3)));
+                encounter.setVisitId(visituuid.toString());
                 encounters.add(encounter);
 
             }
