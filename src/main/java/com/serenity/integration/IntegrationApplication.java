@@ -25,7 +25,7 @@ import com.serenity.integration.service.VisitService;
 import jakarta.annotation.PostConstruct;
 
 @SpringBootApplication
-@EnableJpaRepositories(basePackages="com.serenity.integration.repository")
+@EnableJpaRepositories(basePackages = "com.serenity.integration.repository")
 public class IntegrationApplication {
 
 	@Autowired
@@ -56,39 +56,61 @@ public class IntegrationApplication {
 	PatientService patientService;
 
 	Logger logger = LoggerFactory.getLogger(getClass());
+
 	public static void main(String[] args) {
 		SpringApplication.run(IntegrationApplication.class, args);
 	}
 
-@PostConstruct
-	public void coke(){
-		//String[] ac = {"NMC/OG/15/024341","NMC/OG/15/024341"};
-		//List<String> ad = Arrays.asList(ac);
-		//service.loadPatients();
+	@PostConstruct
+	public void coke() {
+		// String[] ac = {"NMC/OG/15/024341","NMC/OG/15/024341"};
+		// List<String> ad = Arrays.asList(ac);
+		// service.loadPatients();
 		logger.info("Starting import");
-		//setupService.getServicePrices(1000);
-//service.setupSerenity();
-//setupService.getServicePrice("161380e9-22d3-4627-a97f-0f918ce3e4a9");
-//setupService.setPricing("161380e9-22d3-4627-a97f-0f918ce3e4a9", "161380e9-22d3-4627-a97f-0f918ce3e4a9");
-//setupService.healthServiceSetup("161380e9-22d3-4627-a97f-0f918ce3e4a9","RR.csv");;
-//System.err.println(setupService.getWards("161380e9-22d3-4627-a97f-0f918ce3e4a9").size());
-	//service.getHisNote();
-//setupService.setWard("161380e9-22d3-4627-a97f-0f918ce3e4a9");
-//.searchCountries();;
-//noteService.getProgressNote();
-//noteService.getCarePlan();
-//noteService.getPresentingIllness();
-//noteService.getChiefNote();
-//admissionService.getAdmission();
-//vCron.setupVisits();
-		//encounterService.setEncounterNotes();
-		//patientService.getLegacyPatients();
-  // visitService.getHisThreads();
-   noteService.chiefThreads();
-	//practitionerService.savePracttioner();
-	//visitMigration.getPatientsThreads();
-	logger.info("finishing import");
+		// setupService.getServicePrices(1000);
+		// service.setupSerenity();
+		// setupService.getServicePrice("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+		// setupService.setPricing("161380e9-22d3-4627-a97f-0f918ce3e4a9",
+		// "161380e9-22d3-4627-a97f-0f918ce3e4a9");
+		// setupService.healthServiceSetup("161380e9-22d3-4627-a97f-0f918ce3e4a9","RR.csv");;
+		// System.err.println(setupService.getWards("161380e9-22d3-4627-a97f-0f918ce3e4a9").size());
+		// service.getHisNote();
+		// setupService.setWard("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+		// .searchCountries();;
+		// noteService.getProgressNote();
+		// noteService.getCarePlan();
+		// noteService.getPresentingIllness();
+		// noteService.getChiefNote();
+		// admissionService.getAdmission();
+		// vCron.setupVisits();
+		// encounterService.setEncounterNotes();
+		// patientService.getLegacyPatients();
+		try {
+			visitService.getHisThreads();
+
+		} catch (Exception e) {
+
+		}
+		try {
+			noteService.chiefThreads();
+		} catch (Exception e) {
+		}
+		try {
+			noteService.ilnessThreads();
+		} catch (Exception e) {
+		}
+		try {
+			noteService.careThreads();
+		} catch (Exception e) {
+		}
+		try {
+			noteService.progressThreads();
+		} catch (Exception e) {
+		}
+		// practitionerService.savePracttioner();
+		// visitMigration.getPatientsThreads();
+		logger.info("finishing import");
 
 	}
-	
+
 }
