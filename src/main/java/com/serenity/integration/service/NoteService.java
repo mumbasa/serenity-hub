@@ -186,6 +186,8 @@ public class NoteService {
                 Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
                 encounters.add(encounter);
             } catch (Exception e) {
+
+                e.printStackTrace();
                 Encounter encounter = new Encounter(note, mps.get(set.getString(3)));
                 encounters.add(encounter);
 
@@ -420,13 +422,13 @@ public class NoteService {
 
     public void chiefThreads() {
 
-        int rows = 59098;//9;
+        int rows = 590989;
         Map<String, PatientData> mps = patientRepository.findAll().stream()
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
         Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
 
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows, 1000, mps, doc));
             for (Future<Integer> future : futures) {
