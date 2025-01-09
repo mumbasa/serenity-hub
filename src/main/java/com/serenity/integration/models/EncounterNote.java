@@ -58,4 +58,6 @@ public class EncounterNote {
 
     private String practitionerId;
     private String dataSource;
+    private String externalId;
+    private String externalSystem;
 }

@@ -251,9 +251,7 @@ public class WardSetupService {
 
         }
 
-      //  System.err.println(wardRooms);
-       // System.err.println(roomBed);
-
+    
         Gson jGson = new Gson();
      
         for (Ward wd : wardRooms.keySet()) {
