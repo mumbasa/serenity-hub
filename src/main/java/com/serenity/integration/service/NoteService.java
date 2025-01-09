@@ -445,7 +445,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
 
     public void chiefThreads() {
 
-        int rows = 590989;
+        int rows = 59098;//9;
         Map<String, PatientData> mps = patientRepository.findAll().stream()
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
         Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
