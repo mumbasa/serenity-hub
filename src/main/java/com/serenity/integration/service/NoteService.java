@@ -180,6 +180,7 @@ public class NoteService {
             note.setDataSource("his");
             
             try {
+                System.err.println(note.getEncounterDate().split(" ")[0]+"========");
                 Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate().split(" ")[0], set.getString(3),
                     doc.get(set.getString(5)));
                 Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
