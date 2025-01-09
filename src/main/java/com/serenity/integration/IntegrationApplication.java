@@ -86,7 +86,7 @@ public class IntegrationApplication {
 		// encounterService.setEncounterNotes();
 		// patientService.getLegacyPatients();
 		try {
-			visitService.getHisThreads();
+			//visitService.getHisThreads();
 
 		} catch (Exception e) {
 
@@ -94,18 +94,29 @@ public class IntegrationApplication {
 		try {
 			noteService.chiefThreads();
 		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.println("chief");
+
 		}
 		try {
 			noteService.ilnessThreads();
 		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.println("iness");
+
 		}
 		try {
 			noteService.careThreads();
 		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.println("care");
+
 		}
 		try {
 			noteService.progressThreads();
 		} catch (Exception e) {
+			System.err.println("progress");
+			e.printStackTrace();
 		}
 		// practitionerService.savePracttioner();
 		// visitMigration.getPatientsThreads();
