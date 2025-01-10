@@ -34,11 +34,11 @@ public static void main(String args[]){
     try {
         // Example usage with logo
         generateQRCode(
-            "https://www.example.com", // Text or URL to encode
-            350,                       // Width of QR code
-            350,                       // Height of QR code
-            "qr_code_with_logo.png",   // Output file name
-            "logo.png"                 // Logo file path (set to null if no logo is needed)
+            "www.spectacularoptics.vision", // Text or URL to encode
+            500,                       // Width of QR code
+            500,                       // Height of QR code
+            "/home/bryan/Pictures/qr_code_with_logo.png",   // Output file name
+            "/home/bryan/Downloads/spec.png"                 // Logo file path (set to null if no logo is needed)
         );
         System.out.println("QR Code with logo generated successfully!");
         
@@ -63,8 +63,8 @@ public static void generateQRCode(String text, int width, int height, String fil
             BufferedImage logoImage = ImageIO.read(new File(logoPath));
             
             // Calculate the size of the logo (e.g., 20% of QR code size)
-            int logoWidth = width / 5;
-            int logoHeight = height / 5;
+            int logoWidth = width / 3;
+            int logoHeight = height / 3;
             
             // Scale the logo
             BufferedImage scaledLogo = new BufferedImage(logoWidth, logoHeight, BufferedImage.TYPE_INT_ARGB);
