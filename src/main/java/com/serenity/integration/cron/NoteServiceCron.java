@@ -72,7 +72,7 @@ public class NoteServiceCron {
             note.setPractitionerName(set.getString(14));
             note.setPractitionerId(set.getString(5));
             note.setEdited(set.getBoolean(11));
-            note.setDataSource("his");
+        //    note.setDataSource("his");
             notes.add(note);
         }
         int rounds = (notes.size() / 1000);
@@ -143,7 +143,7 @@ public class NoteServiceCron {
             note.setPractitionerName(set.getString(14));
             note.setPractitionerId(set.getString(5));
             note.setEdited(set.getBoolean(11));
-            note.setDataSource("his");
+           // note.setDataSource("his");
             notes.add(note);
         }
         int rounds = (notes.size() / 1000);
@@ -214,7 +214,7 @@ public class NoteServiceCron {
             note.setPractitionerName(set.getString(14));
             note.setPractitionerId(set.getString(5));
             note.setEdited(set.getBoolean(11));
-            note.setDataSource("his");
+           // note.setDataSource("his");
             notes.add(note);
         }
         int rounds = (notes.size() / 1000);
@@ -310,7 +310,7 @@ public class NoteServiceCron {
             note.setPractitionerId(set.getString(11));
             note.setEdited(set.getBoolean(12));
             note.setUuid(set.getString(14));
-            note.setDataSource("his");
+      //      note.setDataSource("his");
             notes.add(note);
         }
         int rounds = (notes.size() / 1000);
