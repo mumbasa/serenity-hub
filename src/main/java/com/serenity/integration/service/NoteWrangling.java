@@ -461,8 +461,11 @@ public class NoteWrangling {
             note.setUuid(UUID.randomUUID().toString());
             note.setEncounterId(UUID.randomUUID().toString());
             note.setExternalSystem("his");
-
-            note.setPatientId(mps.get(set.getString(3)).getUuid());
+              try{
+            note.setPatientId(mps.get(set.getString(6)).getUuid());
+        }catch (Exception e){
+            System.err.println("no patient");
+        }
             String key = note.getEncounterDate().split(" ")[0]+"="+set.getString(3);
             if(visits.containsKey(key)){
                 note.setVisitId(visits.get(key));
