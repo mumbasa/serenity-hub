@@ -88,7 +88,8 @@ public class IntegrationApplication {
 		// patientService.getLegacyPatients();
 		try {
 			//visitService.getHisThreads();
-noteWrangling.chiefThreads();
+noteWrangling.illThreads();
+noteWrangling.careThreads();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
