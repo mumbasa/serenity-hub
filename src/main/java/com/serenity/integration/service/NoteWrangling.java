@@ -347,6 +347,7 @@ public class NoteWrangling {
                         note.setPatientGender(mps.get(set.getString(3)).getGender());
                         note.setPatientMobile(mps.get(set.getString(3)).getMobile());
                         note.setPatientBirthDate(mps.get(set.getString(3)).getBirthDate());
+                        note.setPatientFullName(mps.get(set.getString(3)).getFullName());
                         note.setEncounterType(set.getString(10).replace("\0", ""));
                         note.setRecalled(set.getBoolean(12));
                         note.setPractitionerRoleType("doctor");
@@ -360,7 +361,6 @@ public class NoteWrangling {
                         }
             
                       
-                        note.setPatientFullName(mps.get(set.getString(3)).getFullName());
                         note.setPatientId(mps.get(set.getString(3)).getUuid());
                         String key = note.getEncounterDate().split(" ")[0]+"="+set.getString(3);
                         if(visits.containsKey(key)){
@@ -443,14 +443,35 @@ public class NoteWrangling {
             note.setNoteType(set.getString(4));
             note.setEncounterDate(set.getString(5));
             note.setPatientMrNumber(mps.get(set.getString(6)).getMrNumber());
+            note.setPatientGender(mps.get(set.getString(6)).getGender());
+            note.setPatientMobile(mps.get(set.getString(6)).getMobile());
+            note.setPatientBirthDate(mps.get(set.getString(6)).getBirthDate());
+            note.setPatientFullName(mps.get(set.getString(6)).getFullName());
             note.setEncounterType(set.getString(7));
-            note.setPractitionerRoleType(set.getString(9).replaceAll("\u0000", ""));
-            note.setPractitionerName(set.getString(10).replaceAll("\u0000", ""));
+            note.setPractitionerRoleType("doctor");
+            String pName =set.getString(10);
+            try{
+            note.setPractitionerName(pName.replaceAll("\u0000", ""));
             note.setPractitionerId(doc.get(set.getString(11)));
+              }catch (Exception e){
+
+              }
             note.setEdited(set.getBoolean(12));
             note.setExternalId(set.getString(14));
             note.setUuid(UUID.randomUUID().toString());
             note.setEncounterId(UUID.randomUUID().toString());
+            note.setExternalSystem("his");
+
+            note.setPatientId(mps.get(set.getString(3)).getUuid());
+            String key = note.getEncounterDate().split(" ")[0]+"="+set.getString(3);
+            if(visits.containsKey(key)){
+                note.setVisitId(visits.get(key));
+            }else{
+                String vid = UUID.randomUUID().toString();
+                note.setVisitId(vid);
+                visits.put(key, vid);
+            }
+          
 
             notes.add(note);
 
@@ -558,6 +579,35 @@ public class NoteWrangling {
 
    
    
+
+
+    public void progressThreads() {
+    
+        Map<String, PatientData> mps = patientRepository.findAll().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+        Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+        List<EncounterNote> notes = getProgressNote(mps, doc);
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2( 1000,notes));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+        System.err.println("patiend count is ");
+
+    }
+
+   
+   
+
 
     public Set<Callable<Integer>> submitTask2(int batchSize, List<EncounterNote> notes) {
     
