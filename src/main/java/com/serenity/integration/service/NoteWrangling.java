@@ -618,7 +618,6 @@ public class NoteWrangling {
         List<Encounter> encounters = new ArrayList<>();
 
        notes.stream().forEach(e -> encounters.add(new Encounter(e)));
-       System.err.println(encounters.size() +"------------------------");
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
@@ -745,10 +744,16 @@ public class NoteWrangling {
 public void setEncounterThreads(){
 int data = 1883637;
 int rounds = (int)Math.ceil(data/10000);
+for(int i=0;i<rounds;i++){
+logger.info("setting offset");
+List<EncounterNote> notes = encounterNoteRepository.findOffsetData(i*10000, 10000);
+List<Encounter> encounters = new ArrayList<>();
+notes.stream().forEach(e -> encounters.add(new Encounter(e)));
+encounterRepository.saveAll(encounters);
 
-List<EncounterNote> notes = encounterNoteRepository.findOffsetData(0, 10000);
+}
 
-encounterThread(notes);
+
 
 }
 
