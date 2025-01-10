@@ -432,7 +432,7 @@ public class NoteWrangling {
                 "        progress_notes.EntryDate DESC " +
                 ") AS `source` " +
                 "LEFT JOIN `patient_master` AS `pm` " +
-                "ON `source`.`patient_mr_number` = `pm`.`Patient_ID` LIMIT ?, 1000";
+                "ON `source`.`patient_mr_number` = `pm`.`Patient_ID`";
 
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery);
         while (set.next()) {
