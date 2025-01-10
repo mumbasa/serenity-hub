@@ -618,6 +618,7 @@ public class NoteWrangling {
         List<Encounter> encounters = new ArrayList<>();
 
        notes.stream().forEach(e -> encounters.add(new Encounter(e)));
+       System.err.println(encounters.size() +"------------------------");
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
