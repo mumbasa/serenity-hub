@@ -439,14 +439,22 @@ public class NoteWrangling {
             EncounterNote note = new EncounterNote();
             note.setCreatedAt(set.getString(1));
             note.setUpdatedAt(set.getString(2));
-            note.setNote(set.getString(3));
+            note.setNote(cleanString(set.getString(3)));
             note.setNoteType(set.getString(4));
             note.setEncounterDate(set.getString(5));
+            try{
             note.setPatientMrNumber(mps.get(set.getString(6)).getMrNumber());
             note.setPatientGender(mps.get(set.getString(6)).getGender());
             note.setPatientMobile(mps.get(set.getString(6)).getMobile());
             note.setPatientBirthDate(mps.get(set.getString(6)).getBirthDate());
             note.setPatientFullName(mps.get(set.getString(6)).getFullName());
+            note.setPatientId(mps.get(set.getString(6)).getUuid());
+
+            }catch (Exception e){
+
+                System.err.println("no patient");
+
+            }
             note.setEncounterType(set.getString(7));
             note.setPractitionerRoleType("doctor");
             String pName =set.getString(10);
@@ -461,11 +469,7 @@ public class NoteWrangling {
             note.setUuid(UUID.randomUUID().toString());
             note.setEncounterId(UUID.randomUUID().toString());
             note.setExternalSystem("his");
-              try{
-            note.setPatientId(mps.get(set.getString(6)).getUuid());
-        }catch (Exception e){
-            System.err.println("no patient");
-        }
+            
             String key = note.getEncounterDate().split(" ")[0]+"="+set.getString(3);
             if(visits.containsKey(key)){
                 note.setVisitId(visits.get(key));
@@ -652,6 +656,11 @@ public class NoteWrangling {
         return callables;
     }
 
-
+    public String cleanString(String input) {
+        if (input == null) return null;
+        return input.replace("\0", "")
+                    .replace("\u0000", "");
+    }
+    
 
 }
