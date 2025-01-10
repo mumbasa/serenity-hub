@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -34,6 +35,11 @@ public class EncounterNote {
 
     private String patientId;
 
+    private String patientMobile;
+    private String patientBirthDate;
+    private String patientGender;
+    private String patientStatus;
+
     @Column(columnDefinition="TEXT")
     private String encounterDate;
     @Column(columnDefinition="TEXT")
@@ -57,7 +63,14 @@ public class EncounterNote {
     @Column(columnDefinition="TEXT")
 
     private String practitionerId;
-    private String dataSource;
+    private String serviceProviderId;
+    private String serviceProviderName;
+    private String visitId;
+    private String hisVisitId;
+    private String locationId;
+    private String locationName;
     private String externalId;
     private String externalSystem;
+
+
 }

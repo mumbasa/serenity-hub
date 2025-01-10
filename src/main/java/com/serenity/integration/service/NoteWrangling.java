@@ -36,7 +36,7 @@ import com.serenity.integration.repository.PatientRepository;
 import com.serenity.integration.repository.VisitRepository;
 
 @Service
-public class NoteService {
+public class NoteWrangling {
     @Autowired
     @Qualifier(value = "hisJdbcTemplate")
     JdbcTemplate hisJdbcTemplate;
@@ -136,8 +136,10 @@ public class NoteService {
 
     }
 
-    public int getChiefNote(int offset, Map<String, PatientData> patientDataMap, Map<String, String> doctorMap) {
-    final String sqlQuery = """
+    public  List<EncounterNote> getChiefNote( Map<String, PatientData> mps, Map<String, String> doc) {
+    Map<String,String> visits = new HashMap<>();
+
+     String query = """
         SELECT 
             Transaction_ID AS uuid,
             Transaction_ID AS encounter_id,
@@ -155,51 +157,52 @@ public class NoteService {
             CONCAT(practitioners.title, ' ', practitioners.Name) AS practitioner_name
         FROM cpoe_hpexam 
         LEFT JOIN employee_master AS practitioners ON cpoe_hpexam.EntryBy = practitioners.Employee_ID 
-        LIMIT ?, 100
+    
     """;
 
     List<EncounterNote> notes = new ArrayList<>();
-    List<Encounter> encounters = new ArrayList<>();
 
-    hisJdbcTemplate.query(sqlQuery, ps -> ps.setInt(1, offset), rs -> {
-        String patientId = rs.getString("patient_mr_number");
-        PatientData patientData = patientDataMap.get(patientId);
-        if (patientData == null) {
-            logger.warn("Patient data not found for ID: {}", patientId);
-            return;
+    SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
+        while (set.next()) {
+            EncounterNote note = new EncounterNote();
+            note.setUuid(UUID.randomUUID().toString());
+            note.setEncounterId(UUID.randomUUID().toString());
+            note.setCreatedAt(set.getString(7));
+            note.setUpdatedAt(set.getString(8));
+            note.setNote(set.getString(4));
+            note.setNoteType(set.getString(9));
+            note.setEncounterDate(set.getString(6).replaceAll("T", " "));
+            note.setPatientMrNumber(mps.get(set.getString(3)).getMrNumber());
+            note.setPatientGender(mps.get(set.getString(3)).getGender());
+            note.setPatientMobile(mps.get(set.getString(3)).getMobile());
+            note.setPatientBirthDate(mps.get(set.getString(3)).getBirthDate());
+            note.setEncounterType(set.getString(10));
+            note.setRecalled(set.getBoolean(12));
+            note.setPractitionerRoleType(set.getString(13));
+            note.setPractitionerName(set.getString("practitioner_name"));
+            note.setPractitionerId(doc.get(set.getString("practitioner_id")));
+            String key = note.getEncounterDate().split(" ")[0]+"="+set.getString(3);
+            if(visits.containsKey(key)){
+                note.setVisitId(visits.get(key));
+            }else{
+                String vid = UUID.randomUUID().toString();
+                note.setVisitId(vid);
+                visits.put(key, vid);
+            }
+            note.setExternalId(set.getString("uuid"));
+            note.setEdited(set.getBoolean(11));
+            note.setExternalSystem("his");
+          
+          
+            notes.add(note);
+
+
+
         }
-
-        EncounterNote note = createEncounterNote(rs, patientData, doctorMap);
-        notes.add(note);
-
-        try {
-            String encounterDate = note.getEncounterDate().split(" ")[0];
-            Visits visit = visitRepository.getVistByDateDoctorPatient(
-                encounterDate, 
-                patientId,
-                doctorMap.get(rs.getString("practitioner_id"))
-            );
-            encounters.add(new Encounter(note, visit, patientData));
-        } catch (Exception e) {
-            logger.error("Error finding visit, creating new: {}", e.getMessage());
-            UUID visitUuid = UUID.randomUUID();
-            Visits newVisit = new Visits(note, visitUuid, patientData);
-            visitRepository.save(newVisit);
-            
-            Encounter encounter = new Encounter(note, newVisit, patientData);
-            encounter.setVisitId(visitUuid.toString());
-            encounters.add(encounter);
-        }
-    });
-
-    if (!encounters.isEmpty()) {
-        encounterRepository.saveAll(encounters);
-    }
-    if (!notes.isEmpty()) {
-        encounterNoteRepository.saveAll(notes);
-    }
     
-    return 1;
+
+    
+     return notes;
 }
 
 private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData, Map<String, String> doctorMap) throws SQLException {
@@ -219,7 +222,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
     note.setPractitionerId(doctorMap.get(rs.getString("practitioner_id")));
     note.setExternalId(rs.getString("uuid"));
     note.setEdited(rs.getBoolean("is_edited"));
-    note.setExternalSystem("his");
+ 
     return note;
 }
 
@@ -268,7 +271,6 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
             note.setPractitionerId(doc.get(set.getString("practitioner_id")));
             note.setExternalId(set.getString("uuid"));
             note.setEdited(set.getBoolean(11));
-            note.setExternalSystem("his");
           
             try {
                 Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate().split(" ")[0], set.getString(3),
@@ -334,8 +336,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
             note.setPractitionerId(doc.get(set.getString("practitioner_id")));
             note.setExternalId(set.getString("uuid"));
             note.setEdited(set.getBoolean(11));
-            note.setExternalSystem("his");
-         
+        
             try {
                 Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate().split(" ")[0], set.getString(3),
                 doc.get(set.getString(5)));
@@ -424,7 +425,6 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
             note.setExternalId(set.getString(14));
             note.setUuid(UUID.randomUUID().toString());
             note.setEncounterId(UUID.randomUUID().toString());
-            note.setExternalSystem("his");
 
             Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate().split(" ")[0], set.getString(3),
                     doc.get(set.getString(5)));
@@ -445,15 +445,16 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
 
     public void chiefThreads() {
 
-        int rows = 5909;//89;
+    
         Map<String, PatientData> mps = patientRepository.findAll().stream()
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
         Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+        List<EncounterNote> notes = getChiefNote(mps, doc);
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows, 100, mps, doc));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2( 1000,notes));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
@@ -467,83 +468,13 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
 
     }
 
-    public void ilnessThreads() {
-
-        int rows = 489791;
-        Map<String, PatientData> mps = patientRepository.findAll().stream()
-                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
-        Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
-                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
-
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows, 1000, mps, doc));
-            for (Future<Integer> future : futures) {
-                System.out.println("future.get = " + future.get());
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        executorService.shutdown();
-        System.err.println("patiend count is ");
-
-    }
-
-    public void careThreads() {
-
-        int rows = 324564;
-        Map<String, PatientData> mps = patientRepository.findAll().stream()
-                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
-        Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
-                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
-
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows, 1000, mps, doc));
-            for (Future<Integer> future : futures) {
-                System.out.println("future.get = " + future.get());
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        executorService.shutdown();
-        System.err.println("patiend count is ");
-
-    }
-
-    public void progressThreads() {
-
-        int rows = 389461;
-        Map<String, PatientData> mps = patientRepository.findAll().stream()
-                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
-        Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
-                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
-
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows, 1000, mps, doc));
-            for (Future<Integer> future : futures) {
-                System.out.println("future.get = " + future.get());
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        executorService.shutdown();
-        System.err.println("patiend count is ");
-
-    }
-
-    public Set<Callable<Integer>> submitTask2(int visits, int batchSize, Map<String, PatientData> mps,
-            Map<String, String> doc) {
+  
+    
+   
+    public Set<Callable<Integer>> submitTask2(int batchSize, List<EncounterNote> notes) {
 
         Set<Callable<Integer>> callables = new HashSet<>();
-        int totalSize = visits;
+        int totalSize = notes.size();
         int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
@@ -551,11 +482,12 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
 
             callables.add(() -> {
                 int startIndex = batchNumber * batchSize;
-
+                int endIndex = Math.min(startIndex + batchSize, totalSize);
                 logger.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
 
-                return getChiefNote(startIndex, mps, doc);
+                encounterNoteRepository.saveAll(notes.subList(startIndex, endIndex));
+                return 1;
             });
         }
 
@@ -564,29 +496,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
 
 
 
-    public Set<Callable<Integer>> submitIllnessTask(int visits, int batchSize, Map<String, PatientData> mps,
-    Map<String, String> doc) {
-
-Set<Callable<Integer>> callables = new HashSet<>();
-int totalSize = visits;
-int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
-
-for (int i = 0; i < batches; i++) {
-    final int batchNumber = i; // For use in lambda
-
-    callables.add(() -> {
-        int startIndex = batchNumber * batchSize;
-
-        logger.debug("Processing batch {}/{}, indices [{}]",
-                batchNumber + 1, batches, startIndex);
-
-        return getPresentingIllness(startIndex, mps, doc);
-    });
-}
-
-return callables;
-}
-
+   
 
 public Set<Callable<Integer>> submitCareTask(int visits, int batchSize, Map<String, PatientData> mps,
 Map<String, String> doc) {

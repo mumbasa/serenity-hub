@@ -15,6 +15,7 @@ import com.serenity.integration.repository.VisitRepository;
 import com.serenity.integration.service.AdmissionService;
 import com.serenity.integration.service.EncounterService;
 import com.serenity.integration.service.NoteService;
+import com.serenity.integration.service.NoteWrangling;
 import com.serenity.integration.service.PatientMigrationService;
 import com.serenity.integration.service.PatientService;
 import com.serenity.integration.service.PractitionerService;
@@ -47,7 +48,7 @@ public class IntegrationApplication {
 	@Autowired
 	EncounterService encounterService;
 	@Autowired
-	VisitMigration visitMigration;
+	NoteWrangling noteWrangling;
 
 	@Autowired
 	PatientMigrationService migrationService;
@@ -87,37 +88,11 @@ public class IntegrationApplication {
 		// patientService.getLegacyPatients();
 		try {
 			//visitService.getHisThreads();
-
-		} catch (Exception e) {
-
-		}
-		try {
-			noteService.chiefThreads();
+noteWrangling.chiefThreads();
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.err.println("chief");
-
 		}
-		try {
-			noteService.ilnessThreads();
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.err.println("iness");
-
-		}
-		try {
-			noteService.careThreads();
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.err.println("care");
-
-		}
-		try {
-			noteService.progressThreads();
-		} catch (Exception e) {
-			System.err.println("progress");
-			e.printStackTrace();
-		}
+		
 		// practitionerService.savePracttioner();
 		// visitMigration.getPatientsThreads();
 		logger.info("finishing import");
