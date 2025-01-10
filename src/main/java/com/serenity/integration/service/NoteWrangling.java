@@ -169,8 +169,14 @@ public class NoteWrangling {
             note.setEncounterId(UUID.randomUUID().toString());
             note.setNote(set.getString(4).replace("\0", ""));
             note.setNoteType(set.getString(9).replace("\0", ""));
-            String date=set.getString(6).replace("\0", "");
+            String date=set.getString(6);
+            try{
+            date=date.replace("\0", "");
             note.setEncounterDate(date==null? "0000-00-00":date.replaceAll("T", " "));
+        }catch(Exception e){
+            note.setEncounterDate("0000-00-00");
+        }
+
             note.setPatientMrNumber(mps.get(set.getString(3)).getMrNumber());
             note.setPatientGender(mps.get(set.getString(3)).getGender());
             note.setPatientMobile(mps.get(set.getString(3)).getMobile());
