@@ -13,6 +13,8 @@ public interface EncounterNoteRepository extends  JpaRepository<EncounterNote, S
 
     @Query(value = "SELECT * FROM encounternote  where practitionerroletype  !='unknown' and updatedat is not null AND practitionername is not null AND updatedat is not null  OFFSET ?1 LIMIT ?2",nativeQuery = true)
     List<EncounterNote> findOffset(int offset,int limit);
+    @Query(value = "SELECT * FROM encounternote  OFFSET ?1 LIMIT ?2",nativeQuery = true)
+    List<EncounterNote> findOffsetData(int offset,int limit);
 
 
 }
