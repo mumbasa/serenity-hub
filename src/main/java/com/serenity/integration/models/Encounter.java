@@ -144,7 +144,7 @@ public Encounter (){}
         this.status="finished";
         this.priority="routine";
         this.setExternalId(notes.getExternalId());
-        this.setExternalSystem(notes.getDataSource());
+        this.setExternalSystem(notes.getExternalSystem());
         this.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
         this.setServiceProviderName("Nyaho Medical Center");
         this.setLocationId("23f59485-8518-4f4e-9146-d061dfe58175");
