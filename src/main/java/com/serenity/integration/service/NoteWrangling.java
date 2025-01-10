@@ -487,8 +487,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
     
    
     public Set<Callable<Integer>> submitTask2(int batchSize, List<EncounterNote> notes) {
-        List<Encounter> encounters = new ArrayList<>();
-        notes.stream().forEach(e-> {encounters.add(new Encounter(e));});    
+    
         Set<Callable<Integer>> callables = new HashSet<>();
         int totalSize = notes.size();
         int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
@@ -519,14 +518,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
                     }
                 }
 
-                try{
-                    encounterRepository.saveAll(encounters);
-                    }
-                    catch (Exception e) {
-                        // TODO: handle exception
-                        logger.info("error adding encounters");
-
-                    }
+               
                 return 1;
             });
         }
