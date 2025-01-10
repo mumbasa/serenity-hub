@@ -184,8 +184,16 @@ public class NoteWrangling {
             note.setEncounterType(set.getString(10).replace("\0", ""));
             note.setRecalled(set.getBoolean(12));
             note.setPractitionerRoleType("doctor");
+            String practitionerName =set.getString("practitioner_name");
+            if(practitionerName!=null){
             note.setPractitionerName(set.getString("practitioner_name").replace("\0", ""));
             note.setPractitionerId(doc.get(set.getString("practitioner_id")));
+            }else{
+                note.setPractitionerName("unknwon");
+ 
+            }
+
+          
             note.setPatientFullName(mps.get(set.getString(3)).getFullName());
             note.setPatientId(mps.get(set.getString(3)).getUuid());
             String key = note.getEncounterDate().split(" ")[0]+"="+set.getString(3);
