@@ -743,9 +743,9 @@ public class NoteWrangling {
 
 public void setEncounterThreads(){
 int data = 1883637;
-int rounds = (int)Math.ceil(data/10000);
+int rounds = (int)Math.ceil(data/1000);
 for(int i=0;i<rounds;i++){
-List<EncounterNote> notes = encounterNoteRepository.findOffsetData(i*10000, 10000);
+List<EncounterNote> notes = encounterNoteRepository.findOffsetData(i*1000, 1000);
 
 encounterThread(notes);
 
