@@ -171,7 +171,8 @@ public class NoteWrangling {
             note.setUpdatedAt(set.getString(8));
             note.setNote(set.getString(4));
             note.setNoteType(set.getString(9));
-            note.setEncounterDate(set.getString(6).replaceAll("T", " "));
+            String date=set.getString(6);
+            note.setEncounterDate(date==null? "0000-00-00":date.replaceAll("T", " "));
             note.setPatientMrNumber(mps.get(set.getString(3)).getMrNumber());
             note.setPatientGender(mps.get(set.getString(3)).getGender());
             note.setPatientMobile(mps.get(set.getString(3)).getMobile());
