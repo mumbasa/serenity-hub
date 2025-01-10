@@ -621,7 +621,7 @@ public class NoteWrangling {
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitEncounters( 1000,encounters));
+            List<Future<Integer>> futures = executorService.invokeAll(submitEncounters( 100,encounters));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
@@ -743,7 +743,7 @@ public class NoteWrangling {
 
 public void setEncounterThreads(){
 int data = 1883637;
-int rounds = (int)Math.ceil(data/1000);
+int rounds = (int)Math.ceil(data/10000);
 for(int i=0;i<rounds;i++){
 List<EncounterNote> notes = encounterNoteRepository.findOffsetData(i*1000, 1000);
 
