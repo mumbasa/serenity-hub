@@ -184,6 +184,32 @@ public Encounter (){}
         
     }
 
+    public Encounter(EncounterNote notes){
+        this.prescription =false;
+        this.serviceRequest=false;
+        this.createdAt=notes.getEncounterDate();
+        this.setEncounterClass(notes.getEncounterType());
+        this.setAssignedToId(notes.getPractitionerId());
+        this.setAssignedToName(notes.getPractitionerName());
+        this.uuid=notes.getEncounterId();
+        this.status="finished";
+        this.priority="routine";
+        this.setExternalId(notes.getExternalId());
+        this.setExternalSystem(notes.getExternalSystem());
+        this.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+        this.setServiceProviderName("Nyaho Medical Center");
+        this.setLocationId("23f59485-8518-4f4e-9146-d061dfe58175");
+        this.setLocationName("Airport Primary Care");
+        this.setPatientBirthDate(notes.getPatientBirthDate());
+        this.setPatientMrNumber(notes.getPatientMrNumber());
+        this.setPatientGender(notes.getPatientGender());
+        this.setPatientId(notes.getPatientId());
+        this.setPatientFullName(notes.getPatientFullName());
+        this.setDisplay(notes.getEncounterDate()+"-"+notes.getPatientMrNumber()+"-"+notes.getEncounterType());
+        this.setVisitId(notes.getVisitId());
+        
+    }
+
 
 
 }

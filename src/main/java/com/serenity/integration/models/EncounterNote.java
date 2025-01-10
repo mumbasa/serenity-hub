@@ -39,7 +39,7 @@ public class EncounterNote {
     private String patientBirthDate;
     private String patientGender;
     private String patientStatus;
-
+    private String patientFullName;
     @Column(columnDefinition="TEXT")
     private String encounterDate;
     @Column(columnDefinition="TEXT")

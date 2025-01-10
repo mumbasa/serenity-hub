@@ -167,21 +167,21 @@ public class NoteWrangling {
             EncounterNote note = new EncounterNote();
             note.setUuid(UUID.randomUUID().toString());
             note.setEncounterId(UUID.randomUUID().toString());
-            note.setCreatedAt(set.getString(7));
-            note.setUpdatedAt(set.getString(8));
-            note.setNote(set.getString(4));
-            note.setNoteType(set.getString(9));
-            String date=set.getString(6);
+            note.setNote(set.getString(4).replace("\0", ""));
+            note.setNoteType(set.getString(9).replace("\0", ""));
+            String date=set.getString(6).replace("\0", "");
             note.setEncounterDate(date==null? "0000-00-00":date.replaceAll("T", " "));
             note.setPatientMrNumber(mps.get(set.getString(3)).getMrNumber());
             note.setPatientGender(mps.get(set.getString(3)).getGender());
             note.setPatientMobile(mps.get(set.getString(3)).getMobile());
             note.setPatientBirthDate(mps.get(set.getString(3)).getBirthDate());
-            note.setEncounterType(set.getString(10));
+            note.setEncounterType(set.getString(10).replace("\0", ""));
             note.setRecalled(set.getBoolean(12));
             note.setPractitionerRoleType("doctor");
-            note.setPractitionerName(set.getString("practitioner_name"));
+            note.setPractitionerName(set.getString("practitioner_name").replace("\0", ""));
             note.setPractitionerId(doc.get(set.getString("practitioner_id")));
+            note.setPatientFullName(mps.get(set.getString(3)).getFullName());
+            note.setPatientId(mps.get(set.getString(3)).getUuid());
             String key = note.getEncounterDate().split(" ")[0]+"="+set.getString(3);
             if(visits.containsKey(key)){
                 note.setVisitId(visits.get(key));
@@ -473,7 +473,8 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
     
    
     public Set<Callable<Integer>> submitTask2(int batchSize, List<EncounterNote> notes) {
-
+        List<Encounter> encounters = new ArrayList<>();
+        notes.stream().forEach(e-> {encounters.add(new Encounter(e));});    
         Set<Callable<Integer>> callables = new HashSet<>();
         int totalSize = notes.size();
         int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
@@ -486,8 +487,32 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
                 int endIndex = Math.min(startIndex + batchSize, totalSize);
                 logger.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
-
+                try{
                 encounterNoteRepository.saveAll(notes.subList(startIndex, endIndex));
+                }
+                catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                    logger.info("error adding note");
+                    for(EncounterNote note : notes){
+                        try{
+                        encounterNoteRepository.save(note);
+                        }catch(Exception es){
+                            System.err.println("failed add some");
+                            es.printStackTrace();
+
+                        }
+                    }
+                }
+
+                try{
+                    encounterRepository.saveAll(encounters);
+                    }
+                    catch (Exception e) {
+                        // TODO: handle exception
+                        logger.info("error adding encounters");
+
+                    }
                 return 1;
             });
         }
