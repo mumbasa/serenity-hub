@@ -639,10 +639,10 @@ public class NoteWrangling {
 
     public void visitsThread() {
     
-        List<Visits> visits = new ArrayList<>();
+        List<Visits> visit = new ArrayList<>();
 
-       encounterNoteRepository.findAll().stream().forEach(e -> visits.add(new Visits(e)));
-
+       encounterNoteRepository.findAll().stream().forEach(e -> visit.add(new Visits(e)));
+       List<Visits> visits = visit.stream().distinct().toList();
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitVisits( 1000,visits));
