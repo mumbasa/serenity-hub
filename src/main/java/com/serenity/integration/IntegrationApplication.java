@@ -90,8 +90,11 @@ public class IntegrationApplication {
 			//visitService.getHisThreads();
 //noteWrangling.illThreads();
 //noteWrangling.careThreads();
-noteWrangling.progressThreads();
-		} catch (Exception e) {
+//noteWrangling.progressThreads();
+noteWrangling.EncounterThread();
+noteWrangling.visitsThread();
+
+} catch (Exception e) {
 			e.printStackTrace();
 		}
 		

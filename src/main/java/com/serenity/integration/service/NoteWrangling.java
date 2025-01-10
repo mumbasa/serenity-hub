@@ -613,8 +613,51 @@ public class NoteWrangling {
     }
 
    
-   
+    public void EncounterThread() {
+    
+        List<Encounter> encounters = new ArrayList<>();
 
+       encounterNoteRepository.findAll().stream().forEach(e -> encounters.add(new Encounter(e)));
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitEncounters( 1000,encounters));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+        System.err.println("patiend count is ");
+
+    }
+
+
+
+    public void visitsThread() {
+    
+        List<Visits> visits = new ArrayList<>();
+
+       encounterNoteRepository.findAll().stream().forEach(e -> visits.add(new Visits(e)));
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitVisits( 1000,visits));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+        System.err.println("patiend count is ");
+
+    }
 
     public Set<Callable<Integer>> submitTask2(int batchSize, List<EncounterNote> notes) {
     
@@ -640,6 +683,90 @@ public class NoteWrangling {
                     for(EncounterNote note : notes){
                         try{
                         encounterNoteRepository.save(note);
+                        }catch(Exception es){
+                            System.err.println("failed add some");
+                            es.printStackTrace();
+
+                        }
+                    }
+                }
+
+               
+                return 1;
+            });
+        }
+
+        return callables;
+    }
+
+
+    public Set<Callable<Integer>> submitEncounters(int batchSize, List<Encounter> encounters) {
+    
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = encounters.size();
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                int endIndex = Math.min(startIndex + batchSize, totalSize);
+                logger.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+                try{
+                encounterRepository.saveAll(encounters.subList(startIndex, endIndex));
+                }
+                catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                    logger.info("error adding note");
+                    for(Encounter note : encounters){
+                        try{
+                        encounterRepository.save(note);
+                        }catch(Exception es){
+                            System.err.println("failed add some");
+                            es.printStackTrace();
+
+                        }
+                    }
+                }
+
+               
+                return 1;
+            });
+        }
+
+        return callables;
+    }
+
+
+
+
+    public Set<Callable<Integer>> submitVisits(int batchSize, List<Visits> encounters) {
+    
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = encounters.size();
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                int endIndex = Math.min(startIndex + batchSize, totalSize);
+                logger.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+                try{
+                visitRepository.saveAll(encounters.subList(startIndex, endIndex));
+                }
+                catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                    logger.info("error adding note");
+                    for(Visits note : encounters){
+                        try{
+                        visitRepository.save(note);
                         }catch(Exception es){
                             System.err.println("failed add some");
                             es.printStackTrace();

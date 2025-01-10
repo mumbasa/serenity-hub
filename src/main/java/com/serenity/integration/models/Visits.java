@@ -47,7 +47,7 @@ public class Visits {
 
     public Visits(EncounterNote note, UUID uuid, PatientData data) {
         this.externalSystem = note.getExternalSystem();
-        this.uuid = uuid;
+        this.uuid = UUID.fromString(note.getVisitId());
         this.createdAt = note.getEncounterDate();
         this.serviceProviderId = "161380e9-22d3-4627-a97f-0f918ce3e4a9";
         this.serviceProviderName = "Nyaho Medical Center";
@@ -60,6 +60,22 @@ public class Visits {
         this.assignedToId = note.getPractitionerId();
         this.setPatientName(data.getFullName());
         this.setDisplay("HIS-Visit-"+data.getMrNumber());
+    }
+    public Visits(EncounterNote note) {
+        this.externalSystem = note.getExternalSystem();
+        this.uuid = UUID.fromString(note.getVisitId());
+        this.createdAt = note.getEncounterDate();
+        this.serviceProviderId = "161380e9-22d3-4627-a97f-0f918ce3e4a9";
+        this.serviceProviderName = "Nyaho Medical Center";
+        this.encounterClass = note.getEncounterType();
+        this.patientDob = note.getPatientBirthDate();
+        this.patientId = note.getPatientId();
+        this.patientMrNumber = note.getPatientMrNumber(); // Fixed method name
+        this.gender = note.getPatientGender();
+        this.assignedToName = note.getPractitionerName(); // Fixed get/set
+        this.assignedToId = note.getPractitionerId();
+        this.setPatientName(note.getPatientFullName());
+        this.setDisplay("HIS-Visit-"+note.getPatientMrNumber());
     }
 
     public Visits() {
