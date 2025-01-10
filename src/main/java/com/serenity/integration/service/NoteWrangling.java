@@ -140,7 +140,7 @@ public class NoteWrangling {
     Map<String,String> visits = new HashMap<>();
 
      String query = """
-        SELECT 
+         SELECT 
             Transaction_ID AS uuid,
             Transaction_ID AS encounter_id,
             PatientID AS patient_mr_number,
@@ -157,7 +157,7 @@ public class NoteWrangling {
             CONCAT(practitioners.title, ' ', practitioners.Name) AS practitioner_name
         FROM cpoe_hpexam 
         LEFT JOIN employee_master AS practitioners ON cpoe_hpexam.EntryBy = practitioners.Employee_ID 
-    
+        WHERE MainComplaint is not null
     """;
 
     List<EncounterNote> notes = new ArrayList<>();
@@ -179,7 +179,7 @@ public class NoteWrangling {
             note.setPatientBirthDate(mps.get(set.getString(3)).getBirthDate());
             note.setEncounterType(set.getString(10));
             note.setRecalled(set.getBoolean(12));
-            note.setPractitionerRoleType(set.getString(13));
+            note.setPractitionerRoleType("doctor");
             note.setPractitionerName(set.getString("practitioner_name"));
             note.setPractitionerId(doc.get(set.getString("practitioner_id")));
             String key = note.getEncounterDate().split(" ")[0]+"="+set.getString(3);
