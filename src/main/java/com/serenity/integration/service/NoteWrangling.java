@@ -267,7 +267,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
             note.setPatientMrNumber(mps.get(set.getString(3)).getMrNumber());
             note.setEncounterType(set.getString(10));
             note.setRecalled(set.getBoolean(12));
-            note.setPractitionerRoleType(set.getString(13));
+            note.setPractitionerRoleType("doctor");
             note.setPractitionerName(set.getString("practitioner_name"));
             note.setPractitionerId(doc.get(set.getString("practitioner_id")));
             note.setExternalId(set.getString("uuid"));
