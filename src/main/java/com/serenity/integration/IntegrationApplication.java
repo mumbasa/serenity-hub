@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import com.serenity.integration.cron.NoteServiceCron;
 import com.serenity.integration.cron.VisitsCron;
+import com.serenity.integration.repository.EncounterRepository;
 import com.serenity.integration.repository.VisitRepository;
 import com.serenity.integration.service.AdmissionService;
 import com.serenity.integration.service.EncounterService;
@@ -45,7 +46,7 @@ public class IntegrationApplication {
 	@Autowired
 	SetupService setupService;
 	@Autowired
-	PractitionerService practitionerService;
+	EncounterRepository encounterRepository;
 	@Autowired
 	EncounterService encounterService;
 	@Autowired
@@ -72,9 +73,9 @@ public class IntegrationApplication {
 		
 		try {
 		
-medicalRequestService.medicalRequestIPD();;
+//medicalRequestService.medicalRequestIPD();;
 
-
+System.err.println(encounterRepository.findEcounterByPatientDateDoctor("NMC/OG/15/018824", "2015-06-01T19:16:02Z", "LSHHI153"));
 } catch (Exception e) {
 			e.printStackTrace();
 		}

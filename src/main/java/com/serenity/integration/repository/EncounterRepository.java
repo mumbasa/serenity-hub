@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.serenity.integration.models.Encounter;
 @Repository
 public interface EncounterRepository extends JpaRepository<Encounter,Long>{
-@Query(value = "select * from encounter e where patient_id =(select \"uuid\" from patient_information pi2 where externalid=?1) and date(created_at)=date(?2) and assigned_to_id=(select serenityuuid from doctors d where externalid=?3)" 
+@Query(value = "select * from encounter e where patient_id =(select \"uuid\" from patient_information pi2 where externalid=?1) and date(created_at)=date(?2) and assigned_to_id=(select serenityuuid from doctors d where externalid=?3) LIMIT 1" 
         ,nativeQuery = true)
     Optional<Encounter> findEcounterByPatientDateDoctor(String patient,String date,String doctor);
 }
