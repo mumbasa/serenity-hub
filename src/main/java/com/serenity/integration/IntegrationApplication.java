@@ -14,6 +14,7 @@ import com.serenity.integration.cron.VisitsCron;
 import com.serenity.integration.repository.VisitRepository;
 import com.serenity.integration.service.AdmissionService;
 import com.serenity.integration.service.EncounterService;
+import com.serenity.integration.service.MedicalRequestService;
 import com.serenity.integration.service.NoteService;
 import com.serenity.integration.service.NoteWrangling;
 import com.serenity.integration.service.PatientMigrationService;
@@ -36,7 +37,7 @@ public class IntegrationApplication {
 	NoteService noteService;
 
 	@Autowired
-	VisitsCron vCron;
+	MedicalRequestService medicalRequestService;
 
 	@Autowired
 	VisitService visitService;
@@ -71,7 +72,7 @@ public class IntegrationApplication {
 		
 		try {
 		
-noteWrangling.setVisitThreads();
+medicalRequestService.medicalRequestIPD();;
 
 
 } catch (Exception e) {

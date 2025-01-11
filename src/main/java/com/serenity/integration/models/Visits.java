@@ -81,4 +81,21 @@ public class Visits {
     public Visits() {
 
     }
+
+    public Visits(Encounter encounter) {
+        this.externalSystem = encounter.getExternalSystem();
+        this.uuid = UUID.fromString(encounter.getVisitId());
+        this.createdAt = encounter.getCreatedAt();
+        this.serviceProviderId = "161380e9-22d3-4627-a97f-0f918ce3e4a9";
+        this.serviceProviderName = "Nyaho Medical Center";
+        this.encounterClass = encounter.getEncounterClass();
+        this.patientDob = encounter.getPatientBirthDate();
+        this.patientId = encounter.getPatientId();
+        this.patientMrNumber = encounter.getPatientMrNumber(); // Fixed method name
+        this.gender = encounter.getPatientGender();
+        this.assignedToName = encounter.getAssignedToName(); // Fixed get/set
+        this.assignedToId = encounter.getAssignedToId();
+        this.setPatientName(encounter.getPatientFullName());
+        this.setDisplay("HIS-Visit-"+encounter.getPatientMrNumber());
+    }
 }
