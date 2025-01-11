@@ -492,8 +492,8 @@ public class MedicalRequestService {
 
         }
         saveInBatches(requests, medicalRequestRepository, 2000);
-        saveInBatches(encounters, encounterRepository, 2000);
-        saveInBatches(visits, visitRepository, 2000);
+     //   saveInBatches(encounters, encounterRepository, 2000);
+       // saveInBatches(visits, visitRepository, 2000);
     }
 
     public static <T> void saveInBatches(Collection<T> items, CrudRepository<T, ?> repository, int batchSize) {
