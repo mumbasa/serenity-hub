@@ -420,8 +420,8 @@ public class MedicalRequestService {
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
         while (set.next()) {
             String patientMr = set.getString("patient_id");
-            String date = set.getString("patient_id");
-            String doctor = set.getString("created_at");
+            String date = set.getString("created_at");
+            String doctor = set.getString("practitioner_id");
             Optional<Encounter> ecounter = encounterRepository.findEcounterByPatientDateDoctor(patientMr, date, doctor);
             if (ecounter.isPresent()) {
                 MedicalRequest request = new MedicalRequest();
