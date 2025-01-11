@@ -68,31 +68,11 @@ public class IntegrationApplication {
 		// List<String> ad = Arrays.asList(ac);
 		// service.loadPatients();
 		logger.info("Starting import");
-		// setupService.getServicePrices(1000);
-		// service.setupSerenity();
-		// setupService.getServicePrice("161380e9-22d3-4627-a97f-0f918ce3e4a9");
-		// setupService.setPricing("161380e9-22d3-4627-a97f-0f918ce3e4a9",
-		// "161380e9-22d3-4627-a97f-0f918ce3e4a9");
-		// setupService.healthServiceSetup("161380e9-22d3-4627-a97f-0f918ce3e4a9","RR.csv");;
-		// System.err.println(setupService.getWards("161380e9-22d3-4627-a97f-0f918ce3e4a9").size());
-		// service.getHisNote();
-		// setupService.setWard("161380e9-22d3-4627-a97f-0f918ce3e4a9");
-		// .searchCountries();;
-		// noteService.getProgressNote();
-		// noteService.getCarePlan();
-		// noteService.getPresentingIllness();
-		// noteService.getChiefNote();
-		// admissionService.getAdmission();
-		// vCron.setupVisits();
-		// encounterService.setEncounterNotes();
-		// patientService.getLegacyPatients();
+		
 		try {
-			//visitService.getHisThreads();
-//noteWrangling.illThreads();
-//noteWrangling.careThreads();
-//noteWrangling.progressThreads();
+		
 noteWrangling.setVisitThreads();
-//noteWrangling.visitsThread();
+
 
 } catch (Exception e) {
 			e.printStackTrace();
