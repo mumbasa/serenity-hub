@@ -73,9 +73,9 @@ public class IntegrationApplication {
 		
 		try {
 		
-//medicalRequestService.medicalRequestIPD();;
+medicalRequestService.medicalRequestIPD();;
 
-System.err.println(encounterRepository.findEcounterByPatientDateDoctor("NMC/OG/15/018824", "2015-06-01T19:16:02Z", "LSHHI153"));
+//System.err.println(encounterRepository.findEcounterByPatientDateDoctor("NMC/OG/15/018824", "2015-06-01T19:16:02Z", "LSHHI153"));
 } catch (Exception e) {
 			e.printStackTrace();
 		}
