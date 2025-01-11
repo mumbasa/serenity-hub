@@ -419,6 +419,8 @@ public class MedicalRequestService {
 
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
         while (set.next()) {
+            logger.info("fetching");
+
             String patientMr = set.getString("patient_id");
             String date = set.getString("created_at");
             String doctor = set.getString("practitioner_id");
