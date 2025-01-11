@@ -430,7 +430,6 @@ public class MedicalRequestService {
                 request.setAuthoredOn(set.getString("authored_on"));
                 request.setName(set.getString("name"));
                 request.setCategory(set.getString("category"));
-                request.setCategory(set.getString(query));
                 request.setCode(set.getString("code"));
                 request.setNotes(cleanString(set.getString("notes")));
                 request.setPriority(set.getString("priority"));
