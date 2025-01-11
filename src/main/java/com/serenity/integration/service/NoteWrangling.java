@@ -755,6 +755,26 @@ encounterRepository.saveAll(encounters);
 
 
 
+
+
+
+}
+
+
+public void setVisitThreads(){
+    int data = 1883637;
+    int rounds = (int)Math.ceil(data/10000);
+    for(int i=0;i<rounds;i++){
+    logger.info("setting visit offset");
+    List<EncounterNote> notes = encounterNoteRepository.findOffsetData(i*10000, 10000);
+    Set<Visits> encounters = new HashSet<>();
+    notes.stream().forEach(e -> encounters.add(new Visits(e)));
+    visitRepository.saveAll(encounters);
+    
+    }
+
+
+
 }
 
     public Set<Callable<Integer>> submitVisits(int batchSize, List<Visits> encounters) {

@@ -91,7 +91,7 @@ public class IntegrationApplication {
 //noteWrangling.illThreads();
 //noteWrangling.careThreads();
 //noteWrangling.progressThreads();
-noteWrangling.setEncounterThreads();
+noteWrangling.setVisitThreads();
 //noteWrangling.visitsThread();
 
 } catch (Exception e) {
