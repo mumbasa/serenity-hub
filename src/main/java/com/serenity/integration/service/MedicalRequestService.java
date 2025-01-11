@@ -491,7 +491,7 @@ public class MedicalRequestService {
             }
 
         }
-        saveInBatches(requests, medicalRequestRepository, 2000);
+        saveInBatches(requests, medicalRequestRepository, 100);
      //   saveInBatches(encounters, encounterRepository, 2000);
        // saveInBatches(visits, visitRepository, 2000);
     }
