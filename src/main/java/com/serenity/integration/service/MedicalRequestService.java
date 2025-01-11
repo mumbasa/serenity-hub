@@ -410,7 +410,7 @@ public class MedicalRequestService {
 
                   where  om.Remark !=''
 
-                order by om.EntryDate desc;
+                order by om.EntryDate desc LIMIT 500
                     """;
 
         List<Encounter> encounters = new ArrayList<>();
