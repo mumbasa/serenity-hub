@@ -404,8 +404,6 @@ public class MedicalRequestService {
 
                   and sd.TrasactionTypeID = '3'
 
-                  where  om.Remark !=''
-
                 order by om.EntryDate desc
                     """;
 
