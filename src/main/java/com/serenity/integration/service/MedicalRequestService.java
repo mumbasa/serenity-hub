@@ -590,7 +590,7 @@ public class MedicalRequestService {
         }
 
         executorService.shutdown();
-        System.err.println("patiend count is ");
+		logger.info("Starting importing Medical Requests");
 
     }
 
