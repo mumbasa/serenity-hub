@@ -416,7 +416,6 @@ public class MedicalRequestService {
 
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
         while (set.next()) {
-            logger.info("fetching");
 
             String patientMr = set.getString("patient_id");
             String date = set.getString("created_at");
@@ -494,6 +493,7 @@ public class MedicalRequestService {
        // saveInBatches(visits, visitRepository, 2000);
 
        logger.info("Results are "+ requests.size());
+       return requests;
     }
 
     public static <T> void saveInBatches(Collection<T> items, CrudRepository<T, ?> repository, int batchSize) {
@@ -587,6 +587,46 @@ public class MedicalRequestService {
             return null;
         return input.replace("\0", "")
                 .replace("\u0000", "");
+    }
+
+    public Set<Callable<Integer>> submitTask2(int batchSize, List<MedicalRequest> notes) {
+    
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = notes.size();
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                int endIndex = Math.min(startIndex + batchSize, totalSize);
+                logger.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+                try{
+                medicalRequestRepository.saveAll(notes.subList(startIndex, endIndex));
+                }
+                catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                    logger.info("error adding note");
+                    for(MedicalRequest note : notes){
+                        try{
+                        medicalRequestRepository.save(note);
+                        }catch(Exception es){
+                            System.err.println("failed add some");
+                            es.printStackTrace();
+
+                        }
+                    }
+                }
+
+               
+                return 1;
+            });
+        }
+
+        return callables;
     }
 
 }
