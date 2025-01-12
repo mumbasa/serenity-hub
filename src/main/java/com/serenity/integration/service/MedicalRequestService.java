@@ -66,11 +66,8 @@ public class MedicalRequestService {
     @Autowired
     MedicalRequestRepository medicalRequestRepository;
 
-    public void medicalRequestOPD() {
-        Map<String, PatientData> mps = patientRepository.findAll().stream()
-                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
-        Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
-                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+    public  List<MedicalRequest> medicalRequestOPD(Map<String, PatientData> mps ,Map<String, String> doc,int batchSize) {
+       
         String query = """
                                         select
 
@@ -158,13 +155,15 @@ public class MedicalRequestService {
                 	pm.IsChange = 0
 
                 	and pm.isReject = 0
+
+                    LIMIT ?, 1000
                                     """;
 
-        List<Encounter> encounters = new ArrayList<>();
+      // List<Encounter> encounters = new ArrayList<>();
         List<MedicalRequest> requests = new ArrayList<>();
-        List<Visits> visits = new ArrayList<>();
+       // List<Visits> visits = new ArrayList<>();
 
-        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
+        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query,batchSize);
         while (set.next()) {
             String patientMr = set.getString("patient_id");
             String date = set.getString("created_at");
@@ -177,7 +176,6 @@ public class MedicalRequestService {
                 request.setAuthoredOn(set.getString("authored_on"));
                 request.setName(set.getString("name"));
                 request.setCategory(set.getString("category"));
-                request.setCategory(set.getString(query));
                 request.setCode(set.getString("code"));
                 request.setNotes(cleanString(set.getString("notes")));
                 request.setPriority(set.getString("priority"));
@@ -207,7 +205,6 @@ public class MedicalRequestService {
                 request.setAuthoredOn(set.getString("authored_on"));
                 request.setName(set.getString("name"));
                 request.setCategory(set.getString("category"));
-                request.setCategory(set.getString(query));
                 request.setCode(set.getString("code"));
                 request.setNotes(set.getString("notes"));
                 request.setPriority(set.getString("priority"));
@@ -229,18 +226,17 @@ public class MedicalRequestService {
                 }
 
                 request.setEncounterId(UUID.randomUUID().toString());
-                Encounter encounter = new Encounter(request, mps.get(set.getString("patient_id")), "his");
-                Visits visit = new Visits(encounter);
-                visits.add(visit);
-                encounters.add(encounter);
+                request.setVisitId(UUID.randomUUID().toString());
+              ///  Encounter encounter = new Encounter(request, mps.get(set.getString("patient_id")), "his");
+             //   Visits visit = new Visits(encounter);
+             //   visits.add(visit);
+             //   encounters.add(encounter);
                 requests.add(request);
 
             }
 
         }
-        saveInBatches(requests, medicalRequestRepository, 2000);
-        saveInBatches(encounters, encounterRepository, 2000);
-        saveInBatches(visits, visitRepository, 2000);
+       return requests;
     }
 
     public List<MedicalRequest> medicalRequestIPD(Map<String, PatientData> mps, Map<String, String> doc) {
@@ -572,6 +568,85 @@ public class MedicalRequestService {
 
     }
 
+
+
+
+
+
+    public void OPDThread() {
+
+    
+        List<MedicalRequest> notes = OPDDataThread();
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2( 1000,notes));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+        System.err.println("patiend count is ");
+
+    }
+
+
+
+
+    public List<MedicalRequest> OPDDataThread() {
+        List<MedicalRequest> data = new ArrayList<>();
+        String sql ="""
+                
+     select
+
+                count(*)
+
+                from
+
+                	patient_medicine pm
+
+                join doctor_master dm on dm.Doctor_ID = pm.DoctorID
+
+                join patient_master on patient_master.Patient_ID = pm.Patient_ID
+
+                left join f_itemmaster im on
+
+                	pm.Medicine_ID = im.ItemID
+
+                where
+
+                	pm.IsChange = 0
+
+                	and pm.isReject = 0
+
+                    """;
+       
+        @SuppressWarnings("null")
+        int rows = hisJdbcTemplate.queryForObject(sql, Integer.class);            
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<List<MedicalRequest>>> futures = executorService.invokeAll(getMedicalRequestsData( 1000,rows));
+            for (Future<List<MedicalRequest>> future : futures) {
+                data.addAll(future.get());
+
+            }
+
+            
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+        System.err.println("patiend count is ");
+        return data;
+    }
+
   
 
 
@@ -621,6 +696,35 @@ public class MedicalRequestService {
                
                 return 1;
             });
+        }
+
+        return callables;
+    }
+
+
+
+    public Set<Callable<List<MedicalRequest>>> getMedicalRequestsData(int batchSize, int rows) {
+        Map<String, PatientData> mps = patientRepository.findAll().stream()
+        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
+        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+        Set<Callable<List<MedicalRequest>>> callables = new HashSet<>();
+        int totalSize = rows;
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+            
+                logger.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+                return  medicalRequestOPD(mps,doc,startIndex);
+                }
+
+               
+            );
         }
 
         return callables;
