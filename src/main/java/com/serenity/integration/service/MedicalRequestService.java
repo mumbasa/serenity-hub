@@ -244,11 +244,8 @@ public class MedicalRequestService {
         saveInBatches(visits, visitRepository, 2000);
     }
 
-    public void medicalRequestIPD() {
-        Map<String, PatientData> mps = patientRepository.findAll().stream()
-                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
-        Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
-                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+    public List<MedicalRequest> medicalRequestIPD(Map<String, PatientData> mps, Map<String, String> doc) {
+      
         String query = """
                         Select om.EntryID uuid,
 
@@ -483,17 +480,20 @@ public class MedicalRequestService {
 
                 request.setEncounterId(UUID.randomUUID().toString());
                 Encounter encounter = new Encounter(request, mps.get(set.getString("patient_id")), "his");
-                Visits visit = new Visits(encounter);
-                visits.add(visit);
-                encounters.add(encounter);
+                //Visits visit = new Visits(encounter);
+                //visits.add(visit);
+                //encounters.add(encounter);
+                request.setVisitId(UUID.randomUUID().toString());
                 requests.add(request);
 
             }
 
         }
-        saveInBatches(requests, medicalRequestRepository, 100);
+       // saveInBatches(requests, medicalRequestRepository, 100);
      //   saveInBatches(encounters, encounterRepository, 2000);
        // saveInBatches(visits, visitRepository, 2000);
+
+       logger.info("Results are "+ requests.size());
     }
 
     public static <T> void saveInBatches(Collection<T> items, CrudRepository<T, ?> repository, int batchSize) {
@@ -548,6 +548,35 @@ public class MedicalRequestService {
             throw e;
         }
     }
+
+
+    public void IPDThread() {
+
+    
+        Map<String, PatientData> mps = patientRepository.findAll().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+        Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+        List<MedicalRequest> notes = medicalRequestIPD(mps, doc);
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2( 1000,notes));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+        System.err.println("patiend count is ");
+
+    }
+
+  
+
 
     private static double calculateProgress(int processed, int total) {
         return Math.round((double) processed / total * 100 * 100.0) / 100.0;

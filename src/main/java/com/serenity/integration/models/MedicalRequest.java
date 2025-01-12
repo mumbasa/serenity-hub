@@ -47,4 +47,5 @@ public class MedicalRequest {
     private String practitionerName;
     private String practitionerId;
     private String createdAt;
+    private String visitId;
 }
