@@ -109,7 +109,6 @@ public class MedicalRequestService {
                 	null dosage_frequency,
 
                 	null dosage_frequency_unit,
-
                 	null dose,
 
                 	null dose_unit,
@@ -407,7 +406,7 @@ public class MedicalRequestService {
 
                   where  om.Remark !=''
 
-                order by om.EntryDate desc LIMIT 500
+                order by om.EntryDate desc
                     """;
 
         List<Encounter> encounters = new ArrayList<>();
