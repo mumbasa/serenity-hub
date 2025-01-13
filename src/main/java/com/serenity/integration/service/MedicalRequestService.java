@@ -235,7 +235,7 @@ public class MedicalRequestService {
                 if(requests.size()==1000){
 
                     medicalRequestRepository.saveAll(requests);
-
+                    requests = new ArrayList<>();
                 }
 
             }
