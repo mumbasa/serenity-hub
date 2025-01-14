@@ -714,7 +714,7 @@ logger.info("rows found "+rows);
 Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
         .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
         Set<Callable<List<MedicalRequest>>> callables = new HashSet<>();
-        int totalSize = rows;
+        int totalSize = 10000;
         int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
