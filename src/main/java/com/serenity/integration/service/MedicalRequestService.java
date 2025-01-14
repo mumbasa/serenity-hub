@@ -163,7 +163,7 @@ public class MedicalRequestService {
         List<MedicalRequest> requests = new ArrayList<>();
        // List<Visits> visits = new ArrayList<>();
 
-        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
+        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query,batchSize);
         while (set.next()) {
             String patientMr = set.getString("patient_id");
             String date = set.getString("created_at");
