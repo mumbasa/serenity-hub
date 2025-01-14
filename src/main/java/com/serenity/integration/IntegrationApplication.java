@@ -72,8 +72,7 @@ public class IntegrationApplication {
 		logger.info("Starting import");
 		
 		try {
-		
-medicalRequestService.OPDThread();;
+			medicalRequestService.OPDDataThread();
 
 //System.err.println(encounterRepository.findEcounterByPatientDateDoctor("NMC/OG/15/018824", "2015-06-01T19:16:02Z", "LSHHI153"));
 } catch (Exception e) {

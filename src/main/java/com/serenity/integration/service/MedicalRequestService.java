@@ -632,7 +632,7 @@ public class MedicalRequestService {
        
         @SuppressWarnings("null")
         int rows = hisJdbcTemplate.queryForObject(sql, Integer.class);            
-
+logger.info("rows found "+rows);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<List<MedicalRequest>>> futures = executorService.invokeAll(getMedicalRequestsData( 1000,rows));
