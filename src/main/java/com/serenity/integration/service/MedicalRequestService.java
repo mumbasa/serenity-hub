@@ -156,14 +156,14 @@ public class MedicalRequestService {
 
                 	and pm.isReject = 0
 
-                   /// LIMIT ?, 1000
+                 LIMIT ?, 1000
                                     """;
 
       // List<Encounter> encounters = new ArrayList<>();
         List<MedicalRequest> requests = new ArrayList<>();
        // List<Visits> visits = new ArrayList<>();
 
-        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query,batchSize);
+        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
         while (set.next()) {
             String patientMr = set.getString("patient_id");
             String date = set.getString("created_at");
