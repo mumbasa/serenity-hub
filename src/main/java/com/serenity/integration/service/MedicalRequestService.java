@@ -627,7 +627,7 @@ public class MedicalRequestService {
                 	pm.IsChange = 0
 
                 	and pm.isReject = 0
-
+                    LIMIT 0, 500000
                     """;
        
         @SuppressWarnings("null")
@@ -714,7 +714,7 @@ logger.info("rows found "+rows);
 Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
         .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
         Set<Callable<List<MedicalRequest>>> callables = new HashSet<>();
-        int totalSize = 10000;
+        int totalSize = rows;
         int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
 
         for (int i = 0; i < batches; i++) {

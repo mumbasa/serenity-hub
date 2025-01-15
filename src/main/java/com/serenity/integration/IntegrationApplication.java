@@ -66,9 +66,7 @@ public class IntegrationApplication {
 
 	@PostConstruct
 	public void coke() {
-		// String[] ac = {"NMC/OG/15/024341","NMC/OG/15/024341"};
-		// List<String> ad = Arrays.asList(ac);
-		// service.loadPatients();
+		
 		logger.info("Starting import");
 		
 		try {
