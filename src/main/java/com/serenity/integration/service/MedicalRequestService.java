@@ -623,7 +623,7 @@ public class MedicalRequestService {
                 	pm.IsChange = 0
 
                 	and pm.isReject = 0
-                    LIMIT 0, 500000
+                   
                     """;
        
         @SuppressWarnings("null")
@@ -631,7 +631,7 @@ public class MedicalRequestService {
 logger.info("rows found "+rows);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<List<MedicalRequest>>> futures = executorService.invokeAll(getMedicalRequestsData( 1000,rows));
+            List<Future<List<MedicalRequest>>> futures = executorService.invokeAll(getMedicalRequestsData( 1000,500000));
             for (Future<List<MedicalRequest>> future : futures) {
                 data.addAll(future.get());
 
