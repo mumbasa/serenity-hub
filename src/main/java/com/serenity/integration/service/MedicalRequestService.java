@@ -694,6 +694,10 @@ public class MedicalRequestService {
 
 
     public List<MedicalRequest> OPDDataThread() {
+        Map<String, PatientData> mps = patientRepository.findAll().stream()
+        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
+        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
         List<MedicalRequest> data = new ArrayList<>();
         String sql ="""
                 
@@ -726,7 +730,7 @@ public class MedicalRequestService {
 logger.info("rows found "+rows);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<List<MedicalRequest>>> futures = executorService.invokeAll(getMedicalRequestsData( 1000,rows));
+            List<Future<List<MedicalRequest>>> futures = executorService.invokeAll(getMedicalRequestsData( 1000,rows,mps,doc));
             for (Future<List<MedicalRequest>> future : futures) {
                 data.addAll(future.get());
 
@@ -799,11 +803,8 @@ logger.info("rows found "+rows);
 
 
 
-    public Set<Callable<List<MedicalRequest>>> getMedicalRequestsData(int batchSize, int rows) {
-        Map<String, PatientData> mps = patientRepository.findAll().stream()
-        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
-Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
-        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+    public Set<Callable<List<MedicalRequest>>> getMedicalRequestsData(int batchSize, int rows,  Map<String, PatientData> mps,Map<String, String> doc ) {
+     
         Set<Callable<List<MedicalRequest>>> callables = new HashSet<>();
         int totalSize = rows;
         int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
