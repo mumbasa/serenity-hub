@@ -66,7 +66,7 @@ public class MedicalRequestService {
     @Autowired
     MedicalRequestRepository medicalRequestRepository;
 
-    public  List<MedicalRequest> medicalRequestOPD(Map<String, PatientData> mps ,Map<String, String> doc,int batchSize) {
+    public  List<MedicalRequest> medicalRequestOPD2(Map<String, PatientData> mps ,Map<String, String> doc,int batchSize) {
        
         String query = """
                                         select
@@ -235,6 +235,149 @@ public class MedicalRequestService {
                
 
             }
+
+        }
+       return requests;
+    }
+
+
+
+
+    public  List<MedicalRequest> medicalRequestOPD(Map<String, PatientData> mps ,Map<String, String> doc,int batchSize) {
+       
+        String query = """
+                                        select
+
+                	pm.PatientMedicine_ID uuid,
+
+                	pm.EntryDate created_at,
+
+                	pm.EntryDate updated_at,
+
+                	pm.EntryDate authored_on,
+
+                	IFNULL(im.TypeName, pm.MedicineName) name,
+
+                	"outpatient" category,
+
+                	pm.Medicine_ID code,
+
+                	null date,
+
+                	pm.Remarks notes,
+
+                	null intended_dispenser,
+
+                	"routine" priority,
+
+                	"completed" status,
+
+                	concat(pm.dose, " - ", pm.NoTimesDay, " - ", pm.NoOfDays) dosage_display,
+
+                	null dosage_form,
+
+                	null dosage_route,
+
+                	null dosage_site,
+
+                	null dosage_frequency,
+
+                	null dosage_frequency_unit,
+                	null dose,
+
+                	null dose_unit,
+
+                	null dosage_strength,
+
+                	null dosage_period,
+
+                	null course_of_therapy,
+
+                	null quantity_to_dispense,
+
+                	null number_of_refills,
+
+                	null dosage_period_unit,
+
+                	"Nyaho Medical Centre" service_provider_id,
+
+                	null encounter_id,
+
+                	pm.Transaction_ID visit_id,
+
+                	pm.Patient_ID patient_id,
+
+                	pm.Patient_ID mr_number,
+
+                	patient_master.PName patient_full_name,
+
+                	CONCAT(dm.Title, ' ', dm.Name) practitioner_name,
+
+                	pm.DoctorID practitioner_id
+
+                from
+
+                	patient_medicine pm
+
+                join doctor_master dm on dm.Doctor_ID = pm.DoctorID
+
+                join patient_master on patient_master.Patient_ID = pm.Patient_ID
+
+                left join f_itemmaster im on
+
+                	pm.Medicine_ID = im.ItemID
+
+                where
+
+                	pm.IsChange = 0
+
+                	and pm.isReject = 0
+
+                 LIMIT ?, 1000
+                                    """;
+
+        List<MedicalRequest> requests = new ArrayList<>();
+
+        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query,batchSize);
+        while (set.next()) {
+          
+           
+                MedicalRequest request = new MedicalRequest();
+                request.setUuid(UUID.randomUUID().toString());
+                request.setCreatedAt(set.getString("created_at"));
+                request.setAuthoredOn(set.getString("authored_on"));
+                request.setName(set.getString("name"));
+                request.setCategory(set.getString("category"));
+                request.setCode(set.getString("code"));
+                request.setNotes(set.getString("notes"));
+                request.setPriority(set.getString("priority"));
+                request.setStatus(set.getString("status"));
+                request.setDosageDisplay(set.getString("dosage_display"));
+                request.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+                request.setServiceProviderName("Nyaho Medical Centre");
+                try {
+                    request.setPatientId(mps.get(set.getString("patient_id")).getUuid());
+                } catch (Exception e) {
+                    logger.info("patient not found");
+                }
+                try {
+
+                    request.setPractitionerId(doc.get(set.getString("practitioner_id")));
+                    request.setPractitionerName(set.getString("practitioner_name"));
+                } catch (Exception e) {
+                    logger.info("doctor not found");
+                }
+
+                request.setEncounterId(UUID.randomUUID().toString());
+                request.setVisitId(UUID.randomUUID().toString());
+              ///  Encounter encounter = new Encounter(request, mps.get(set.getString("patient_id")), "his");
+             //   Visits visit = new Visits(encounter);
+             //   visits.add(visit);
+             //   encounters.add(encounter);
+                requests.add(request);
+               
+
+        
 
         }
        return requests;
@@ -543,6 +686,9 @@ public class MedicalRequestService {
         }
     }
 
+
+
+    
 
     public void IPDThread() {
 
