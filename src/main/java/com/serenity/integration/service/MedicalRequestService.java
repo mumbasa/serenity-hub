@@ -633,58 +633,7 @@ public class MedicalRequestService {
        return requests;
     }
 
-    public static <T> void saveInBatches(Collection<T> items, CrudRepository<T, ?> repository, int batchSize) {
-        if (items == null || items.isEmpty()) {
-            logger.warn("No items to save");
-            return;
-        }
-
-        List<T> batch = new ArrayList<>(batchSize);
-        AtomicInteger totalProcessed = new AtomicInteger(0);
-        AtomicInteger batchNumber = new AtomicInteger(1);
-
-        try {
-            for (T item : items) {
-                batch.add(item);
-
-                if (batch.size() >= batchSize) {
-                    processBatch(batch, repository, batchNumber.get(), totalProcessed, items.size());
-                    batch = new ArrayList<>(batchSize);
-                    batchNumber.incrementAndGet();
-                }
-            }
-
-            // Process remaining items
-            if (!batch.isEmpty()) {
-                processBatch(batch, repository, batchNumber.get(), totalProcessed, items.size());
-            }
-
-            logger.info("Batch processing completed. Total items processed: {}", totalProcessed.get());
-
-        } catch (Exception e) {
-            logger.error("Error during batch processing at batch {}: {}", batchNumber.get(), e.getMessage());
-            throw new RuntimeException("Failed to process batch " + batchNumber.get(), e);
-        }
-    }
-
-    public static <T> void processBatch(List<T> batch, CrudRepository<T, ?> repository,
-            int batchNumber, AtomicInteger totalProcessed, int totalItems) {
-        try {
-            repository.saveAll(batch);
-            totalProcessed.addAndGet(batch.size());
-
-            logger.info("Processed batch {}: {} items. Progress: {}/{} ({}%)",
-                    batchNumber,
-                    batch.size(),
-                    totalProcessed.get(),
-                    totalItems,
-                    calculateProgress(totalProcessed.get(), totalItems));
-
-        } catch (Exception e) {
-            logger.error("Error saving batch {}: {}", batchNumber, e.getMessage());
-            throw e;
-        }
-    }
+  
 
 
 
@@ -777,7 +726,7 @@ public class MedicalRequestService {
 logger.info("rows found "+rows);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<List<MedicalRequest>>> futures = executorService.invokeAll(getMedicalRequestsData( 1000,50000));
+            List<Future<List<MedicalRequest>>> futures = executorService.invokeAll(getMedicalRequestsData( 1000,rows));
             for (Future<List<MedicalRequest>> future : futures) {
                 data.addAll(future.get());
 
