@@ -631,7 +631,7 @@ public class MedicalRequestService {
 logger.info("rows found "+rows);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<List<MedicalRequest>>> futures = executorService.invokeAll(getMedicalRequestsData( 1000,500000));
+            List<Future<List<MedicalRequest>>> futures = executorService.invokeAll(getMedicalRequestsData( 1000,50000));
             for (Future<List<MedicalRequest>> future : futures) {
                 data.addAll(future.get());
 
