@@ -383,7 +383,7 @@ public class MedicalRequestService {
        return requests;
     }
 
-    public List<MedicalRequest> medicalRequestIPD(Map<String, PatientData> mps, Map<String, String> doc) {
+    public List<MedicalRequest> medicalRequestIPD(Map<String, PatientData> mps, Map<String, String> doc,int batchSize) {
       
         String query = """
                         Select om.EntryID uuid,
@@ -545,16 +545,17 @@ public class MedicalRequestService {
                   and sd.TrasactionTypeID = '3'
 
                 order by om.EntryDate desc
+                LIMIT ?,1000
                     """;
 
-        List<Encounter> encounters = new ArrayList<>();
+       // List<Encounter> encounters = new ArrayList<>();
         List<MedicalRequest> requests = new ArrayList<>();
-        List<Visits> visits = new ArrayList<>();
+       // List<Visits> visits = new ArrayList<>();
 
-        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
+        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query,batchSize);
         while (set.next()) {
 
-            String patientMr = set.getString("patient_id");
+           /*  String patientMr = set.getString("patient_id");
             String date = set.getString("created_at");
             String doctor = set.getString("practitioner_id");
             Optional<Encounter> ecounter = encounterRepository.findEcounterByPatientDateDoctor(patientMr, date, doctor);
@@ -587,7 +588,8 @@ public class MedicalRequestService {
 
                 request.setEncounterId(ecounter.get().getUuid());
                 requests.add(request);
-            } else {
+            } else { */
+
                 MedicalRequest request = new MedicalRequest();
                 request.setUuid(UUID.randomUUID().toString());
                 request.setCreatedAt(set.getString("created_at"));
@@ -615,7 +617,7 @@ public class MedicalRequestService {
                 }
 
                 request.setEncounterId(UUID.randomUUID().toString());
-                Encounter encounter = new Encounter(request, mps.get(set.getString("patient_id")), "his");
+                //Encounter encounter = new Encounter(request, mps.get(set.getString("patient_id")), "his");
                 //Visits visit = new Visits(encounter);
                 //visits.add(visit);
                 //encounters.add(encounter);
@@ -624,7 +626,7 @@ public class MedicalRequestService {
 
             }
 
-        }
+        
        // saveInBatches(requests, medicalRequestRepository, 100);
      //   saveInBatches(encounters, encounterRepository, 2000);
        // saveInBatches(visits, visitRepository, 2000);
@@ -637,16 +639,10 @@ public class MedicalRequestService {
 
 
 
-    
-
     public void IPDThread() {
 
     
-        Map<String, PatientData> mps = patientRepository.findAll().stream()
-                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
-        Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
-                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
-        List<MedicalRequest> notes = medicalRequestIPD(mps, doc);
+        List<MedicalRequest> notes = OPDDataThread();
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
@@ -660,11 +656,11 @@ public class MedicalRequestService {
         }
 
         executorService.shutdown();
-        System.err.println("patiend count is ");
+		logger.info("Starting importing Medical Requests");
 
     }
 
-
+    
 
 
 
@@ -691,6 +687,64 @@ public class MedicalRequestService {
     }
 
 
+
+
+    public List<MedicalRequest> IPDDataThread() {
+        Map<String, PatientData> mps = patientRepository.findAll().stream()
+        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
+        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+        List<MedicalRequest> data = new ArrayList<>();
+        String sql ="""
+                
+     select
+
+                count(*)
+
+                from orderset_medication om
+
+                  inner join patient_medical_history pmh on pmh.Transaction_ID = om.TransactionID
+
+                  inner join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID
+
+                  inner join patient_master on patient_master.Patient_ID = pmh.Patient_ID
+
+                  left outer join f_indent_detail_patient id on om.IndentNo = id.IndentNo
+
+                  and om.MedicineID = id.ItemId
+
+                  left outer join f_salesdetails sd on sd.IndentNo = id.IndentNo
+
+                  and sd.ItemID = id.ItemId
+
+                  and sd.TrasactionTypeID = '3'
+
+                order by om.EntryDate desc
+                    """;
+       
+        @SuppressWarnings("null")
+        int rows = hisJdbcTemplate.queryForObject(sql, Integer.class);            
+        logger.info("data srows found "+rows);
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<List<MedicalRequest>>> futures = executorService.invokeAll(getMedicalIPDRequestsData( 1000,rows,mps,doc));
+            for (Future<List<MedicalRequest>> future : futures) {
+                data.addAll(future.get());
+
+            }
+
+            
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+        System.err.println("patiend count is "+data.size());
+        return data;
+    }
+
+  
 
 
     public List<MedicalRequest> OPDDataThread() {
@@ -748,8 +802,6 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
     }
 
   
-
-
     private static double calculateProgress(int processed, int total) {
         return Math.round((double) processed / total * 100 * 100.0) / 100.0;
     }
@@ -818,6 +870,32 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
                 logger.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
                 return  medicalRequestOPD(mps,doc,startIndex);
+                }
+
+               
+            );
+        }
+
+        return callables;
+    }
+
+
+
+    public Set<Callable<List<MedicalRequest>>> getMedicalIPDRequestsData(int batchSize, int rows,  Map<String, PatientData> mps,Map<String, String> doc ) {
+     
+        Set<Callable<List<MedicalRequest>>> callables = new HashSet<>();
+        int totalSize = rows;
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+            
+                logger.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+                return  medicalRequestIPD(mps,doc,startIndex);
                 }
 
                
