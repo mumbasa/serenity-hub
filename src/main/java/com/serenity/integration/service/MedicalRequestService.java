@@ -727,7 +727,7 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
        
         @SuppressWarnings("null")
         int rows = hisJdbcTemplate.queryForObject(sql, Integer.class);            
-logger.info("rows found "+rows);
+        logger.info("data srows found "+rows);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<List<MedicalRequest>>> futures = executorService.invokeAll(getMedicalRequestsData( 1000,rows,mps,doc));
@@ -743,7 +743,7 @@ logger.info("rows found "+rows);
         }
 
         executorService.shutdown();
-        System.err.println("patiend count is ");
+        System.err.println("patiend count is "+data.size());
         return data;
     }
 
