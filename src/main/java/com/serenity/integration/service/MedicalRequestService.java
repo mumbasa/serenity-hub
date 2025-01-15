@@ -642,7 +642,7 @@ public class MedicalRequestService {
     public void IPDThread() {
 
     
-        List<MedicalRequest> notes = OPDDataThread();
+        List<MedicalRequest> notes = IPDDataThread();
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
@@ -696,8 +696,7 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
         .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
         List<MedicalRequest> data = new ArrayList<>();
         String sql ="""
-                
-     select
+         select
 
                 count(*)
 
@@ -719,12 +718,13 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
 
                   and sd.TrasactionTypeID = '3'
 
-                order by om.EntryDate desc
+                order by om.EntryDate desc  
+        
                     """;
        
         @SuppressWarnings("null")
         int rows = hisJdbcTemplate.queryForObject(sql, Integer.class);            
-        logger.info("data srows found "+rows);
+        logger.info("data rows found "+rows);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<List<MedicalRequest>>> futures = executorService.invokeAll(getMedicalIPDRequestsData( 1000,rows,mps,doc));
