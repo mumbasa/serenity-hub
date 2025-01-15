@@ -232,11 +232,7 @@ public class MedicalRequestService {
              //   visits.add(visit);
              //   encounters.add(encounter);
                 requests.add(request);
-                if(requests.size()==1000){
-
-                    medicalRequestRepository.saveAll(requests);
-                    requests = new ArrayList<>();
-                }
+               
 
             }
 
