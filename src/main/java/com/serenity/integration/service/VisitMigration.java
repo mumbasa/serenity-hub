@@ -87,16 +87,10 @@ public class VisitMigration {
                         try {
                             tasker2(v);
                         } catch (Exception es) {
-                            try {
-                                String l = v.getUuid().toString();
-                                v.setUuid(UUID.randomUUID());
-                                tasker2(v);
-                                v.setPatientStatus(l);
-                                visitRepository.save(v);
-                            } catch (Exception eg) {
+                          
                                 System.err.println(" Nothing worked");
 
-                            }
+                            
                         }
 
                     }
