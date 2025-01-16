@@ -52,7 +52,7 @@ public class VisitMigration {
     PatientRepository patientRepository;
 
     public void getPatientsThreads() {
-     
+     logger.info("kooooooooooooooading");
         int dataSize = 727912;
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {

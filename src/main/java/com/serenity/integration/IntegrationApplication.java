@@ -74,7 +74,7 @@ public class IntegrationApplication {
 		try {
 			//medicalRequestService.IPDDataThread();
 			//medicalRequestService.IPDThread();
-			visitService.getPatientsThreads();
+			//visitService.getPatientsThreads();
 			//System.err.println(v.getfirst1());
 		//encounterService.getEncounterThreads();
 
