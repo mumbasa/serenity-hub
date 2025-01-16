@@ -30,6 +30,10 @@ public class VisitMigration {
     @Qualifier("serenityJdbcTemplate")
     JdbcTemplate serenityJdbcTemplate;
 
+   /*  @Autowired
+    @Qualifier("hubJdbcTemplate")
+    JdbcTemplate hubJdbcTemplate; */
+
     @Autowired
     VisitRepository visitRepository;
 
@@ -41,10 +45,11 @@ public class VisitMigration {
 
 
 public void getPatientsThreads(){
-    List<Visits> patientData = visitRepository.findAll();
+String sql ="SELECT count(*) FROM visists where externalsystem='his'";
+    int dataSize = 2160000;
     ExecutorService executorService =  Executors.newFixedThreadPool(10);
     try {
-        List<Future<Integer>> futures = executorService.invokeAll(submitTask2( 5000,patientData));
+        List<Future<Integer>> futures = executorService.invokeAll(submitTask2( 1000,dataSize));
         for(Future<Integer> future : futures){
             System.out.println("future.get = " + future.get());
         }
@@ -54,17 +59,17 @@ public void getPatientsThreads(){
     }
     
     executorService.shutdown();
-    System.err.println("patiend count is "+patientData.size());
+    System.err.println("patiend count is "+dataSize);
     
     
         
     }
 
 
-public Set<Callable<Integer>> submitTask2(int batchSize, List<Visits> notes) {
+public Set<Callable<Integer>> submitTask2(int batchSize, int rows) {
     
         Set<Callable<Integer>> callables = new HashSet<>();
-        int totalSize = notes.size();
+        int totalSize = rows;
         int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
@@ -72,30 +77,15 @@ public Set<Callable<Integer>> submitTask2(int batchSize, List<Visits> notes) {
 
             callables.add(() -> {
                 int startIndex = batchNumber * batchSize;
-                int endIndex = Math.min(startIndex + batchSize, totalSize);
+               // int endIndex = Math.min(startIndex + batchSize, totalSize);
            logger.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
-                try{
-                visitRepository.saveAll(notes.subList(startIndex, endIndex));
-                }
-                catch (Exception e) {
-                    // TODO: handle exception
-                    e.printStackTrace();
-                    logger.info("error adding note");
-                    for(Visits note : notes){
-                        try{
-                        visitRepository.save(note);
-                        }catch(Exception es){
-                            System.err.println("failed add some");
-                            es.printStackTrace();
-
-                        }
-                    }
-                }
-
-               
-                return 1;
-            });
+                
+                List<Visits> vists = visitRepository.getfirst100k(startIndex);    
+                return task(vists);
+                
+            }
+               );
         }
 
         return callables;
@@ -204,8 +194,8 @@ for (int i=0;i<=rounds;i++){
                     ps.setString(4, visits.get(i).getStatus());
     
                     ps.setString(5, visits.get(i).getPriority());
-                    ps.setString(6, visits.get(i).getStartedAt().replaceAll("T", " "));
-                    ps.setString(7, visits.get(i).getEndedAt().replaceAll("T", " "));
+                    ps.setString(6, visits.get(i).getCreatedAt() + " 08:03:02.226");
+                    ps.setString(7, visits.get(i).getCreatedAt() + " 08:03:02.226");
                     ps.setString(8, visits.get(i).getExternalId());
     
                     ps.setString(9, visits.get(i).getExternalSystem());
