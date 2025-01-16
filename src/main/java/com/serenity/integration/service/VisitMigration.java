@@ -82,20 +82,12 @@ public class VisitMigration {
 
                     return task(vists);
                 } catch (Exception e) {
-                    for (Visits v : vists) {
-                        try {
-                            tasker2(v);
-                        } catch (Exception es) {
-                          
-                                System.err.println(" Nothing worked");
-
-                            
-                        }
+                  e.printStackTrace();
+                  return 1;
 
                     }
-                    return 1;
                 }
-            });
+            );
         }
 
         return callables;
