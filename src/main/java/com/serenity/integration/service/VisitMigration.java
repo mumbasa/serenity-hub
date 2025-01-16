@@ -45,9 +45,8 @@ public class VisitMigration {
     Logger logger = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
     public void getPatientsThreads() {
-        String sql = "SELECT count(*) FROM visists where externalsystem='his'";
-        int dataSize = 2160000;
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        int dataSize = 727912;
+        ExecutorService executorService = Executors.newFixedThreadPool(15);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
             for (Future<Integer> future : futures) {

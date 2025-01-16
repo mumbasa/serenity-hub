@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
@@ -29,7 +30,9 @@ public static void main(String args[]){
   
    // LocalDateTime date = LocalDateTime.parse(string, formatter);
     System.out.println(string.split("T")[0]);
-
+    //UUID k = UUID.fromString("LLSHHI1415217");
+    UUID k = UUID.randomUUID();
+    System.err.println(k.toString());
 
     try {
         // Example usage with logo

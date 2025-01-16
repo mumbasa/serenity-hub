@@ -1,5 +1,6 @@
 package com.serenity.integration.service;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,10 @@ public class NoteService {
     @Autowired
     @Qualifier(value = "hisJdbcTemplate")
     JdbcTemplate hisJdbcTemplate;
+
+    @Autowired
+    @Qualifier("serenityJdbcTemplate")
+    JdbcTemplate serenityJdbcTemplate;
 
     @Autowired
     EncounterNoteRepository encounterNoteRepository;
@@ -635,4 +641,43 @@ callables.add(() -> {
 return callables;
 }
 
-}
+
+
+public void saveNotes(List<EncounterNote> notes){
+
+String sql ="INSERT INTO public.encounter_notes\n" + //
+        "(created_at, updated_at, pk, encounter_id, patient_id, visit_id, \"uuid\", note, is_formatted, note_type, is_edited, is_recalled, practitioner_id, encounter_date, practitioner_name, practitioner_role_type, encounter_type, patient_mr_number, edit_history)\n" + //
+        "VALUES(?, ?, nextval('encounter_notes_pk_seq'::regclass), uuid(?), uuid(?), ?, ?, '', false, '', false, false, ?, '', '', '', '', '', '');";
+
+serenityJdbcTemplate.batchUpdate(sql,new  BatchPreparedStatementSetter() {
+
+    @Override
+    public void setValues(PreparedStatement ps, int i) throws SQLException {
+        // TODO Auto-generated method stub
+        EncounterNote note = new EncounterNote();
+        ps.setString(1,note.getCreatedAt());
+        ps.setString(2,note.getCreatedAt());
+        ps.setString(3, note.getEncounterId());
+        ps.setString(4,note.getPatientId());
+        ps.setString(5, note.getVisitId());
+        ps.setString(6, note.getUuid());
+        ps.setString(7,note.getNote());
+        ps.setBoolean(8,false);
+        ps.setString(9,note.getNoteType());
+        ps.setBoolean(10,false);
+        ps.setBoolean(11, false);
+        ps.setString(12, note.getPractitionerId());
+        ps.setString(13, note.getEncounterDate());
+    
+
+    }
+
+    @Override
+    public int getBatchSize() {
+        // TODO Auto-generated method stub
+      return notes.size();
+    }
+    
+});
+
+}}

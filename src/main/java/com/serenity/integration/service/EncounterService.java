@@ -54,10 +54,10 @@ public class EncounterService {
     
 
 public void getEncounterThreads(){
-    List<Encounter> patientData = encounterRepository.findAll();
+    int rows =1881000;
     ExecutorService executorService =  Executors.newFixedThreadPool(10);
     try {
-        List<Future<Integer>> futures = executorService.invokeAll(submitTask2( 5000,patientData));
+        List<Future<Integer>> futures = executorService.invokeAll(submitTask2( 1000,rows));
         for(Future<Integer> future : futures){
             System.out.println("future.get = " + future.get());
         }
@@ -67,7 +67,7 @@ public void getEncounterThreads(){
     }
     
     executorService.shutdown();
-    System.err.println("patiend count is "+patientData.size());
+    System.err.println("patiend count is "+rows);
     
     
         
@@ -75,10 +75,10 @@ public void getEncounterThreads(){
 
 
 
-    public Set<Callable<Integer>> submitTask2(int batchSize, List<Encounter> notes) {
+    public Set<Callable<Integer>> submitTask2(int batchSize,int rows) {
     
         Set<Callable<Integer>> callables = new HashSet<>();
-        int totalSize = notes.size();
+        int totalSize = rows;
         int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
@@ -90,21 +90,14 @@ public void getEncounterThreads(){
                 logger.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
                 try{
-                encounterRepository.saveAll(notes.subList(startIndex, endIndex));
-                }
+                    List<Encounter> notes = encounterRepository.getfirst100k(startIndex);
+                    saveEncounters(notes);
+                    }
                 catch (Exception e) {
                     // TODO: handle exception
                     e.printStackTrace();
                     logger.info("error adding note");
-                    for(Encounter note : notes){
-                        try{
-                        encounterRepository.save(note);
-                        }catch(Exception es){
-                            System.err.println("failed add some");
-                            es.printStackTrace();
-
-                        }
-                    }
+                   
                 }
 
                
@@ -171,8 +164,6 @@ public void getEncounterThreads(){
 
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                // TODO Auto-generated method stub
-
                 ps.setString(1, notes.get(i).getCreatedAt().replaceAll("T|Z", " ").strip());
                 ps.setString(2, notes.get(i).getUuid());
                 ps.setString(3, "ambulatory");
