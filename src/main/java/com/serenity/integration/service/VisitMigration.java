@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -11,6 +12,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +24,9 @@ import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Service;
 
 import com.serenity.integration.models.Encounter;
+import com.serenity.integration.models.PatientData;
 import com.serenity.integration.models.Visits;
+import com.serenity.integration.repository.PatientRepository;
 import com.serenity.integration.repository.VisitRepository;
 
 @Service
@@ -44,11 +48,16 @@ public class VisitMigration {
 
     Logger logger = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
+    @Autowired
+    PatientRepository patientRepository;
+
     public void getPatientsThreads() {
+        Map<String, PatientData> mps = patientRepository.findAll().stream()
+                .collect(Collectors.toMap(e -> e.getMrNumber(), e -> e));
         int dataSize = 727912;
         ExecutorService executorService = Executors.newFixedThreadPool(15);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize,mps));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
@@ -62,7 +71,7 @@ public class VisitMigration {
 
     }
 
-    public Set<Callable<Integer>> submitTask2(int batchSize, int rows) {
+    public Set<Callable<Integer>> submitTask2(int batchSize, int rows,  Map<String, PatientData> mps) {
 
         Set<Callable<Integer>> callables = new HashSet<>();
         int totalSize = rows;
@@ -80,7 +89,7 @@ public class VisitMigration {
 
                 try {
 
-                    return task(vists);
+                    return task(vists,mps);
                 } catch (Exception e) {
                   e.printStackTrace();
                   return 1;
@@ -161,7 +170,7 @@ public class VisitMigration {
 
     }
 
-    public int task(List<Visits> visits) {
+    public int task(List<Visits> visits,  Map<String, PatientData> mps) {
 
         String sql = "INSERT INTO public.visits " + //
                 "(created_at,  id,  \"uuid\", encounter_class, status," +
@@ -181,14 +190,14 @@ public class VisitMigration {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 // TODO Auto-generated method stub
-                ps.setString(1, visits.get(i).getCreatedAt() + " 08:03:02.226");
+                ps.setString(1, visits.get(i).getCreatedAt().replaceAll("T", " "));
                 ps.setString(2, visits.get(i).getUuid().toString());
                 ps.setString(3, visits.get(i).getEncounterClass());
                 ps.setString(4, "finished");
 
                 ps.setString(5, visits.get(i).getPriority());
-                ps.setString(6, visits.get(i).getCreatedAt() );
-                ps.setString(7, visits.get(i).getCreatedAt() );
+                ps.setString(6, visits.get(i).getCreatedAt().replaceAll("T", " ") );
+                ps.setString(7, visits.get(i).getCreatedAt().replaceAll("T", " ") );
                 ps.setString(8, visits.get(i).getExternalId());
 
                 ps.setString(9, visits.get(i).getExternalSystem());
@@ -201,7 +210,7 @@ public class VisitMigration {
                 ps.setString(13, visits.get(i).getPatientId());
 
                 ps.setString(14, visits.get(i).getPatientName());
-                ps.setString(15, visits.get(i).getPatientMobile());
+                ps.setString(15, mps.get(visits.get(i).getPatientMrNumber()).getMobile());
                 ps.setString(16, visits.get(i).getPatientDob());
 
                 ps.setString(17, visits.get(i).getGender());
