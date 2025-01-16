@@ -14,6 +14,9 @@ public interface VisitRepository extends JpaRepository<Visits,Long>{
     @Query(value = "SELECT * FROM visits OFFSET ?1  LIMIT ?2",nativeQuery = true)
     List<Visits> getfirst100k(int offset,int limit);
   
+    @Query(value = "SELECT * FROM visits limit 1",nativeQuery = true)
+    List<Visits> getfirst1();
+  
 
     @Query(value = "SELECT * FROM visits  where assignedtoid is not null OFFSET ?1  LIMIT 1000",nativeQuery = true)
     List<Visits> getfirst100k(int offset);

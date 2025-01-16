@@ -176,7 +176,7 @@ for (int i=0;i<=rounds;i++){
                     + //
                     "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),nextval('visits_id_seq'::regclass),uuid(?),?  ,?," +
                     "?,to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),?,?," +
-                    "uuid(?),?,?,(select uuid from patients p where external_id =?),?," +
+                    "uuid(?),?,?,?,?," +
                     "?,TO_DATE(?, 'YYYY/MM/DD'),?,?,?,uuid(?),?,uuid('23f59485-8518-4f4e-9146-d061dfe58175'),'Airport Primary Care')";
     
             System.err.println("Settting Insert values ");
