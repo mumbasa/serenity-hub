@@ -298,13 +298,7 @@ return visits;
 
 
 public void getHisThreads(){
-String sql ="select count (*) "+
-                " from patient_medical_history pmh\n" + //
-                "  inner join patient_master pm on pm.Patient_ID = pmh.Patient_ID\n" + //
-                "  inner join doctor_master dm on pmh.Doctor_ID = dm.Doctor_ID\n" + //
-                "  inner join f_ledgertransaction lt on lt.`Transaction_ID` = pmh.`Transaction_ID`\n" + //
-                "  inner join appointment app on app.ledgertnxNo = lt.LedgerTransactionNo";
-//int rows = hisJdbcTemplate.queryForObject(sql,Integer.class);
+
 int rows =640871;
     Map<String,PatientData> mps = patientRepository.findAll().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
         Map<String,String> doc = doctorRepository.findHisPractitioners().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
@@ -399,8 +393,11 @@ public Set<Callable<Integer>> submitTask2(int visits, int batchSize, Map<String,
                 
                 logger.debug("Processing batch {}/{}, indices [{}]", 
                          batchNumber + 1, batches, startIndex);
-                
+                try{
                 return loadVisits(startIndex, mps,doc);
+                }catch(Exception e ){
+                    e.printStackTrace();
+                }
             });
         }
         
