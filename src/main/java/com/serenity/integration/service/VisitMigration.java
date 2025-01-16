@@ -55,7 +55,7 @@ public class VisitMigration {
         Map<String, PatientData> mps = patientRepository.findAll().stream()
                 .collect(Collectors.toMap(e -> e.getMrNumber(), e -> e));
         int dataSize = 727912;
-        ExecutorService executorService = Executors.newFixedThreadPool(15);
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize,mps));
             for (Future<Integer> future : futures) {
