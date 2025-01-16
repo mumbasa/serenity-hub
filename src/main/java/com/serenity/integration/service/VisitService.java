@@ -397,6 +397,7 @@ public Set<Callable<Integer>> submitTask2(int visits, int batchSize, Map<String,
                 return loadVisits(startIndex, mps,doc);
                 }catch(Exception e ){
                     e.printStackTrace();
+                    return 1;
                 }
             });
         }
