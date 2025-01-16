@@ -154,7 +154,7 @@ return 1;
                 System.err.println("Round submission " + i);
                 List<Visits> ds = patientData.subList(i * size, (i * size) + size);
                 try {
-                    task(ds);
+                 //   task(ds);
                 } catch (Exception e) {
 
                     e.printStackTrace();
@@ -163,7 +163,7 @@ return 1;
                 System.err.println("Finishing Round submission " + i);
 
                 List<Visits> ds = patientData.subList((i * size), patientData.size());
-                task(ds);
+              ///  task(ds);
 
             }
             ;
