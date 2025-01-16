@@ -187,8 +187,8 @@ public class VisitMigration {
                 ps.setString(4, "finished");
 
                 ps.setString(5, visits.get(i).getPriority());
-                ps.setString(6, visits.get(i).getCreatedAt() + " 08:03:02.226");
-                ps.setString(7, visits.get(i).getCreatedAt() + " 08:03:02.226");
+                ps.setString(6, visits.get(i).getCreatedAt() );
+                ps.setString(7, visits.get(i).getCreatedAt() );
                 ps.setString(8, visits.get(i).getExternalId());
 
                 ps.setString(9, visits.get(i).getExternalSystem());
