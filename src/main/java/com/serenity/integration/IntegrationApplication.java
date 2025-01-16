@@ -41,7 +41,7 @@ public class IntegrationApplication {
 	MedicalRequestService medicalRequestService;
 
 	@Autowired
-	VisitService visitService;
+	VisitMigration visitService;
 
 	@Autowired
 	SetupService setupService;
@@ -69,8 +69,10 @@ public class IntegrationApplication {
 				logger.info("Starting import");
 		
 		try {
-			medicalRequestService.IPDDataThread();
-			medicalRequestService.IPDThread();
+			//medicalRequestService.IPDDataThread();
+			//medicalRequestService.IPDThread();
+			visitService.getPatientsThreads();
+			encounterService.getEncounterThreads();
 
 //System.err.println(encounterRepository.findEcounterByPatientDateDoctor("NMC/OG/15/018824", "2015-06-01T19:16:02Z", "LSHHI153"));
 } catch (Exception e) {

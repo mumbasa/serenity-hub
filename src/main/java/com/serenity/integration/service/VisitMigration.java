@@ -10,12 +10,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import com.serenity.integration.models.Encounter;
 import com.serenity.integration.models.Visits;
 import com.serenity.integration.repository.VisitRepository;
 
@@ -32,6 +36,7 @@ public class VisitMigration {
 
 
 
+    Logger logger = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
 
 
@@ -39,7 +44,7 @@ public void getPatientsThreads(){
     List<Visits> patientData = visitRepository.findAll();
     ExecutorService executorService =  Executors.newFixedThreadPool(10);
     try {
-        List<Future<Integer>> futures = executorService.invokeAll(sumitTask(patientData,  5000));
+        List<Future<Integer>> futures = executorService.invokeAll(submitTask2( 5000,patientData));
         for(Future<Integer> future : futures){
             System.out.println("future.get = " + future.get());
         }
@@ -56,6 +61,45 @@ public void getPatientsThreads(){
     }
 
 
+public Set<Callable<Integer>> submitTask2(int batchSize, List<Visits> notes) {
+    
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = notes.size();
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                int endIndex = Math.min(startIndex + batchSize, totalSize);
+           logger.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+                try{
+                visitRepository.saveAll(notes.subList(startIndex, endIndex));
+                }
+                catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                    logger.info("error adding note");
+                    for(Visits note : notes){
+                        try{
+                        visitRepository.save(note);
+                        }catch(Exception es){
+                            System.err.println("failed add some");
+                            es.printStackTrace();
+
+                        }
+                    }
+                }
+
+               
+                return 1;
+            });
+        }
+
+        return callables;
+    }
 
     
 
@@ -140,12 +184,12 @@ for (int i=0;i<=rounds;i++){
                     "(created_at,  id,  \"uuid\", encounter_class, status," +
                     "priority,  started_at, ended_at, external_id, external_system," +
                     "service_provider_id, service_provider_name, patient_mr_number, patient_id, patient_full_name," +
-                    "patient_mobile, patient_birth_date, patient_gender, patient_status, assigned_to_name, assigned_to_id,display)\n"
+                    "patient_mobile, patient_birth_date, patient_gender, patient_status, assigned_to_name, assigned_to_id,display,location_id,location_name)\n"
                     + //
                     "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),nextval('visits_id_seq'::regclass),uuid(?),?  ,?," +
                     "?,to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),?,?," +
                     "uuid(?),?,?,(select uuid from patients p where external_id =?),?," +
-                    "?,TO_DATE(?, 'YYYY/MM/DD'),?,?,?,uuid(?),?)";
+                    "?,TO_DATE(?, 'YYYY/MM/DD'),?,?,?,uuid(?),?,uuid('23f59485-8518-4f4e-9146-d061dfe58175'),'Airport Primary Care')";
     
             System.err.println("Settting Insert values ");
     
@@ -184,6 +228,7 @@ for (int i=0;i<=rounds;i++){
                    ps.setString(20, visits.get(i).getPractitionerId());
                    
                     ps.setString(21, visits.get(i).getHisNumber());
+                    
     
                 }
     
