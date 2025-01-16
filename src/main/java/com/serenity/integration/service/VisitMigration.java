@@ -45,7 +45,7 @@ public class VisitMigration {
 
 
 public void getPatientsThreads(){
-String sql ="SELECT count(*) FROM visists where externalsystem='his'";
+//String sql ="SELECT count(*) FROM visists where externalsystem='his'";
     int dataSize = 2160000;
     ExecutorService executorService =  Executors.newFixedThreadPool(10);
     try {

@@ -74,9 +74,9 @@ public class IntegrationApplication {
 		try {
 			//medicalRequestService.IPDDataThread();
 			//medicalRequestService.IPDThread();
-			//visitService.getPatientsThreads();
-			System.err.println(v.getfirst1());
-		//	encounterService.getEncounterThreads();
+			visitService.getPatientsThreads();
+			//System.err.println(v.getfirst1());
+		//encounterService.getEncounterThreads();
 
 //System.err.println(encounterRepository.findEcounterByPatientDateDoctor("NMC/OG/15/018824", "2015-06-01T19:16:02Z", "LSHHI153"));
 } catch (Exception e) {
