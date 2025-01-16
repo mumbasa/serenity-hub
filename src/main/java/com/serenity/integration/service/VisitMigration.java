@@ -160,11 +160,9 @@ for (int i=0;i<=rounds;i++){
         
                 List<Visits> ds =patientData.subList((i*size),patientData.size());
                 task(ds);
-    
-                    
+             
                 };
-            }
-        
+            }  
         
         }
 
@@ -191,7 +189,7 @@ for (int i=0;i<=rounds;i++){
                     ps.setString(1, visits.get(i).getCreatedAt() + " 08:03:02.226");
                     ps.setString(2, visits.get(i).getUuid().toString());
                     ps.setString(3, visits.get(i).getEncounterClass());
-                    ps.setString(4, visits.get(i).getStatus());
+                    ps.setString(4, "finished");
     
                     ps.setString(5, visits.get(i).getPriority());
                     ps.setString(6, visits.get(i).getCreatedAt() + " 08:03:02.226");
