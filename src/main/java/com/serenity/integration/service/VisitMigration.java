@@ -212,7 +212,7 @@ for (int i=0;i<=rounds;i++){
                     ps.setString(17, visits.get(i).getGender());
                     ps.setString(18, visits.get(i).getPatientStatus());
                     ps.setString(19, visits.get(i).getAssignedToName());
-                   ps.setString(20, visits.get(i).getPractitionerId());
+                   ps.setString(20, visits.get(i).getAssignedToId());
             
                     ps.setString(21, visits.get(i).getPatientMrNumber()+"-"+visits.get(i).getCreatedAt());
                     
