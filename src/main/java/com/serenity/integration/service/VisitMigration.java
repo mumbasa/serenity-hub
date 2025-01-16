@@ -52,12 +52,11 @@ public class VisitMigration {
     PatientRepository patientRepository;
 
     public void getPatientsThreads() {
-        Map<String, PatientData> mps = patientRepository.findAll().stream()
-                .collect(Collectors.toMap(e -> e.getMrNumber(), e -> e));
+     
         int dataSize = 727912;
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize,mps));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
@@ -71,7 +70,7 @@ public class VisitMigration {
 
     }
 
-    public Set<Callable<Integer>> submitTask2(int batchSize, int rows,  Map<String, PatientData> mps) {
+    public Set<Callable<Integer>> submitTask2(int batchSize, int rows) {
 
         Set<Callable<Integer>> callables = new HashSet<>();
         int totalSize = rows;
@@ -89,7 +88,7 @@ public class VisitMigration {
 
                 try {
 
-                    return task(vists,mps);
+                    return task(vists);
                 } catch (Exception e) {
                   e.printStackTrace();
                   return 1;
@@ -171,7 +170,7 @@ return 1;
 
     }
 
-    public int task(List<Visits> visits,  Map<String, PatientData> mps) {
+    public int task(List<Visits> visits) {
 
         String sql = "INSERT INTO public.visits " + //
                 "(created_at,  id,  \"uuid\", encounter_class, status," +
@@ -211,7 +210,7 @@ return 1;
                 ps.setString(13, visits.get(i).getPatientId());
 
                 ps.setString(14, visits.get(i).getPatientName());
-                ps.setString(15, mps.get(visits.get(i).getPatientMrNumber()).getMobile());
+                ps.setString(15, visits.get(i).getPatientMobile());
                 ps.setString(16, visits.get(i).getPatientDob());
 
                 ps.setString(17, visits.get(i).getGender());
