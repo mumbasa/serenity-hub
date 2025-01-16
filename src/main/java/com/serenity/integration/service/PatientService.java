@@ -56,9 +56,7 @@ public class PatientService {
     @Qualifier(value = "legJdbcTemplate")
     JdbcTemplate legJdbcTemplate;
 
-    @Autowired
-    @Qualifier(value = "vectorJdbcTemplate")
-    JdbcTemplate vectorJdbcTemplate;
+  
 
     Logger LOGGER = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
@@ -384,7 +382,7 @@ public class PatientService {
         };
 
         String sql = "UPDATE patient_information set nationality=? WHERE nationality=?";
-        vectorJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+        /* vectorJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             public void setValues(PreparedStatement ps, int i) throws SQLException {
 
                 ps.setString(1, countryNames[i]);
@@ -395,7 +393,7 @@ public class PatientService {
                 return countryNames.length;
             }
 
-        });
+        }); */
 
     }
 

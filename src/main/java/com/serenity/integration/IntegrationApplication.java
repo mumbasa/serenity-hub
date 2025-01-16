@@ -71,20 +71,8 @@ public class IntegrationApplication {
 	public void coke() {
 				logger.info("Starting import");
 		
-		try {
-			//medicalRequestService.IPDDataThread();
-			//medicalRequestService.IPDThread();
-			//visitService.getPatientsThreads();
-			//System.err.println(v.getfirst1());
-		//encounterService.getEncounterThreads();
-
-//System.err.println(encounterRepository.findEcounterByPatientDateDoctor("NMC/OG/15/018824", "2015-06-01T19:16:02Z", "LSHHI153"));
-} catch (Exception e) {
-			e.printStackTrace();
-		}
+		visitService.getPatientsThreads();
 		
-		// practitionerService.savePracttioner();
-		// visitMigration.getPatientsThreads();
 		logger.info("finishing import");
 
 	}

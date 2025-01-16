@@ -20,9 +20,7 @@ public class NoteServiceCron {
     @Qualifier(value = "hisJdbcTemplate")
     JdbcTemplate hisJdbcTemplate;
 
-    @Autowired
-    @Qualifier(value = "vectorJdbcTemplate")
-    JdbcTemplate vectorJdbcTemplate;
+  
 
     @Autowired
     EncounterNoteRepository encounterNoteRepository;
@@ -30,7 +28,8 @@ public class NoteServiceCron {
 
     public void getChiefNote() {
         String sqls ="SELECT max(createdat) from encounternote e where e.encountertype ='chief-complaint'";
-        String  lastDate= vectorJdbcTemplate.queryForObject(sqls, String.class);
+        String  lastDate= "";
+        //vectorJdbcTemplate.queryForObject(sqls, String.class);
         lastDate=lastDate==null?"":lastDate;
         logger.info("Last Date is "+lastDate);
 
@@ -98,7 +97,7 @@ public class NoteServiceCron {
 
     public void getPresentingIllness() {
         String sqls ="SELECT max(createdat) from encounternote e where e.encountertype ='history-of-presenting-illness'";
-        String  lastDate= vectorJdbcTemplate.queryForObject(sqls, String.class);
+        String  lastDate= "";//vectorJdbcTemplate.queryForObject(sqls, String.class);
         logger.info("Last Date is "+lastDate);
         lastDate=lastDate==null?"":lastDate;
         List<EncounterNote> notes = new ArrayList<>();
@@ -169,7 +168,7 @@ public class NoteServiceCron {
 
     public void getCarePlan() {
         String sqls ="SELECT max(createdat) from encounternote e where e.encountertype ='plan-of-care'";
-        String  lastDate= vectorJdbcTemplate.queryForObject(sqls, String.class);
+        String  lastDate="";// vectorJdbcTemplate.queryForObject(sqls, String.class);
         lastDate=lastDate==null?"":lastDate;
         logger.info("Last Date is "+lastDate);
 
@@ -240,7 +239,7 @@ public class NoteServiceCron {
 
     public void getProgressNote() {
         String sqls ="SELECT max(createdat) from encounternote e where e.encountertype ='progress note'";
-        String  lastDate= vectorJdbcTemplate.queryForObject(sqls, String.class);
+        String  lastDate="";//vectorJdbcTemplate.queryForObject(sqls, String.class);
         lastDate=lastDate==null?"":lastDate;
         logger.info("Last Date is "+lastDate);
         List<EncounterNote> notes = new ArrayList<>();
