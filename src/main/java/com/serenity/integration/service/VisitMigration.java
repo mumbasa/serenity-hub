@@ -215,7 +215,7 @@ for (int i=0;i<=rounds;i++){
                     
                    ps.setString(20, visits.get(i).getPractitionerId());
                    
-                    ps.setString(21, visits.get(i).getHisNumber());
+                    ps.setString(21, visits.get(i).getPatientMrNumber()+"-"+visits.get(i).getCreatedAt());
                     
     
                 }
