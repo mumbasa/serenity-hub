@@ -54,7 +54,7 @@ public class VisitMigration {
     public void getPatientsThreads() {
      
         int dataSize = 727912;
-        ExecutorService executorService = Executors.newFixedThreadPool(20);
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
             for (Future<Integer> future : futures) {
