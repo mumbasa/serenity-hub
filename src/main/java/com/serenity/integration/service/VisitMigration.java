@@ -115,8 +115,8 @@ public class VisitMigration {
                     @Override
                     public Integer call() throws Exception {
                         // TODO Auto-generated method stub
-                        return task(ds);
-
+                       // return task(ds);
+return 1;
                     }
 
                 });
@@ -129,7 +129,8 @@ public class VisitMigration {
                     @Override
                     public Integer call() throws Exception {
                         // TODO Auto-generated method stub
-                        return task(ds);
+                    //    return task(ds);
+                    return 1;
                     }
 
                 });
