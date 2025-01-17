@@ -191,7 +191,7 @@ return size;
                         "has_prescriptions,has_service_requests)" + //
                         "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),  nextval('encounters_id_seq'::regclass),  uuid(?),?,?,"+
                         "'',?, ?,uuid(?),?,uuid(?), ?,"+
-                        "?,?,?,?,?,uuid(?),?, uuid(?),?,?)";
+                        "?,to_date(?, 'YYYY-MM-DD'),?,?,?,uuid(?),?, uuid(?),?,?)";
         
 
 
