@@ -204,7 +204,7 @@ return size;
                 ps.setString(2, notes.get(i).getUuid());
                 ps.setString(3, "ambulatory");
                 ps.setString(4, "finished");
-                ps.setString(5, UUID.randomUUID().toString())
+                ps.setString(5, UUID.randomUUID().toString());
                 ps.setString(6, "his");
                 ps.setString(7, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
                 ps.setString(8, notes.get(i).getPatientMrNumber());
@@ -218,7 +218,7 @@ return size;
                 ps.setString(15,notes.get(i).getAssignedToName());
                 ps.setString(16, notes.get(i).getAssignedToId());
 
-                ps.setString(17,"Nyaho Service Provider");
+                ps.setString(17,"Nyaho Medical Centre");
                 ps.setString(18,notes.get(i).getVisitId());
                 ps.setBoolean(19,false);
                 ps.setBoolean(20,false);
