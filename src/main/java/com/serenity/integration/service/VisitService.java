@@ -156,6 +156,130 @@ public class VisitService {
 return visits.size();
     }
 
+
+
+
+    public int ipdVisits(int size, Map<String,PatientData> mps,Map<String,String> doc ) {
+        List<Visits> visits = new ArrayList<>();
+     
+        String sql = """
+                
+SELECT 
+    ip.Transaction_ID uuid,
+    CONCAT(pmh.EntryDate, ' 00:00:00') created_at,
+    CASE
+        WHEN pmh.Updatedate IS NULL THEN CONCAT(pmh.EntryDate, ' 00:00:00')
+        ELSE pmh.Updatedate
+    END as updated_at,
+    'inpatient-encounter' encounter_class,
+    CASE 
+        WHEN ich.status = 'OUT' THEN 'finished'
+        WHEN ich.status = 'Cancel' THEN 'cancelled'
+        ELSE 'in-progress'
+    END as status,
+    '' display,
+    'routine' priority,
+    NULL planned_start,
+    NULL planned_end,
+    CAST(CONCAT(ich.DateOfAdmit, ' ', ich.TimeOfAdmit) as datetime) started_at,
+    CASE
+        WHEN ich.DateOfDischarge != '0001-01-01' 
+            AND ich.TimeOfDischarge != '00:00:00' 
+            AND ich.Status = 'OUT' 
+        THEN CAST(CONCAT(ich.DateOfDischarge, ' ', ich.TimeOfDischarge) as datetime)
+        ELSE NULL
+    END ended_at,
+    ip.Transaction_ID external_id,
+    'his' external_system,
+    NULL appointment_id,
+    'Nyaho Medical Centre' location_id,
+    'Nyaho Medical Centre' location_name,
+    NULL service_type_id,
+    NULL service_type_name,
+    '161380e9-22d3-4627-a97f-0f918ce3e4a9' service_provider_id,
+    pm.Patient_ID patient_mr_number,
+    pmh.Patient_ID patient_id,
+    pm.PName patient_full_name,
+    pm.Mobile patient_mobile,
+    pm.DOB patient_birth_date,
+    pm.Gender patient_gender,
+    CASE 
+        WHEN ich.status = 'OUT' THEN 'departed'
+        WHEN ich.status = 'Cancel' THEN 'departed'
+        ELSE 'in-progress'
+    END as patient_status,
+    pmh.UserID created_by_id,
+    CONCAT(e_mas.Title, ' ', e_mas.Name) created_by_name,
+    NULL user_friendly_id,
+    CONCAT(dm.Title, ' ', dm.Name) assigned_to_name,
+    dm.Doctor_ID assigned_to_id,
+    'Nyaho Medical Centre' service_provider_name
+FROM patient_ipd_profile ip
+INNER JOIN patient_medical_history pmh ON ip.Transaction_ID = pmh.Transaction_ID
+INNER JOIN ipd_case_history ich ON ip.Transaction_ID = ich.Transaction_ID
+INNER JOIN room_master rm ON rm.Room_Id = ip.Room_ID
+INNER JOIN ipd_case_type_master ctm ON ctm.IPDCaseType_ID = rm.IPDCaseTypeID
+INNER JOIN doctor_master dm ON dm.Doctor_ID = ich.Consultant_ID
+INNER JOIN employee_master e_mas ON e_mas.Employee_ID = pmh.UserID
+INNER JOIN employee_master discharge_user ON discharge_user.Employee_ID = ich.DischargedBy
+INNER JOIN patient_master pm ON pm.Patient_ID = ip.PatientID
+INNER JOIN f_ipdadjustment fi ON fi.Transaction_ID = ip.Transaction_ID
+INNER JOIN f_panel_master pnl ON pnl.Panel_ID = ip.PanelID
+GROUP BY 
+    ip.Transaction_ID,
+    pmh.EntryDate,
+    pmh.Updatedate,
+    ich.Status,
+    ich.DateOfAdmit,
+    ich.TimeOfAdmit,
+    ich.DateOfDischarge,
+    ich.TimeOfDischarge,
+    pm.Patient_ID,
+    pmh.Patient_ID,
+    pm.PName,
+    pm.Mobile,
+    pm.DOB,
+    pm.Gender,
+    ich.Employee_ID,
+    dm.Title,
+    dm.Name,
+    dm.Doctor_ID
+HAVING MIN(ip.StartDate) LIMIT ? ,1000
+                """;
+        SqlRowSet set = hisJdbcTemplate.queryForRowSet(sql,size);
+        while (set.next()) {
+            Visits visit = new Visits();
+            visit.setUuid(UUID.randomUUID());
+            visit.setCreatedAt(set.getString(2));
+            visit.setEncounterClass(set.getString(3));
+            visit.setStatus(set.getString(4));
+            visit.setPriority(set.getString(5));
+            visit.setStartedAt(set.getString(8));
+            visit.setEndedAt(set.getString(7));
+            visit.setExternalSystem("his");
+            visit.setExternalId(set.getString(1));
+            visit.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+            visit.setServiceProviderName("Nyaho Medical Centre");
+            visit.setHisNumber(set.getString(13));
+            visit.setGender(set.getString(18));
+            visit.setPatientMobile(set.getString(16));
+            visit.setPatientDob(set.getString(17));
+            visit.setAssignedToName(set.getString(21));
+            visit.setAssignedToId(set.getString(20));
+            visit.setPatientName(set.getString(15));
+            visit.setPatientStatus(set.getString(19));
+            visit.setPatientId(mps.get(set.getString("patient_mr_number")).getUuid());
+            visit.setPatientMrNumber(mps.get(set.getString("patient_mr_number")).getMrNumber());
+     
+            visit.setPractitionerId(doc.get(set.getString("assigned_to_id")));
+            
+            visits.add(visit);
+        }
+
+        visitRepository.saveAll(visits);
+return visits.size();
+    }
+
     
     public void setITem() {
         int rounds = 640871 / 1000;
@@ -323,6 +447,57 @@ int rows =640871;
     
     
 
+        public void getIPDVISITSThreads(){
+
+            int rows =36888;
+                Map<String,PatientData> mps = patientRepository.findAll().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+                    Map<String,String> doc = doctorRepository.findHisPractitioners().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+            
+                ExecutorService executorService =  Executors.newFixedThreadPool(10);
+                    try {
+                        List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows,1000,mps,doc));
+                        for(Future<Integer> future : futures){
+                            System.out.println("future.get = " + future.get());
+                        }
+                    } catch (InterruptedException | ExecutionException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                    
+                    executorService.shutdown();
+                    System.err.println("patiend count is ");
+                    
+                    
+                        
+                    }
+                
+                
+                    public Set<Callable<Integer>> submitIPDTask(int visits, int batchSize, Map<String,PatientData> mps,Map<String,String> doc) {
+    
+                        Set<Callable<Integer>> callables = new HashSet<>();
+                        int totalSize = visits;
+                        int batches = (totalSize + batchSize - 1) / batchSize;  // Ceiling division
+                    
+                        for (int i = 0; i < batches; i++) {
+                            final int batchNumber = i;  // For use in lambda
+                            
+                            callables.add(() -> {
+                                int startIndex = batchNumber * batchSize;
+                                
+                                logger.debug("Processing batch {}/{}, indices [{}]", 
+                                         batchNumber + 1, batches, startIndex);
+                                try{
+                                return ipdVisits(startIndex, mps,doc);
+                                }catch(Exception e ){
+                                    e.printStackTrace();
+                                    return 1;
+                                }
+                            });
+                        }
+                        
+                        return callables;
+                    }
+                    
 
 public void getlegacyThreads(){
 List<Visits>visits = getLegacyVisit();

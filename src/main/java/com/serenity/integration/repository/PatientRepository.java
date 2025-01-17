@@ -14,6 +14,9 @@ public interface PatientRepository extends JpaRepository<PatientData,Long>{
     public List<PatientData> findTop5();
 
     public List<PatientData> findByExternalIdNotIn (List<String> mrnumbers);
+    
+    @Query(value = "select * from patient_information pi2 where externalsystem='his' ",nativeQuery = true)
+    public List<PatientData> findySystem ();
 
     public Optional<PatientData> findByExternalId(String hisNumber);
 }

@@ -51,12 +51,12 @@ public class VisitMigration {
     @Autowired
     PatientRepository patientRepository;
 
-    public void getPatientsThreads() {
+    public void getVisitThreads() {
      logger.info("kooooooooooooooading");
         int dataSize = 640871;
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        ExecutorService executorService = Executors.newFixedThreadPool(5);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(100, dataSize));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }

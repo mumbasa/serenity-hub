@@ -35,7 +35,6 @@ public class PatientMigrationService {
     PatientRepository patientRepository;
 
 
-
     public void getPatients(){
 String sql = "SELECT external_id from public.patients";
 List<String> set = serenityJdbcTemplate.queryForList(sql,String.class);
@@ -55,10 +54,10 @@ System.err.println("patiend count is "+patientData.size() +set.size());
 public void getPatientsThreads(){
     String sql = "SELECT external_id from public.patients";
     List<String> set = serenityJdbcTemplate.queryForList(sql,String.class);
-    List<PatientData> patientData = patientRepository.findAll();
+    List<PatientData> patientData = patientRepository.findySystem();
     ExecutorService executorService =  Executors.newFixedThreadPool(10);
     try {
-        List<Future<Integer>> futures = executorService.invokeAll(sumitTask(patientData, set, 100));
+        List<Future<Integer>> futures = executorService.invokeAll(sumitTask(patientData, set, 1000));
         for(Future<Integer> future : futures){
             System.out.println("future.get = " + future.get());
         }

@@ -4,6 +4,8 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,6 +15,12 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
@@ -22,6 +30,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -31,6 +40,7 @@ import org.springframework.web.client.RestTemplate;
 import com.serenity.integration.models.Doctors;
 import com.serenity.integration.models.Practitioner;
 import com.serenity.integration.models.PractitionerResponse;
+import com.serenity.integration.models.Visits;
 import com.serenity.integration.repository.DoctorRepository;
 
 @Service
@@ -489,5 +499,104 @@ public class PractitionerService {
         saveHisPractioner();
        
 
+    }
+
+
+ public void getPractitionerThreads() {
+        int dataSize = 1688;
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(10, dataSize));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        executorService.shutdown();
+        System.err.println("patiend count is " + dataSize);
+
+    }
+
+    public Set<Callable<Integer>> submitTask2(int batchSize, int rows) {
+
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = rows;
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                // int endIndex = Math.min(startIndex + batchSize, totalSize);
+                
+                List<Doctors> vists = doctorRepository.getfirst100k(startIndex);
+
+                try {
+
+                    return migrateDoctors(vists);
+                } catch (Exception e) {
+                  e.printStackTrace();
+                  return 1;
+
+                    }
+                }
+            );
+        }
+        
+
+        return callables;
+    }
+
+
+    public int migrateDoctors(List<Doctors> doctors){
+      
+        String sql ="""
+                INSERT INTO public.practitioners
+                        (created_at,  id, \"uuid\", first_name, last_name, full_name, mobile, email, birth_date, gender, is_active, managing_organization_id, managing_organization_name,  external_id, external_system, name_prefix, national_mobile_number) 
+                        VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'), nextval('practitioners_id_seq'::regclass), uuid(?), ?, ?, ?, ?, ?, to_date(?, 'YYYY-MM-DD'), ?, false, uuid('161380e9-22d3-4627-a97f-0f918ce3e4a9'), 'Nyaho Medical Centre',  ?, ?, ?, ?);
+
+                        """;
+        serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                // TODO Auto-generated method stub
+                String phoneNumber = "+233" + ThreadLocalRandom.current().nextInt(10000000, 99999999);
+                ps.setString(1,doctors.get(i).getCreatedAt());
+                ps.setString(2, doctors.get(i).getSerenityUUid());
+                ps.setString(3, doctors.get(i).getFirstName());
+                ps.setString(4, doctors.get(i).getLastName()==null?"": doctors.get(i).getLastName());
+                ps.setString(5, doctors.get(i).getFullName()==null?"": doctors.get(i).getFullName());
+                try{
+                ps.setString(6, doctors.get(i).getMobile().strip());
+                }catch(Exception e){
+                    ps.setString(6, phoneNumber);
+      
+                }
+
+                ps.setString(7, doctors.get(i).getEmail());
+                ps.setString(9, doctors.get(i).getGender());
+                ps.setString(8, doctors.get(i).getDateOfBirth());
+                ps.setString(10, doctors.get(i).getExternalId());
+                ps.setString(11, doctors.get(i).getExternalSystem());
+                ps.setString(12, doctors.get(i).getTitle());
+                ps.setString(13, doctors.get(i).getMobile());
+
+
+            }
+
+            @Override
+            public int getBatchSize() {
+                // TODO Auto-generated method stub
+
+                return doctors.size();
+            }
+            
+        });
+                                
+           return doctors.size();                     
     }
 }

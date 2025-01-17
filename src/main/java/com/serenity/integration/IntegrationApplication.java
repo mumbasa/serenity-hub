@@ -38,7 +38,7 @@ public class IntegrationApplication {
 	NoteService noteService;
 
 	@Autowired
-	MedicalRequestService medicalRequestService;
+	PractitionerService practitionerService;
 
 	@Autowired
 	VisitService visitService;
@@ -47,7 +47,7 @@ public class IntegrationApplication {
 	VisitMigration visitMigration;
 
 	@Autowired
-	VisitRepository v ;
+	PatientMigrationService v ;
 
 	@Autowired
 	SetupService setupService;
@@ -73,9 +73,11 @@ public class IntegrationApplication {
 	@PostConstruct
 	public void coke() {
 				logger.info("Starting import");
-		//visitService.getlegacyThreads();
-		//visitMigration.getPatientsThreads();
-		encounterService.saveEncounter();
+		 visitService.getIPDVISITSThreads();
+		 
+		
+		//encounterService.saveEncounter();
+		//practitionerService.getPractitionerThreads();
 		logger.info("finishing import");
 
 	}

@@ -13,4 +13,6 @@ public Optional<Doctors> findByExternalId(String id);
 public List<Doctors> NationalMobileNumber(String mobile);
 @Query(value = "select * from doctors where externalsystem ='his'",nativeQuery = true)
 public List<Doctors> findHisPractitioners();
+@Query(value = "select * from doctors where externalsystem ='opd' offset ? LIMIT 10",nativeQuery = true)
+public List<Doctors> getfirst100k(int startIndex);
 }
