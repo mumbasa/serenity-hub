@@ -14,6 +14,6 @@ public interface EncounterRepository extends JpaRepository<Encounter,Long>{
         ,nativeQuery = true)
     Optional<Encounter> findEcounterByPatientDateDoctor(String patient,String date,String doctor);
 
-       @Query(value = "SELECT * FROM encounter where created_at !='0000-00-00' OFFSET ?  LIMIT 1000 ",nativeQuery = true)
+       @Query(value = "SELECT * FROM encounter where created_at !='0000-00-00' and assigned_to_id is not null OFFSET ?  LIMIT 100 ",nativeQuery = true)
     List<Encounter> getfirst100k(int offset);
 }

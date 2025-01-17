@@ -204,7 +204,7 @@ return size;
                 ps.setString(2, notes.get(i).getUuid());
                 ps.setString(3, "ambulatory");
                 ps.setString(4, "finished");
-                ps.setString(5, notes.get(i).getExternalId());
+                ps.setString(5, UUID.randomUUID().toString())
                 ps.setString(6, "his");
                 ps.setString(7, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
                 ps.setString(8, notes.get(i).getPatientMrNumber());
