@@ -58,7 +58,7 @@ public void getEncounterThreads(){
     int rows =1881000;
     ExecutorService executorService =  Executors.newFixedThreadPool(10);
     try {
-        List<Future<Integer>> futures = executorService.invokeAll(submitTask2( 1000,rows));
+        List<Future<Integer>> futures = executorService.invokeAll(submitTask2( 100,rows));
         for(Future<Integer> future : futures){
             System.out.println("future.get = " + future.get());
         }
@@ -191,7 +191,7 @@ return size;
                         "has_prescriptions,has_service_requests)" + //
                         "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),  nextval('encounters_id_seq'::regclass),  uuid(?),?,?,"+
                         "'',?, ?,uuid(?),?,uuid(?), ?,"+
-                        "?,to_date(?, 'YYYY-MM-DD'),?,?,?,uuid(?),?, uuid(?),?,?)";
+                        "(SELECT mobile from patients where mr_number=?),to_date(?, 'YYYY-MM-DD'),?,?,?,uuid(?),?, uuid(?),?,?)";
         
 
 
@@ -204,13 +204,13 @@ return size;
                 ps.setString(2, notes.get(i).getUuid());
                 ps.setString(3, "ambulatory");
                 ps.setString(4, "finished");
-                ps.setString(5, notes.get(i).getDisplay());
+                ps.setString(5, notes.get(i).getExternalId());
                 ps.setString(6, "his");
                 ps.setString(7, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
                 ps.setString(8, notes.get(i).getPatientMrNumber());
                 ps.setString(9, notes.get(i).getPatientId());
                 ps.setString(10, notes.get(i).getPatientFullName());
-                ps.setString(11, notes.get(i).getPatientMobile());
+                ps.setString(11, notes.get(i).getPatientMrNumber());
                 ps.setString(12,notes.get(i).getPatientBirthDate());
                 ps.setString(13, notes.get(i).getPatientGender());
 
@@ -219,7 +219,7 @@ return size;
                 ps.setString(16, notes.get(i).getAssignedToId());
 
                 ps.setString(17,"Nyaho Service Provider");
-                ps.setString(18,notes.get(i).getUpdatedAt());
+                ps.setString(18,notes.get(i).getVisitId());
                 ps.setBoolean(19,false);
                 ps.setBoolean(20,false);
             }
