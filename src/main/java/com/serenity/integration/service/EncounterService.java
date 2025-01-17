@@ -3,10 +3,8 @@ package com.serenity.integration.service;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -27,7 +25,6 @@ import org.springframework.stereotype.Service;
 
 import com.serenity.integration.models.Encounter;
 import com.serenity.integration.models.EncounterNote;
-import com.serenity.integration.models.Visits;
 import com.serenity.integration.repository.EncounterNoteRepository;
 import com.serenity.integration.repository.EncounterRepository;
 
@@ -48,6 +45,10 @@ public class EncounterService {
     @Qualifier(value = "hisJdbcTemplate")
     JdbcTemplate hisJdbcTemplate;
 
+
+    @Autowired
+    @Qualifier(value = "vectorJdbcTemplate")
+    JdbcTemplate vectorJdbcTemplate;
     Logger logger = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
     
@@ -146,6 +147,41 @@ public void getEncounterThreads(){
     }
 
 
+    public int encountersData(int size){
+        List<Encounter>  encounters = new  ArrayList<>();
+        String sql ="select * from encounter e join visits v on date(e.created_at)=date(v.createdat) and e.patient_id=v.patientid and  e.created_at !='0000-00-00' and assigned_to_id is not null OFFSET ? LIMIT 1000";
+        SqlRowSet set = vectorJdbcTemplate.queryForRowSet(sql,size);
+        while (set.next()){
+            Encounter encounter = new Encounter();
+            encounter.setCreatedAt(set.getString(5));
+            encounter.setAssignedToId(set.getString(2));
+            encounter.setAssignedToName(set.getString("assigned_to_name"));
+            encounter.setDisplay(set.getString(8));
+            encounter.setEncounterClass(set.getString("encounterclass"));
+            encounter.setExternalId(set.getString(11));
+            encounter.setExternalSystem(set.getString(12));
+            encounter.setLocationId(set.getString(13));
+            encounter.setLocationName(set.getString(14));
+            encounter.setPatientBirthDate(set.getString("patient_birth_date"));
+            encounter.setPatientFullName(set.getString("patient_full_name"));
+            encounter.setPatientGender(set.getString("patient_gender"));
+            encounter.setPatientMobile(set.getString("patient_mobile"));
+            encounter.setPatientId(set.getString("patient_id"));
+            encounter.setPatientMrNumber(set.getString("patient_mr_number"));
+            encounter.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+            encounter.setServiceProviderName("Nyaho Medical Center");
+            encounter.setStatus("finished");
+            encounter.setVisitId(set.getString(53));
+            encounters.add(encounter);
+        }
+
+        saveEncounters(encounters);
+
+return size;
+
+    }
+
+
     public void saveEncounters(List<Encounter> notes){
         String sql="INSERT INTO public.encounters " + //
                         "(created_at,  id,  uuid, encounter_class, status, "+
@@ -154,8 +190,8 @@ public void getEncounterThreads(){
                         "encounter_type, practitioner_name, practitioner_id, service_provider_name,  visit_id,"+
                         "has_prescriptions,has_service_requests)" + //
                         "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),  nextval('encounters_id_seq'::regclass),  uuid(?),?,?,"+
-                        "'',?, ?,uuid(?),(select mr_number from patients p where external_id =?),(select uuid from patients p where external_id =?), (select full_name from patients p where external_id =?),"+
-                        "(select mobile from patients p where external_id =?),(select birth_date from patients p where external_id =?),(select gender from patients p where external_id =?),?,?,uuid(?),?, uuid(?),?,?)";
+                        "'',?, ?,uuid(?),?,uuid(?), ?,"+
+                        "?,?,?),?,?,uuid(?),?, uuid(?),?,?)";
         
 
 
@@ -172,11 +208,11 @@ public void getEncounterThreads(){
                 ps.setString(6, "his");
                 ps.setString(7, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
                 ps.setString(8, notes.get(i).getPatientMrNumber());
-                ps.setString(9, notes.get(i).getPatientMrNumber());
-                ps.setString(10, notes.get(i).getPatientMrNumber());
-                ps.setString(11, notes.get(i).getPatientMrNumber());
-                ps.setString(12,notes.get(i).getPatientMrNumber());
-                ps.setString(13, notes.get(i).getPatientMrNumber());
+                ps.setString(9, notes.get(i).getPatientId());
+                ps.setString(10, notes.get(i).getPatientFullName());
+                ps.setString(11, notes.get(i).getPatientMobile());
+                ps.setString(12,notes.get(i).getPatientBirthDate());
+                ps.setString(13, notes.get(i).getPatientGender());
 
                 ps.setString(14, notes.get(i).getEncounterClass());
                 ps.setString(15,notes.get(i).getAssignedToName());
@@ -242,4 +278,25 @@ serenityJdbcTemplate.update(sql, new PreparedStatementSetter() {
 
 
     }
+
+
+
+    public void encounterthread() {
+        logger.info("kooooooooooooooading");
+           int dataSize = 1878637;
+           ExecutorService executorService = Executors.newFixedThreadPool(10);
+           try {
+               List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
+               for (Future<Integer> future : futures) {
+                   System.out.println("future.get = " + future.get());
+               }
+           } catch (InterruptedException | ExecutionException e) {
+               // TODO Auto-generated catch block
+               e.printStackTrace();
+           }
+   
+           executorService.shutdown();
+           System.err.println("patiend count is " + dataSize);
+   
+       }
 }

@@ -59,15 +59,15 @@ public class VectorDatasource {
         return props;
     }
 
-    @Bean
+    @Bean 
     @Primary
     public PlatformTransactionManager transactionManager(
             @Qualifier("entityManagerFactory") EntityManagerFactory entityManagerFactory) {
         return new JpaTransactionManager(entityManagerFactory);
     }
-    /* @Bean
+     @Bean(name= "vectorJdbcTemplate")
 @Primary
     public JdbcTemplate vectorJdbcTemplate(@Qualifier("primaryDataSource") DataSource dataSource){
         return new JdbcTemplate(dataSource);
-    } */
+    } 
 }
