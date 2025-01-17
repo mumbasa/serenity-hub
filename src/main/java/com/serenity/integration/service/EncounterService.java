@@ -234,44 +234,46 @@ return size;
     }
 
 
-        public void saveEncounter(Encounter note){
-        String sql="INSERT INTO public.encounters " + //
-                        "(created_at,  id,  uuid, encounter_class, status, "+
-                        "display,  external_id, external_system,  service_provider_id, patient_mr_number,"+ 
-                        "patient_id, patient_full_name, patient_mobile, patient_birth_date, patient_gender,"+ 
-                        "encounter_type, practitioner_name, practitioner_id, service_provider_name,  visit_id,"+
-                        "has_prescriptions,has_service_requests)" + //
-                        "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),  nextval('encounters_id_seq'::regclass),  uuid(?),?,?,"+
-                        "'',?, ?,uuid(?),(select mr_number from patients p where external_id =?),(select uuid from patients p where external_id =?), (select full_name from patients p where external_id =?),"+
-                        "(select mobile from patients p where external_id =?),(select birth_date from patients p where external_id =?),(select gender from patients p where external_id =?),?,?,uuid(?),?, uuid(?),?,?)";
-        
+        public void saveEncounter(Encounter notes){
+            String sql="INSERT INTO public.encounters " + //
+            "(created_at,  id,  uuid, encounter_class, status, "+
+            "display,  external_id, external_system,  service_provider_id, patient_mr_number,"+ 
+            "patient_id, patient_full_name, patient_mobile, patient_birth_date, patient_gender,"+ 
+            "encounter_type, practitioner_name, practitioner_id, service_provider_name,  visit_id,"+
+            "has_prescriptions,has_service_requests)" + //
+            "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),  nextval('encounters_id_seq'::regclass),  uuid(?),?,?,"+
+            "'',?, ?,uuid(?),?,uuid(?), ?,"+
+            "(SELECT mobile from patients where mr_number=?),to_date(?, 'YYYY-MM-DD'),?,?,?,uuid(?),?, uuid(?),?,?)";
+
 serenityJdbcTemplate.update(sql, new PreparedStatementSetter() {
     
     @Override
     public void setValues(PreparedStatement ps) throws SQLException {
         // TODO Auto-generated method stub
-        ps.setString(1, note.getCreatedAt().replaceAll("T|Z", " ").strip());
-        ps.setString(2, note.getUuid());
+        ps.setString(1, notes.getCreatedAt().replaceAll("T|Z", " ").strip());
+        ps.setString(2, notes.getUuid());
         ps.setString(3, "ambulatory");
         ps.setString(4, "finished");
-        ps.setString(5, note.getDisplay());
+        ps.setString(5, UUID.randomUUID().toString());
         ps.setString(6, "his");
         ps.setString(7, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
-        ps.setString(8, note.getPatientMrNumber());
-        ps.setString(9, note.getPatientMrNumber());
-        ps.setString(10, note.getPatientMrNumber());
-        ps.setString(11, note.getPatientMrNumber());
-        ps.setString(12,note.getPatientMrNumber());
-        ps.setString(13, note.getPatientMrNumber());
+        ps.setString(8, notes.getPatientMrNumber());
+        ps.setString(9, notes.getPatientId());
+        ps.setString(10, notes.getPatientFullName());
+        ps.setString(11, notes.getPatientMrNumber());
+        ps.setString(12,notes.getPatientBirthDate());
+        ps.setString(13, notes.getPatientGender());
 
-        ps.setString(14, note.getEncounterClass());
-        ps.setString(15,note.getAssignedToName());
-        ps.setString(16, note.getAssignedToName());
+        ps.setString(14, notes.getEncounterClass());
+        ps.setString(15,notes.getAssignedToName());
+        ps.setString(16, notes.getAssignedToId());
 
-        ps.setString(17,"Nyaho Service Provider");
-        ps.setString(18,note.getUpdatedAt());
+        ps.setString(17,"Nyaho Medical Centre");
+        ps.setString(18,notes.getVisitId());
         ps.setBoolean(19,false);
-        ps.setBoolean(20,false);    }
+        ps.setBoolean(20,false);
+    
+    }
     
 });
 
@@ -279,7 +281,52 @@ serenityJdbcTemplate.update(sql, new PreparedStatementSetter() {
 
     }
 
+    public void saveEncounter(){
+        String sql="INSERT INTO public.encounters " + //
+        "(created_at,  id,  uuid, encounter_class, status, "+
+        "display,  external_id, external_system,  service_provider_id, patient_mr_number,"+ 
+        "patient_id, patient_full_name, patient_mobile, patient_birth_date, patient_gender,"+ 
+        "encounter_type, practitioner_name, practitioner_id, service_provider_name,  visit_id,"+
+        "has_prescriptions,has_service_requests)" + //
+        "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),  nextval('encounters_id_seq'::regclass),  uuid(?),?,?,"+
+        "'',?, ?,uuid(?),?,uuid(?), ?,"+
+        "(SELECT mobile from patients where mr_number=?),to_date(?, 'YYYY-MM-DD'),?,?,?,uuid(?),?, uuid(?),?,?)";
 
+serenityJdbcTemplate.update(sql, new PreparedStatementSetter() {
+Encounter notes = encounterRepository.getfirst100k().get(0);
+@Override
+public void setValues(PreparedStatement ps) throws SQLException {
+    // TODO Auto-generated method stub
+    ps.setString(1, notes.getCreatedAt().replaceAll("T|Z", " ").strip());
+    ps.setString(2, notes.getUuid());
+    ps.setString(3, "ambulatory");
+    ps.setString(4, "finished");
+    ps.setString(5, UUID.randomUUID().toString());
+    ps.setString(6, "his");
+    ps.setString(7, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
+    ps.setString(8, notes.getPatientMrNumber());
+    ps.setString(9, notes.getPatientId());
+    ps.setString(10, notes.getPatientFullName());
+    ps.setString(11, notes.getPatientMrNumber());
+    ps.setString(12,notes.getPatientBirthDate());
+    ps.setString(13, notes.getPatientGender());
+
+    ps.setString(14, notes.getEncounterClass());
+    ps.setString(15,notes.getAssignedToName());
+    ps.setString(16, notes.getAssignedToId());
+
+    ps.setString(17,"Nyaho Medical Centre");
+    ps.setString(18,notes.getVisitId());
+    ps.setBoolean(19,false);
+    ps.setBoolean(20,false);
+
+}
+
+});
+
+
+
+}
 
     public void encounterthread() {
         logger.info("kooooooooooooooading");

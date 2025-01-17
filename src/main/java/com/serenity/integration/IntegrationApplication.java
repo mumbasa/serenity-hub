@@ -75,7 +75,7 @@ public class IntegrationApplication {
 				logger.info("Starting import");
 		//visitService.getlegacyThreads();
 		//visitMigration.getPatientsThreads();
-		encounterService.encounterthread();
+		encounterService.saveEncounter();
 		logger.info("finishing import");
 
 	}

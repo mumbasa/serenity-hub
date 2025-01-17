@@ -53,7 +53,7 @@ public class VisitMigration {
 
     public void getPatientsThreads() {
      logger.info("kooooooooooooooading");
-        int dataSize = 616320;
+        int dataSize = 640871;
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
