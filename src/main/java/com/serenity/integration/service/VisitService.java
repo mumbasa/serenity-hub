@@ -455,7 +455,7 @@ int rows =640871;
             
                 ExecutorService executorService =  Executors.newFixedThreadPool(10);
                     try {
-                        List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows,1000,mps,doc));
+                        List<Future<Integer>> futures = executorService.invokeAll(submitIPDTask(rows,1000,mps,doc));
                         for(Future<Integer> future : futures){
                             System.out.println("future.get = " + future.get());
                         }
