@@ -44,6 +44,9 @@ public class IntegrationApplication {
 	VisitService visitService;
 
 	@Autowired
+	VisitMigration visitMigration;
+
+	@Autowired
 	VisitRepository v ;
 
 	@Autowired
@@ -70,8 +73,8 @@ public class IntegrationApplication {
 	@PostConstruct
 	public void coke() {
 				logger.info("Starting import");
-		visitService.getHisThreads();
-		
+		//visitService.getlegacyThreads();
+		visitMigration.getPatientsThreads();
 		
 		logger.info("finishing import");
 
