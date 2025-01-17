@@ -127,28 +127,30 @@ public class VisitService {
             Visits visit = new Visits();
             visit.setUuid(UUID.randomUUID());
             visit.setCreatedAt(set.getString(2));
-            visit.setEncounterClass(set.getString(3));
-            visit.setStatus(set.getString(4));
-            visit.setPriority(set.getString(5));
-            visit.setStartedAt(set.getString(8));
-            visit.setEndedAt(set.getString(7));
+            visit.setEncounterClass(set.getString("encounter_class"));
+            visit.setStatus(set.getString("status"));
+            visit.setPriority(set.getString("priority"));
+            visit.setStartedAt(set.getString("started_at"));
+            visit.setEndedAt(set.getString("ended_at"));
             visit.setExternalSystem("his");
             visit.setExternalId(set.getString(1));
             visit.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
             visit.setServiceProviderName("Nyaho Medical Centre");
-            visit.setHisNumber(set.getString(13));
-            visit.setGender(set.getString(18));
-            visit.setPatientMobile(set.getString(16));
-            visit.setPatientDob(set.getString(17));
-            visit.setAssignedToName(set.getString(21));
-            visit.setAssignedToId(set.getString(20));
-            visit.setPatientName(set.getString(15));
-            visit.setPatientStatus(set.getString(19));
+            visit.setHisNumber(set.getString("patient_id"));
+            visit.setGender(set.getString("patient_gender"));
+            visit.setPatientMobile(set.getString("patient_mobile"));
+            visit.setPatientDob(set.getString("patient_birth_date"));
+            visit.setAssignedToName(set.getString("assigned_to_name"));
+            visit.setAssignedToId(set.getString("assigned_to_id"));
+            visit.setPatientName(set.getString("patient_name"));
+            visit.setPatientStatus(set.getString("patient_status"));
             visit.setPatientId(mps.get(set.getString("patient_mr_number")).getUuid());
             visit.setPatientMrNumber(mps.get(set.getString("patient_mr_number")).getMrNumber());
-     
+            try{
             visit.setPractitionerId(doc.get(set.getString("assigned_to_id")));
-            
+            }catch(Exception e){
+                logger.error("could not find practitioner ");
+            }
             visits.add(visit);
         }
 
@@ -251,28 +253,30 @@ HAVING MIN(ip.StartDate) LIMIT ? ,1000
             Visits visit = new Visits();
             visit.setUuid(UUID.randomUUID());
             visit.setCreatedAt(set.getString(2));
-            visit.setEncounterClass(set.getString(3));
-            visit.setStatus(set.getString(4));
-            visit.setPriority(set.getString(5));
-            visit.setStartedAt(set.getString(8));
-            visit.setEndedAt(set.getString(7));
+            visit.setEncounterClass(set.getString("encounter_class"));
+            visit.setStatus(set.getString("status"));
+            visit.setPriority(set.getString("priority"));
+            visit.setStartedAt(set.getString("started_at"));
+            visit.setEndedAt(set.getString("ended_at"));
             visit.setExternalSystem("his");
             visit.setExternalId(set.getString(1));
             visit.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
             visit.setServiceProviderName("Nyaho Medical Centre");
-            visit.setHisNumber(set.getString(13));
-            visit.setGender(set.getString(18));
-            visit.setPatientMobile(set.getString(16));
-            visit.setPatientDob(set.getString(17));
-            visit.setAssignedToName(set.getString(21));
-            visit.setAssignedToId(set.getString(20));
-            visit.setPatientName(set.getString(15));
-            visit.setPatientStatus(set.getString(19));
+            visit.setHisNumber(set.getString("patient_id"));
+            visit.setGender(set.getString("patient_gender"));
+            visit.setPatientMobile(set.getString("patient_mobile"));
+            visit.setPatientDob(set.getString("patient_birth_date"));
+            visit.setAssignedToName(set.getString("assigned_to_name"));
+            visit.setAssignedToId(set.getString("assigned_to_id"));
+            visit.setPatientName(set.getString("patient_name"));
+            visit.setPatientStatus(set.getString("patient_status"));
             visit.setPatientId(mps.get(set.getString("patient_mr_number")).getUuid());
             visit.setPatientMrNumber(mps.get(set.getString("patient_mr_number")).getMrNumber());
-     
+            try{
             visit.setPractitionerId(doc.get(set.getString("assigned_to_id")));
-            
+            }catch(Exception e){
+                logger.error("could not find practitioner ");
+            }
             visits.add(visit);
         }
 
