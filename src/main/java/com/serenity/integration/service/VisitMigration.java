@@ -53,7 +53,7 @@ public class VisitMigration {
 
     public void getPatientsThreads() {
      logger.info("kooooooooooooooading");
-        int dataSize = 640871;
+        int dataSize = 616320;
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
@@ -216,7 +216,7 @@ return 1;
                 ps.setString(17, visits.get(i).getGender());
                 ps.setString(18, visits.get(i).getPatientStatus());
                 ps.setString(19, visits.get(i).getAssignedToName());
-                ps.setString(20, visits.get(i).getAssignedToId());
+                ps.setString(20, visits.get(i).getPractitionerId());
 
                 ps.setString(21, visits.get(i).getPatientMrNumber() + "-" + visits.get(i).getCreatedAt());
 
