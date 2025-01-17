@@ -142,7 +142,7 @@ public class VisitService {
             visit.setPatientDob(set.getString("patient_birth_date"));
             visit.setAssignedToName(set.getString("assigned_to_name"));
             visit.setAssignedToId(set.getString("assigned_to_id"));
-            visit.setPatientName(set.getString("patient_name"));
+            visit.setPatientName(set.getString("patient_full_name"));
             visit.setPatientStatus(set.getString("patient_status"));
             visit.setPatientId(mps.get(set.getString("patient_mr_number")).getUuid());
             visit.setPatientMrNumber(mps.get(set.getString("patient_mr_number")).getMrNumber());
@@ -268,7 +268,7 @@ HAVING MIN(ip.StartDate) LIMIT ? ,1000
             visit.setPatientDob(set.getString("patient_birth_date"));
             visit.setAssignedToName(set.getString("assigned_to_name"));
             visit.setAssignedToId(set.getString("assigned_to_id"));
-            visit.setPatientName(set.getString("patient_name"));
+            visit.setPatientName(set.getString("patient_full_name"));
             visit.setPatientStatus(set.getString("patient_status"));
             visit.setPatientId(mps.get(set.getString("patient_mr_number")).getUuid());
             visit.setPatientMrNumber(mps.get(set.getString("patient_mr_number")).getMrNumber());
