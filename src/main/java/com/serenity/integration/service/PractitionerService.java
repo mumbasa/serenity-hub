@@ -510,7 +510,7 @@ FROM   doctor_master dm    left JOIN doctor_employee de ON dm.doctor_id = de.doc
 
 
  public void getPractitionerThreads() {
-        int dataSize = 456;
+        int dataSize = 463;
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitTask2(10, dataSize));
@@ -571,19 +571,57 @@ FROM   doctor_master dm    left JOIN doctor_employee de ON dm.doctor_id = de.doc
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 // TODO Auto-generated method stub
-                String phoneNumber = "+233" + ThreadLocalRandom.current().nextInt(10000000, 99999999);
                 ps.setString(1,doctors.get(i).getCreatedAt());
                 ps.setString(2, doctors.get(i).getSerenityUUid());
                 ps.setString(3, doctors.get(i).getFirstName());
                 ps.setString(4, doctors.get(i).getLastName()==null?"": doctors.get(i).getLastName());
                 ps.setString(5, doctors.get(i).getFullName()==null?"": doctors.get(i).getFullName());
-                try{
+            
                 ps.setString(6, doctors.get(i).getMobile().strip());
-                }catch(Exception e){
-                    ps.setString(6, phoneNumber);
-      
-                }
+                ps.setString(7, doctors.get(i).getEmail());
+                ps.setString(9, doctors.get(i).getGender());
+                ps.setString(8, doctors.get(i).getDateOfBirth());
+                ps.setString(10, doctors.get(i).getExternalId());
+                ps.setString(11, doctors.get(i).getExternalSystem());
+                ps.setString(12, doctors.get(i).getTitle());
+                ps.setString(13, doctors.get(i).getMobile());
 
+
+            }
+
+            @Override
+            public int getBatchSize() {
+                // TODO Auto-generated method stub
+
+                return doctors.size();
+            }
+            
+        });
+                                
+           return doctors.size();                     
+    }
+
+
+    public int migrateDoctors(){
+        List<Doctors> doctors = doctorRepository.findAll();
+        String sql ="""
+                INSERT INTO public.practitioners
+                        (created_at,  id, \"uuid\", first_name, last_name, full_name, mobile, email, birth_date, gender, is_active, managing_organization_id, managing_organization_name,  external_id, external_system, name_prefix, national_mobile_number) 
+                        VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'), nextval('practitioners_id_seq'::regclass), uuid(?), ?, ?, ?, ?, ?, to_date(?, 'YYYY-MM-DD'), ?, false, uuid('161380e9-22d3-4627-a97f-0f918ce3e4a9'), 'Nyaho Medical Centre',  ?, ?, ?, ?);
+
+                        """;
+        serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                // TODO Auto-generated method stub
+                ps.setString(1,doctors.get(i).getCreatedAt());
+                ps.setString(2, doctors.get(i).getSerenityUUid());
+                ps.setString(3, doctors.get(i).getFirstName());
+                ps.setString(4, doctors.get(i).getLastName()==null?"": doctors.get(i).getLastName());
+                ps.setString(5, doctors.get(i).getFullName()==null?"": doctors.get(i).getFullName());
+            
+                ps.setString(6, doctors.get(i).getMobile().strip());
                 ps.setString(7, doctors.get(i).getEmail());
                 ps.setString(9, doctors.get(i).getGender());
                 ps.setString(8, doctors.get(i).getDateOfBirth());
