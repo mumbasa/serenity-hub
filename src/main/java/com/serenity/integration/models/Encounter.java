@@ -26,7 +26,10 @@ import lombok.ToString;
 public class Encounter {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id; 
+
+
     @Column(name = "uuid", nullable = false, unique = true)
     private String uuid;
 

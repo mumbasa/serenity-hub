@@ -52,11 +52,12 @@ public class VisitMigration {
     PatientRepository patientRepository;
 
     public void getVisitThreads() {
-     logger.info("kooooooooooooooading");
-        int dataSize = 640871;
+        int dataSize = visitRepository.countByEncounterClass("inpatient-encounter");
+
+     logger.info("kooooooooooooooading----\t"+dataSize);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(10000, dataSize));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
