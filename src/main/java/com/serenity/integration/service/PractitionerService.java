@@ -69,18 +69,27 @@ public class PractitionerService {
       Set<UUID> uuids = new HashSet<>();
 
         List<String> docsId= doctorRepository.findAll().stream().map(Doctors::getNationalMobileNumber).toList();
-        String query = "SELECT * from employee_master";
+        String query = """
+                SELECT
+* 
+FROM
+  employee_master em
+  JOIN doctor_employee de ON de.Employee_id = em.Employee_ID
+  JOIN doctor_master dm ON dm.doctor_id = de.doctor_id
+ 
+                """;
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
         while (set.next()) {
             
-            if(!docsId.contains(set.getString("mobile"))){
+      
             Doctors d = new Doctors();
-            d.setExternalId(set.getString("Employee_ID"));
+            d.setEmpId(set.getString("Employee_ID"));
+            d.setExternalId(set.getString("Doctor_ID"));
             d.setTitle(set.getString("title"));
-            d.setMobile(PatientService.generateMobile(set.getString("mobile")));
+            d.setMobile(getPhoneNumber(set.getString("mobile")));
             d.setHomeAddress(set.getString("house_no") + " " + (set.getString("locality")) + " " + (set.getString("city")));
             d.setDateOfBirth(set.getString("dob"));
-            d.setEmail(set.getString("mobile")+"@nyahomedical.com");
+            d.setEmail(set.getString("Doctor_ID").toLowerCase()+"@nyahomedical.com");
             d.setExternalSystem("his");
             d.setFirstName(set.getString("name"));
             d.setPostalAddress(set.getString("street_name"));
@@ -89,26 +98,28 @@ public class PractitionerService {
             d.setManagingOrganisationId("Nyaho Medical Center");
             d.setSerenityUUid(PatientService.checkAndGenereateUUID(uuids, UUID.randomUUID()).toString());
             doctors.add(d);
-            }else{
-                System.err.println(set.getString("mobile"));
-                List<Doctors> doctor = doctorRepository.NationalMobileNumber(set.getString("mobile"));
-           
-                    Doctors doc2 = doctor.get(0);
-                    doc2.setCountryCode("+233");
-                    doc2.setExternalId(set.getString("Employee_ID"));
-                    doc2.setExternalSystem("his");
-                    doc2.setDateOfBirth(set.getString("dob"));
-                    doc2.setNationalMobileNumber((set.getString("mobile")));
-                    doc2.setTitle(set.getString("title"));
+            
+              
 
-                    doctorRepository.save(doc2);
-                
-
-            }
+            
         }
 
         doctorRepository.saveAll(doctors);
     }
+
+    public String getPhoneNumber (String number){
+        if(number==null){
+            Random sk =new Random(100000000);
+            String digs = "+233"+String.valueOf(sk.nextInt()).replaceAll("-", "");
+            return digs;
+        }else{
+
+            return "+233"+number;
+        }
+
+
+    }
+
 
     public void getPractitioner() {
         List<Doctors> doctors = doctorRepository.findAll().stream().filter(e -> e.getSerenityId() == null).toList();

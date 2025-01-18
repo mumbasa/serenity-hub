@@ -74,10 +74,11 @@ public class IntegrationApplication {
 	public void coke() {
 				logger.info("Starting import");
 		 //visitService.getIPDVISITSThreads();
-		 visitService.getHisThreads();
+		 practitionerService.saveHisPractioner();
+		// visitService.getHisThreads();
 		//.getLegacyVisit();
 		//encounterService.saveEncounter();
-		//practitionerService.getPractitionerThreads();
+	
 		logger.info("finishing import");
 
 	}

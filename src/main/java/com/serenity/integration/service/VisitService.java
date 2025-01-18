@@ -62,66 +62,55 @@ public class VisitService {
     public int loadVisits(int size, Map<String,PatientData> mps,Map<String,String> doc ) {
         List<Visits> visits = new ArrayList<>();
      
-        String sql = "select pmh.Transaction_ID as \"uuid\",\n" + //
-                "  pmh.DateOfVisit created_at,\n" + //
-                "  case\n" + //
-                "    when pmh.Type = 'IPD'\n" + //
-                "    and pmh.Admission_Type = 'Emergency' then 'emergency'\n" + //
-                "    when pmh.Type = 'IPD'\n" + //
-                "    and pmh.Admission_Type <> 'Emergency' then 'inpatient-encounter'\n" + //
-                "    else 'ambulatory'\n" + //
-                "  end as encounter_class,\n" + //
-                "  'finished' as status,\n" + //
-                "  case\n" + //
-                "    when pmh.Type = 'IPD'\n" + //
-                "    and pmh.Admission_Type = 'Emergency' then 'stat'\n" + //
-                "    when pmh.Type = 'IPD'\n" + //
-                "    and pmh.Admission_Type <> 'Emergency' then 'ASAP'\n" + //
-                "    else 'routine'\n" + //
-                "  end as priority,\n" + //
-                "  cast(\n" + //
-                "    CONCAT(\n" + //
-                "      cast(app.Date as date),\n" + //
-                "      ' ',\n" + //
-                "      cast(app.Time as time)\n" + //
-                "    ) as datetime\n" + //
-                "  ) planned_start,\n" + //
-                "  cast(\n" + //
-                "    CONCAT(\n" + //
-                "      cast(app.Date as date),\n" + //
-                "      ' ',\n" + //
-                "      cast(app.EndTime as time)\n" + //
-                "    ) as datetime\n" + //
-                "  ) planned_end,\n" + //
-                "  cast(\n" + //
-                "    CONCAT(\n" + //
-                "      cast(pmh.DateOfVisit as date),\n" + //
-                "      ' ',\n" + //
-                "      cast(pmh.Time as time)\n" + //
-                "    ) as datetime\n" + //
-                "  ) started_at,\n" + //
-                "  pmh.Transaction_ID external_id,\n" + //
-                "  app.App_ID as appointment_id,\n" + //
-                "  null as location_id,\n" + //
-                "  'Nyaho Medical Centre' as location_name,\n" + //
-                "  pmh.Patient_ID patient_mr_number,\n" + //
-                "  pmh.Patient_ID patient_id,\n" + //
-                "  concat(pm.PfirstName, ' ', pm.PLastName) patient_full_name,\n" + //
-                "  pm.Mobile patient_mobile,\n" + //
-                "  pm.DOB patient_birth_date,\n" + //
-                "  pm.Gender patient_gender,\n" + //
-                "  \"departed\" as patient_status,\n" + //
-                "  pmh.Doctor_ID created_by_id,\n" + //
-                "  CONCAT(dm.Title, ' ', dm.Name) created_by_name,\n" + //
-                "  pmh.Transaction_ID user_friendly_id,\n" + //
-                "  CONCAT(dm.Title, ' ', dm.Name) assigned_to_name,\n" + //
-                "  pmh.Doctor_ID assigned_to_id,\n" + //
-                "  'Nyaho Medical Centre' as location_name\n" + //
-                "from patient_medical_history pmh\n" + //
-                "  inner join patient_master pm on pm.Patient_ID = pmh.Patient_ID\n" + //
-                "  inner join doctor_master dm on pmh.Doctor_ID = dm.Doctor_ID\n" + //
-                "  inner join f_ledgertransaction lt on lt.`Transaction_ID` = pmh.`Transaction_ID`\n" + //
-                "  inner join appointment app on app.ledgertnxNo = lt.LedgerTransactionNo LIMIT ?,1000";
+        String sql = """
+                SELECT 
+    pmh.Transaction_ID as uuid,
+    pmh.DateOfVisit created_at,
+    pmh.Updatedate updated_at,
+    CASE
+        WHEN pmh.Type = 'IPD' AND pmh.Admission_Type = 'Emergency' THEN 'emergency'
+        WHEN pmh.Type = 'IPD' AND pmh.Admission_Type <> 'Emergency' THEN 'inpatient-encounter'
+        ELSE 'ambulatory'
+    END as encounter_class,
+    'finished' as status,
+    '' as display,
+    CASE
+        WHEN pmh.Type = 'IPD' AND pmh.Admission_Type = 'Emergency' THEN 'stat'
+        WHEN pmh.Type = 'IPD' AND pmh.Admission_Type <> 'Emergency' THEN 'ASAP'
+        ELSE 'routine'
+    END as priority,
+    CAST(CONCAT(CAST(app.Date as date), ' ', CAST(app.Time as time)) as datetime) planned_start,
+    CAST(CONCAT(CAST(app.Date as date), ' ', CAST(app.EndTime as time)) as datetime) planned_end,
+    CAST(CONCAT(CAST(pmh.DateOfVisit as date), ' ', CAST(pmh.Time as time)) as datetime) started_at,
+    NULL as ended_at,
+    pmh.Transaction_ID external_id,
+    'his' as external_system,
+    app.App_ID as appointment_id,
+    'Nyaho Medical Centre' as location_id,
+    'Nyaho Medical Centre' as location_name,
+    NULL as service_type_id,
+    NULL as service_type_name,
+    '161380e9-22d3-4627-a97f-0f918ce3e4a9' as service_provider_id,
+    pmh.Patient_ID patient_mr_number,
+    pmh.Patient_ID patient_id,
+    CONCAT(pm.PfirstName, ' ', pm.PLastName) patient_full_name,
+    pm.Mobile patient_mobile,
+    pm.DOB patient_birth_date,
+    pm.Gender patient_gender,
+    'departed' as patient_status,
+    pmh.Doctor_ID created_by_id,
+    CONCAT(dm.Title, ' ', dm.Name) created_by_name,
+    pmh.Transaction_ID user_friendly_id,
+    CONCAT(dm.Title, ' ', dm.Name) assigned_to_name,
+    pmh.Doctor_ID assigned_to_id,
+    'Nyaho Medical Centre' as service_provider_name
+FROM patient_medical_history pmh
+INNER JOIN patient_master pm ON pm.Patient_ID = pmh.Patient_ID
+INNER JOIN doctor_master dm ON pmh.Doctor_ID = dm.Doctor_ID
+INNER JOIN f_ledgertransaction lt ON lt.Transaction_ID = pmh.Transaction_ID
+INNER JOIN appointment app ON app.ledgertnxNo = lt.LedgerTransactionNo
+LIMIT ?,1000
+                """;
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(sql,size);
         while (set.next()) {
             Visits visit = new Visits();
