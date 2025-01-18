@@ -75,7 +75,7 @@ public class IntegrationApplication {
 				logger.info("Starting import");
 		 //visitService.getIPDVISITSThreads();
 		 visitService.getHisThreads();
-		visitService.getLegacyVisit();
+		//.getLegacyVisit();
 		//encounterService.saveEncounter();
 		//practitionerService.getPractitionerThreads();
 		logger.info("finishing import");
