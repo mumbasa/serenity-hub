@@ -53,10 +53,10 @@ public class VisitMigration {
 
     public void getVisitThreads() {
      logger.info("kooooooooooooooading");
-        int dataSize = 27037;
+        int dataSize = 640871;
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1, dataSize));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(10000, dataSize));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
@@ -178,7 +178,7 @@ return 1;
                 "service_provider_id, service_provider_name, patient_mr_number, patient_id, patient_full_name," +
                 "patient_mobile, patient_birth_date, patient_gender, patient_status, assigned_to_name, assigned_to_id,display,location_id,location_name)\n"
                 + //
-                "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),nextval('visits_id_seq'::regclass),uuid(?),?  ,?," +
+                "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),?,uuid(?),?  ,?," +
                 "?,to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),?,?," +
                 "uuid(?),?,?,uuid(?),?," +
                 "?,TO_DATE(?, 'YYYY/MM/DD'),?,?,?,uuid(?),?,uuid('23f59485-8518-4f4e-9146-d061dfe58175'),'Airport Primary Care')";
@@ -191,34 +191,36 @@ return 1;
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 // TODO Auto-generated method stub
                 ps.setString(1, visits.get(i).getCreatedAt().replaceAll("T", " "));
-                ps.setString(2, visits.get(i).getUuid().toString());
-                ps.setString(3, visits.get(i).getEncounterClass());
-                ps.setString(4, "finished");
+                ps.setLong(2, visits.get(i).getId());
 
-                ps.setString(5, visits.get(i).getPriority());
-                ps.setString(6, visits.get(i).getCreatedAt().replaceAll("T", " ") );
+                ps.setString(3, visits.get(i).getUuid().toString());
+                ps.setString(4, visits.get(i).getEncounterClass());
+                ps.setString(5, "finished");
+
+                ps.setString(6, visits.get(i).getPriority());
                 ps.setString(7, visits.get(i).getCreatedAt().replaceAll("T", " ") );
-                ps.setString(8, visits.get(i).getExternalId());
+                ps.setString(8, visits.get(i).getCreatedAt().replaceAll("T", " ") );
+                ps.setString(9, visits.get(i).getExternalId());
 
-                ps.setString(9, visits.get(i).getExternalSystem());
+                ps.setString(10, visits.get(i).getExternalSystem());
 
-                ps.setString(10, visits.get(i).getServiceProviderId());
-                ps.setString(11, visits.get(i).getServiceProviderName());
+                ps.setString(11, visits.get(i).getServiceProviderId());
+                ps.setString(12, visits.get(i).getServiceProviderName());
 
-                ps.setString(12, visits.get(i).getPatientMrNumber());
+                ps.setString(13, visits.get(i).getPatientMrNumber());
 
-                ps.setString(13, visits.get(i).getPatientId());
+                ps.setString(14, visits.get(i).getPatientId());
 
-                ps.setString(14, visits.get(i).getPatientName());
-                ps.setString(15, visits.get(i).getPatientMobile());
-                ps.setString(16, visits.get(i).getPatientDob());
+                ps.setString(15, visits.get(i).getPatientName());
+                ps.setString(16, visits.get(i).getPatientMobile());
+                ps.setString(17, visits.get(i).getPatientDob());
 
-                ps.setString(17, visits.get(i).getGender());
-                ps.setString(18, visits.get(i).getPatientStatus());
-                ps.setString(19, visits.get(i).getAssignedToName());
-                ps.setString(20, visits.get(i).getPractitionerId());
+                ps.setString(18, visits.get(i).getGender());
+                ps.setString(19, visits.get(i).getPatientStatus());
+                ps.setString(20, visits.get(i).getAssignedToName());
+                ps.setString(21, visits.get(i).getPractitionerId());
 
-                ps.setString(21, visits.get(i).getPatientMrNumber() + "-" + visits.get(i).getCreatedAt());
+                ps.setString(22, visits.get(i).getPatientMrNumber() + "-" + visits.get(i).getCreatedAt());
 
             }
 

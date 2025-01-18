@@ -109,7 +109,7 @@ INNER JOIN patient_master pm ON pm.Patient_ID = pmh.Patient_ID
 INNER JOIN doctor_master dm ON pmh.Doctor_ID = dm.Doctor_ID
 INNER JOIN f_ledgertransaction lt ON lt.Transaction_ID = pmh.Transaction_ID
 INNER JOIN appointment app ON app.ledgertnxNo = lt.LedgerTransactionNo
-LIMIT ?,1000
+LIMIT ?,10000
                 """;
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(sql,size);
         while (set.next()) {
@@ -422,7 +422,7 @@ int rows =640871;
 
     ExecutorService executorService =  Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows,1000,mps,doc));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows,10000,mps,doc));
             for(Future<Integer> future : futures){
                 System.out.println("future.get = " + future.get());
             }

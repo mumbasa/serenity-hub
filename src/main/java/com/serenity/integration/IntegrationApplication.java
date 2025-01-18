@@ -74,7 +74,8 @@ public class IntegrationApplication {
 	public void coke() {
 		logger.info("Starting import");
 		//patientMigrationService.getPatientsThreads();
-		visitService.getIPDVISITSThreads();	
+		visitService.getHisThreads();
+		visitMigration.getVisitThreads();
 	
 		logger.info("finishing import");
 
