@@ -441,8 +441,7 @@ int rows =640871;
     
 
         public void getIPDVISITSThreads(){
-
-            int rows =36888;
+            int rows =28888;
                 Map<String,PatientData> mps = patientRepository.findAll().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
                     Map<String,String> doc = doctorRepository.findHisPractitioners().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
             
