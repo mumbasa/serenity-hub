@@ -68,7 +68,6 @@ public class PractitionerService {
         List<Doctors> doctors = new ArrayList<>();
       Set<UUID> uuids = new HashSet<>();
 
-        List<String> docsId= doctorRepository.findAll().stream().map(Doctors::getNationalMobileNumber).toList();
         String query = """
                 SELECT
 * 
@@ -108,13 +107,13 @@ FROM
     }
 
     public String getPhoneNumber (String number){
-        if(number==null){
+        if(number==null ){
             Random sk =new Random(100000000);
-            String digs = "+233"+String.valueOf(sk.nextInt()).replaceAll("-", "");
+            String digs = "+233"+sk.nextInt();
             return digs;
         }else{
 
-            return "+233"+number;
+            return "+233"+number.replaceFirst("0", "");
         }
 
 
