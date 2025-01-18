@@ -513,7 +513,7 @@ FROM
 
 
  public void getPractitionerThreads() {
-        int dataSize = 1688;
+        int dataSize = 456;
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitTask2(10, dataSize));
