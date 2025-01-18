@@ -76,7 +76,6 @@ public class IntegrationApplication {
 		//patientMigrationService.getPatientsThreads();
 		visitService.getHisThreads();
 		visitMigration.getVisitThreads();
-	
 		logger.info("finishing import");
 
 	}
