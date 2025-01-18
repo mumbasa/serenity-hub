@@ -416,7 +416,7 @@ return visits;
 
 public void getHisThreads(){
 
-int rows =640871;
+int rows =1000;
     Map<String,PatientData> mps = patientRepository.findAll().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
         Map<String,String> doc = doctorRepository.findHisPractitioners().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
 
