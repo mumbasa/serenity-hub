@@ -69,30 +69,22 @@ public class PractitionerService {
       Set<UUID> uuids = new HashSet<>();
 
         String query = """
-                SELECT
-* 
-FROM
-  employee_master em
-  JOIN doctor_employee de ON de.Employee_id = em.Employee_ID
-  JOIN doctor_master dm ON dm.doctor_id = de.doctor_id
- 
+               SELECT * 
+FROM   doctor_master dm    left JOIN doctor_employee de ON dm.doctor_id = de.doctor_id
+
                 """;
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
         while (set.next()) {
             
       
             Doctors d = new Doctors();
-            d.setEmpId(set.getString("Employee_ID"));
             d.setExternalId(set.getString("Doctor_ID"));
             d.setTitle(set.getString("title"));
             d.setMobile(getPhoneNumber(set.getString("mobile")));
-            d.setHomeAddress(set.getString("house_no") + " " + (set.getString("locality")) + " " + (set.getString("city")));
-            d.setDateOfBirth(set.getString("dob"));
             d.setEmail(set.getString("Doctor_ID").toLowerCase()+"@nyahomedical.com");
             d.setExternalSystem("his");
             d.setFirstName(set.getString("name"));
-            d.setPostalAddress(set.getString("street_name"));
-            d.setNationalMobileNumber((set.getString("mobile")));
+            d.setLastName(set.getString("name"));
             d.setManagingOrganisation("161380e9-22d3-4627-a97f-0f918ce3e4a9");
             d.setManagingOrganisationId("Nyaho Medical Center");
             d.setSerenityUUid(PatientService.checkAndGenereateUUID(uuids, UUID.randomUUID()).toString());
@@ -107,7 +99,8 @@ FROM
     }
 
     public String getPhoneNumber (String number){
-        if(number==null ){
+        try{
+        if(number==null | number.length()==0){
             Random sk =new Random(100000000);
             String digs = "+233"+sk.nextInt();
             return digs;
@@ -115,7 +108,11 @@ FROM
 
             return "+233"+number.replaceFirst("0", "");
         }
+    }catch(Exception e){
 
+        return "+233"+number.replaceFirst("0", "");
+
+    }
 
     }
 
