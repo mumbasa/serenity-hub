@@ -343,7 +343,6 @@ public class EncounterService {
                 System.out.println("future.get = " + future.get());
             }
         } catch (InterruptedException | ExecutionException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
