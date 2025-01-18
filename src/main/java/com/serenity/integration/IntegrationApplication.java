@@ -73,8 +73,8 @@ public class IntegrationApplication {
 	@PostConstruct
 	public void coke() {
 				logger.info("Starting import");
-		 visitService.getIPDVISITSThreads();
-		// practitionerService.getPractitionerThreads();
+		// visitService.getIPDVISITSThreads();
+		 practitionerService.saveHisPractioner();
 		// visitService.getHisThreads();
 		//.getLegacyVisit();
 		//encounterService.saveEncounter();
