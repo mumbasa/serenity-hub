@@ -52,7 +52,7 @@ public class IntegrationApplication {
 	@Autowired
 	SetupService setupService;
 	@Autowired
-	EncounterRepository encounterRepository;
+	PatientMigrationService patientMigrationService;
 	@Autowired
 	EncounterService encounterService;
 	@Autowired
@@ -72,11 +72,9 @@ public class IntegrationApplication {
 
 	@PostConstruct
 	public void coke() {
-				logger.info("Starting import");
-		visitService.getIPDVISITSThreads();
-		//visitService.getHisThreads(); 
-		//practitionerService.migrateDoctors();;
-		
+		logger.info("Starting import");
+		//patientMigrationService.getPatientsThreads();
+		visitService.getIPDVISITSThreads();	
 	
 		logger.info("finishing import");
 
