@@ -17,7 +17,9 @@ public interface VisitRepository extends JpaRepository<Visits,Long>{
     @Query(value = "SELECT * FROM visits limit 1",nativeQuery = true)
     List<Visits> getfirst1();
 
-  
+    public int countByEncounterClass(String encounterClass);
+    public List<Visits>  findByEncounterClass(String encounterClass);
+
 
     @Query(value = "select * from visits where visits.encounterclass !='inpatient-encounter' OFFSET ?1  LIMIT 10000",nativeQuery = true)
     List<Visits> getfirst100k(int offset);
