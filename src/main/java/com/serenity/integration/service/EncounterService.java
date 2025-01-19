@@ -57,9 +57,10 @@ public class EncounterService {
 
     public void generateOPDEncounter() {
        int rows= visitRepository.countByEncounterClass("ambulatory");
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
+       logger.info(rows +" number of rows");
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, rows));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(100, 1000));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
@@ -81,13 +82,15 @@ public class EncounterService {
         for (int i = 0; i < batches; i++) {
             final int batchNumber = i; // For use in lambda
 
+
             callables.add(() -> {
                 int startIndex = batchNumber * batchSize;
                 int endIndex = Math.min(startIndex + batchSize, totalSize);
                 logger.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
+                        List<Encounter> notes = visitRepository.getfirstAmbul10k(startIndex).stream().map(e ->new Encounter(e)).collect(Collectors.toList());
+
                 try {
-                    List<Encounter> notes = visitRepository.getfirstAmbul10k(startIndex).stream().map(e ->new Encounter(e)).collect(Collectors.toList());
                     encounterRepository.saveAll(notes);
                     //saveEncounters(notes);
                 } catch (Exception e) {
