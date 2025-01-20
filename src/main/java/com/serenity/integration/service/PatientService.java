@@ -61,6 +61,10 @@ public class PatientService {
     @Qualifier(value = "legJdbcTemplate")
     JdbcTemplate legJdbcTemplate;
 
+    @Autowired
+    @Qualifier(value = "vectorJdbcTemplate")
+    JdbcTemplate vectorJdbcTemplate;
+
   
 
     Logger LOGGER = LoggerFactory.getLogger(this.getClass().getCanonicalName());
@@ -641,7 +645,7 @@ public class PatientService {
 
     public void getHISPatientsThreads(){
         String sql = "SELECT external_id from patient_information";
-        List<String> set = legJdbcTemplate.queryForList(sql,String.class);
+        List<String> set = vectorJdbcTemplate.queryForList(sql,String.class);
        Set<String> sets = new HashSet<>(set);
         ExecutorService executorService =  Executors.newFixedThreadPool(10);
         try {
