@@ -423,7 +423,7 @@ public class PatientService {
         List<PatientData> patientData = new ArrayList<>();
         // Note: Set<String> mrNumbers is declared but never used
         
-        String sql = "SELECT * FROM patient OFFSET ? LIMIT 100";
+        String sql = "SELECT * FROM patient where patient.mr_number  like 'NMC/%' ORDER BY id OFFSET ? LIMIT 1000";
         try {
             SqlRowSet resultSet = legJdbcTemplate.queryForRowSet(sql, offset);
             while (resultSet.next()) {
@@ -482,7 +482,7 @@ public class PatientService {
         List<PatientData> patientData = new ArrayList<>();
         // Note: Set<String> mrNumbers is declared but never used
         
-        String sql = "SELECT * FROM patient";
+        String sql = "SELECT * FROM patient where patient.mr_number  like 'NMC/%' ORDER BY id";
     
             SqlRowSet resultSet = legJdbcTemplate.queryForRowSet(sql);
             while (resultSet.next()) {
@@ -522,6 +522,7 @@ public class PatientService {
                     // Continue with next record instead of failing entire batch
                 }
             }
+            patientRepository.saveAll(patientData);
          return patientData;   
         }
             
@@ -542,7 +543,7 @@ public class PatientService {
         LOGGER.info("Rows "+data.size());
     ExecutorService executorService =  Executors.newFixedThreadPool(10);
     try {
-        List<Future<Integer>> futures = executorService.invokeAll(submitTask2(100, data));
+        List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, data));
         for(Future<Integer> future : futures){
             System.out.println("future.get = " + future.get());
         }
