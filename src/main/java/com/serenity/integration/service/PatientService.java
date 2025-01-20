@@ -241,6 +241,58 @@ public class PatientService {
         }
     }
 
+    public int getHisNote(Set<String> data,int offset) {
+        List<PatientData> fallouts = new ArrayList<>();
+        Set<UUID> uuids = new HashSet<>();
+        Set<String> mrs = new HashSet<>();
+        String sql = "SELECT * FROM patient_master LIMIT ? , 1000";
+        SqlRowSet record = hisJdbcTemplate.queryForRowSet(sql,offset);
+        while (record.next()) {
+            PatientData pd = new PatientData();
+            pd.setExternalId(record.getString("patient_id"));
+            pd.setLastName(record.getString("plastname"));
+            pd.setFirstName(record.getString("pfirstname"));
+            pd.setMobile(record.getString("mobile").isEmpty() ? "" : record.getString("mobile").replaceAll("-", ""));
+            pd.setMobile(generateMobile(pd.getMobile().replaceAll("\u0000", "")));
+            pd.setEmail(record.getString("email"));
+            pd.setBirthDate(record.getString("dob"));
+            String str = record.getString("dateenrolled");
+            if (str != null) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+                LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
+                pd.setCreatedAt(dateTime.toString());
+                String mr = generateMRNumber("NMC", dateTime);
+                pd.setMrNumber(checkAndGenereate(mrs, mr, "NMC", dateTime));
+            }
+
+            pd.setUuid(checkAndGenereateUUID(uuids, UUID.randomUUID()).toString());
+            // nationalId(record.getString("countryid");
+            pd.setNationalMobileNumber(record.getString("mobile"));
+            pd.setGender(record.getString("gender").toUpperCase());
+            pd.setExternalSystem("his");
+            pd.setNationalMobileNumber(record.getString("phone"));
+            pd.setFullName(record.getString("pname"));
+            pd.setTitle(record.getString("title"));
+            pd.setOccupation(record.getString("occupation"));
+            pd.setEmployer(record.getString("employer"));
+            pd.setBloodType(record.getString("bloodgroup"));
+            pd.setMaritalStatus(record.getString("maritalstatus"));
+            pd.setNationality(record.getString("country"));
+            pd.setPassportNumber(record.getString("passport_no"));
+            pd.setBirthTime(record.getString("timeofbirth"));
+            pd.setReligiousAffiliation(record.getString("religiousaffiliation"));
+            pd.setManagingOrganizationId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+            fallouts.add(pd);
+        }
+       List<PatientData> cleaned = fallouts.stream().filter(e -> !data.contains(e.getExternalId())).toList(); 
+       patientRepository.saveAll(cleaned);
+            return 1;
+        }
+
+    
+
+
+
     public static String checkAndGenereate(Set<String> mrNumbers, String mrNumber, String prefix,
             LocalDateTime createdAt) {
         int attempts = 0;
@@ -586,4 +638,51 @@ public class PatientService {
     }
 
 
+
+    public void getHISPatientsThreads(){
+        String sql = "SELECT external_id from patient_information";
+        List<String> set = legJdbcTemplate.queryForList(sql,String.class);
+       
+        ExecutorService executorService =  Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitHisTask(270691, set, 1000));
+            for(Future<Integer> future : futures){
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+        executorService.shutdown();
+        System.err.println("patiend count is "+set.size() +set.size());
+        
+        
+            
+        }
+    
+
+        public Set<Callable<Integer>> submitHisTask(int batchSize,Set<String> ids,int rows) {
+    
+            Set<Callable<Integer>> callables = new HashSet<>();
+            int totalSize = rows;
+            int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+    
+            for (int i = 0; i < batches; i++) {
+                final int batchNumber = i; // For use in lambda
+    
+                callables.add(() -> {
+                    int startIndex = batchNumber * batchSize;
+                    int endIndex = Math.min(startIndex + batchSize, totalSize);
+                    LOGGER.debug("Processing batch {}/{}, indices [{}]",
+                            batchNumber + 1, batches, startIndex);
+                            getHisNote(ids, startIndex);
+                     
+                   
+                    return 1;
+                });
+            }
+    
+            return callables;
+        }
 }

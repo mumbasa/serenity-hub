@@ -32,6 +32,11 @@ public class PatientMigrationService {
     JdbcTemplate serenityJdbcTemplate;
 
     @Autowired
+    @Qualifier("legJdbcTemplate")
+    JdbcTemplate legJdbcTemplate;
+
+
+    @Autowired
     PatientRepository patientRepository;
 
 
@@ -50,6 +55,10 @@ System.err.println("patiend count is "+patientData.size() +set.size());
 
 
 
+
+
+
+    
 
 public void getPatientsThreads(){
     String sql = "SELECT external_id from public.patients";
