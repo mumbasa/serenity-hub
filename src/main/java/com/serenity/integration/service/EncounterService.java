@@ -88,11 +88,10 @@ public class EncounterService {
                 int endIndex = Math.min(startIndex + batchSize, totalSize);
                 logger.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
-                        List<Encounter> notes = visitRepository.getfirstAmbul10k(startIndex).stream().map(e ->new Encounter(e)).collect(Collectors.toList());
+                        List<Encounter> notes = encounterRepository.getfirst100k(startIndex);
 
                 try {
-                    encounterRepository.saveAll(notes);
-                    //saveEncounters(notes);
+                    saveEncounters(notes);
                 } catch (Exception e) {
                     // TODO: handle exception
                     e.printStackTrace();
