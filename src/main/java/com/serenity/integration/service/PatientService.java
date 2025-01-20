@@ -538,7 +538,7 @@ public class PatientService {
         List<PatientData> patientData = new ArrayList<>();
         // Note: Set<String> mrNumbers is declared but never used
         
-        String sql = "SELECT * FROM patient where patient.mr_number  ORDER BY id";
+        String sql = "SELECT * FROM patient   ORDER BY id";
     
             SqlRowSet resultSet = legJdbcTemplate.queryForRowSet(sql);
             while (resultSet.next()) {
