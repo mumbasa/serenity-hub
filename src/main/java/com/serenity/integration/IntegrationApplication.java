@@ -75,7 +75,7 @@ public class IntegrationApplication {
 		//logger.info("Starting import");
 		//patientService.getLegacyPatients();
 		//patientService.getHisNotes();
-		patientService.removeDuplicates();
+		patientMigrationService.getPatientsThreads();;
 		logger.info("finishing import");
 
 	}
