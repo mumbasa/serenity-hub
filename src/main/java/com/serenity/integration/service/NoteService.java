@@ -230,7 +230,6 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
 }
 
     public int getPresentingIllness(int size, Map<String, PatientData> mps, Map<String, String> doc) {
-        List<Encounter> encounters = new ArrayList<>();
         List<EncounterNote> notes = new ArrayList<>();
         String query = "SELECT " +
                 "    Transaction_ID AS \"uuid\", " +
@@ -260,7 +259,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
         while (set.next()) {
             EncounterNote note = new EncounterNote();
             note.setUuid(UUID.randomUUID().toString());
-            note.setEncounterId(UUID.randomUUID().toString());
+            note.setEncounterId(note.getUuid());
             note.setCreatedAt(set.getString(7));
             note.setUpdatedAt(set.getString(8));
             note.setNote(set.getString(4));
@@ -276,20 +275,9 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
             note.setEdited(set.getBoolean(11));
             note.setExternalSystem("his");
           
-            try {
-                Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate().split(" ")[0], set.getString(3),
-                doc.get(set.getString(5)));
-                Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
-                encounters.add(encounter);
-            } catch (Exception e) {
-                Encounter encounter = new Encounter(note, mps.get(set.getString(3)));
-                encounters.add(encounter);
-
-            }
             notes.add(note);
         }
         logger.info("add presenting illness");
-        encounterRepository.saveAll(encounters);
         encounterNoteRepository.saveAll(notes);
 
         return 1;
@@ -326,7 +314,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
         while (set.next()) {
             EncounterNote note = new EncounterNote();
             note.setUuid(UUID.randomUUID().toString());
-            note.setEncounterId(UUID.randomUUID().toString());
+            note.setEncounterId(note.getUuid());
             note.setCreatedAt(set.getString(7));
             note.setUpdatedAt(set.getString(8));
             note.setNote(set.getString(4));
@@ -342,20 +330,10 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
             note.setEdited(set.getBoolean(11));
             note.setExternalSystem("his");
          
-            try {
-                Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate().split(" ")[0], set.getString(3),
-                doc.get(set.getString(5)));
-                Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
-                encounters.add(encounter);
-            } catch (Exception e) {
-                Encounter encounter = new Encounter(note, mps.get(set.getString(3)));
-                encounters.add(encounter);
-
-            }
+            
             notes.add(note);
         }
         encounterRepository.saveAll(encounters);
-        encounterNoteRepository.saveAll(notes);
 
         return 1;
 
@@ -363,7 +341,6 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
 
     public int getProgressNote(int size, Map<String, PatientData> mps, Map<String, String> doc) {
         List<EncounterNote> notes = new ArrayList<>();
-        List<Encounter> encounters = new ArrayList<>();
         String sqlQuery = "SELECT " +
                 "    `source`.`created_at` AS `created_at`, " +
                 "    `source`.`updated_at` AS `updated_at`, " +
@@ -429,29 +406,19 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
             note.setEdited(set.getBoolean(12));
             note.setExternalId(set.getString(14));
             note.setUuid(UUID.randomUUID().toString());
-            note.setEncounterId(UUID.randomUUID().toString());
+            note.setEncounterId(note.getUuid());
             note.setExternalSystem("his");
 
-            Visits visits = visitRepository.getVistByDateDoctorPatient(note.getEncounterDate().split(" ")[0], set.getString(3),
-                    doc.get(set.getString(5)));
-            try {
-                Encounter encounter = new Encounter(note, visits, mps.get(set.getString(3)));
-                encounters.add(encounter);
-            } catch (Exception e) {
-                Encounter encounter = new Encounter(note, mps.get(set.getString(3)));
-                encounters.add(encounter);
-
-            }
-
-            notes.add(note);
+                  notes.add(note);
         }
+        encounterNoteRepository.saveAll(notes);
 
         return 1;
     }
 
     public void chiefThreads() {
 
-        int rows = 5909;//89;
+        int rows = 590989;
         Map<String, PatientData> mps = patientRepository.findAll().stream()
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
         Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
@@ -483,7 +450,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows, 1000, mps, doc));
+            List<Future<Integer>> futures = executorService.invokeAll(submitIllnessTask(rows, 1000, mps, doc));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
@@ -507,7 +474,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows, 1000, mps, doc));
+            List<Future<Integer>> futures = executorService.invokeAll(submitCareTask(rows, 1000, mps, doc));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
@@ -531,7 +498,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows, 1000, mps, doc));
+            List<Future<Integer>> futures = executorService.invokeAll(submitProgressTask(rows, 1000, mps, doc));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
