@@ -483,7 +483,7 @@ public class PatientService {
         List<PatientData> patientData = new ArrayList<>();
         // Note: Set<String> mrNumbers is declared but never used
         
-        String sql = "SELECT * FROM patient where patient.mr_number NOT  like  'NMC/%' ORDER BY id";
+        String sql = "SELECT * FROM patient where patient.mr_number  like  'NMC/%' ORDER BY id";
     
             SqlRowSet resultSet = legJdbcTemplate.queryForRowSet(sql);
             while (resultSet.next()) {
@@ -512,6 +512,7 @@ public class PatientService {
                     data.setBirthDate(resultSet.getString("birth_date"));
                     data.setFirstName(resultSet.getString("first_name"));
                     data.setLastName(resultSet.getString("last_name"));
+                    data.setFullName(resultSet.getString("first_name")+" "+resultSet.getString("last_name"));
                     data.setGender(resultSet.getString("gender"));
                     data.setEmail(resultSet.getString("email"));
                     data.setMobile(resultSet.getString("mobile"));
