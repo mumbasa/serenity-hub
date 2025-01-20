@@ -123,6 +123,8 @@ public class PatientService {
             pd.setBirthTime(record.getString("timeofbirth"));
             pd.setReligiousAffiliation(record.getString("religiousaffiliation"));
             pd.setManagingOrganizationId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+            pd.setManagingOrganization("Nyaho Medical Centre");
+
             fallouts.add(pd);
         }
         int cycle = 0;
@@ -380,6 +382,8 @@ public class PatientService {
                 data.setGender(resultSet.getString("gender"));
                 data.setEmail(resultSet.getString("email"));
                 data.setMobile(resultSet.getString("mobile"));
+                data.setManagingOrganizationId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+                data.setManagingOrganization("Nyaho Medical Center");
                 data.setNationalMobileNumber(resultSet.getString("national_mobile_number"));
 
                 patientData.add(data);

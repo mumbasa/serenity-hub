@@ -104,7 +104,9 @@ public class PatientData {
   @SerializedName("managing_organization_id")
   private String managingOrganizationId;
 
-
+  @Column(name = "managing_organization")
+  @SerializedName("managing_organization")
+  private String managingOrganization;
 
   public PatientData() {
 
@@ -336,5 +338,9 @@ public class PatientData {
   public void setManagingOrganizationId(String managingOrganizationId) {
     this.managingOrganizationId = managingOrganizationId;
   }
+
+public void setManagingOrganization(String string) {
+    // TODO Auto-generated method stub
+}
 
 }
