@@ -15,11 +15,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.engine.jdbc.env.internal.LobCreationLogging_.logger;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -414,14 +420,14 @@ public class PatientService {
 
     }
 
-    public void getLegacyPatients() {
+    public void getLegacyPatients(int offset) {
         List<PatientData> patientData = new ArrayList<>();
         Set<String> mrNumbers = new HashSet<>();
-        List<String> extNumber = patientRepository.findAll().stream().map(PatientData::getExternalId).toList();
-        String sql = "SELECT * FROM patient";
-        SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
+       // List<String> extNumber = patientRepository.findAll().stream().map(PatientData::getExternalId).toList();
+        String sql = "SELECT * FROM patient offset ? LIMIT 1000";
+        SqlRowSet set = legJdbcTemplate.queryForRowSet(sql,offset);
         while (set.next()) {
-            if (!extNumber.contains(set.getString("mr_number"))) {
+           
                 PatientData data = new PatientData();
                 data.setUuid(set.getString("uuid"));
                 data.setCreatedAt(set.getString("created_at"));
@@ -448,7 +454,7 @@ public class PatientService {
             LOGGER.info("Patient Exists");
 
 
-        }
+        
         patientRepository.saveAll(patientData);
 
     }
@@ -458,6 +464,55 @@ public class PatientService {
     public void setupAllPatients(){
     
         this.getHisNote();
-        this.getLegacyPatients();
+      //  this.getLegacyPatients();
     }
+
+
+
+    public void getLegacyPatientsThreads(){ 
+        String sql ="SELECT count(*) FROM patient";
+        int rows = legJdbcTemplate.queryForObject(sql, int.class);
+        LOGGER.info("Rows "+rows);
+    ExecutorService executorService =  Executors.newFixedThreadPool(10);
+    try {
+        List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, 1000));
+        for(Future<Integer> future : futures){
+            System.out.println("future.get = " + future.get());
+        }
+    } catch (InterruptedException | ExecutionException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+    }
+    
+    executorService.shutdown();
+    System.err.println("patiend count is "+rows);
+    
+    
+        
+    }
+
+    public Set<Callable<Integer>> submitTask2(int batchSize,int rows) {
+    
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = rows;
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                int endIndex = Math.min(startIndex + batchSize, totalSize);
+                LOGGER.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+                getLegacyPatients(startIndex);
+               
+                return 1;
+            });
+        }
+
+        return callables;
+    }
+
+
 }

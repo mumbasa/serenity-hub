@@ -308,7 +308,8 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
                 "LEFT JOIN " +
                 "  employee_master em " +
                 "ON " +
-                "  cc.EntryBy = em.Employee_ID LIMIT 50000";
+                
+                "  cc.EntryBy = em.Employee_ID LIMIT ?, 1000";
 
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(query, size);
         while (set.next()) {
@@ -390,7 +391,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
                 "LEFT JOIN `patient_master` AS `pm` " +
                 "ON `source`.`patient_mr_number` = `pm`.`Patient_ID` LIMIT ?, 1000";
 
-        SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery);
+        SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery,size);
         while (set.next()) {
             EncounterNote note = new EncounterNote();
             note.setCreatedAt(set.getString(1));
