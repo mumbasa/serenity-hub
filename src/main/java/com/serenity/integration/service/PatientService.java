@@ -644,7 +644,7 @@ public class PatientService {
 
 
     public void getHISPatientsThreads(){
-        String sql = "SELECT external_id from patient_information";
+        String sql = "SELECT externalid from patient_information";
         List<String> set = vectorJdbcTemplate.queryForList(sql,String.class);
        Set<String> sets = new HashSet<>(set);
         ExecutorService executorService =  Executors.newFixedThreadPool(10);
