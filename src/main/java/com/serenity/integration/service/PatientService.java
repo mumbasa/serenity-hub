@@ -421,43 +421,112 @@ public class PatientService {
 
     public void getLegacyPatients(int offset) {
         List<PatientData> patientData = new ArrayList<>();
-        Set<String> mrNumbers = new HashSet<>();
-       ///List<String> extNumber = patientRepository.findAll().stream().map(PatientData::getExternalId).toList();
-        String sql = "SELECT * FROM patient offset ? LIMIT 1000";
-        SqlRowSet set = legJdbcTemplate.queryForRowSet(sql,offset);
-        while (set.next()) {
-           
-                PatientData data = new PatientData();
-                data.setUuid(set.getString("uuid"));
-                data.setCreatedAt(set.getString("created_at"));
-                data.setExternalId(set.getString("mr_number"));
-                data.setExternalSystem("opd");
-                String str = set.getString("created_at").split("\\.")[0];
-              
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                    LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
-                    data.setCreatedAt(dateTime.toString());
-                    String mr = generateMRNumber("NMC", dateTime);
-                    data.setMrNumber(mr);
-            
-                data.setBirthDate(set.getString("birth_date"));
-                data.setFirstName(set.getString("first_name"));
-                data.setLastName(set.getString("last_name"));
-                data.setGender(set.getString("gender"));
-                data.setEmail(set.getString("email"));
-                data.setMobile(set.getString("mobile"));
-                data.setNationalMobileNumber(set.getString("national_mobile_number"));
-                patientData.add(data);
-               // System.err.println(patientData);
-            }
-            LOGGER.info("Patient Exists");
-
-
+        // Note: Set<String> mrNumbers is declared but never used
         
-        patientRepository.saveAll(patientData);
-
+        String sql = "SELECT * FROM patient OFFSET ? LIMIT 100";
+        try {
+            SqlRowSet resultSet = legJdbcTemplate.queryForRowSet(sql, offset);
+            while (resultSet.next()) {
+                try {
+                    PatientData data = new PatientData();
+                    
+                    // Basic data mapping
+                    data.setUuid(resultSet.getString("uuid"));
+                    data.setExternalId(resultSet.getString("mr_number"));
+                    data.setExternalSystem("opd");
+                    
+                    // Date handling
+                    String createdAtStr = resultSet.getString("created_at");
+                    if (createdAtStr != null) {
+                        String timestampStr = createdAtStr.split("\\.")[0];
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                        LocalDateTime dateTime = LocalDateTime.parse(timestampStr, formatter);
+                        data.setCreatedAt(dateTime.toString());
+                        
+                        // Generate MR number
+                        String mrNumber = generateMRNumber("NMC", dateTime);
+                        data.setMrNumber(mrNumber);
+                    }
+                    
+                    // Patient demographics
+                    data.setBirthDate(resultSet.getString("birth_date"));
+                    data.setFirstName(resultSet.getString("first_name"));
+                    data.setLastName(resultSet.getString("last_name"));
+                    data.setGender(resultSet.getString("gender"));
+                    data.setEmail(resultSet.getString("email"));
+                    data.setMobile(resultSet.getString("mobile"));
+                    data.setNationalMobileNumber(resultSet.getString("national_mobile_number"));
+                    
+                    patientData.add(data);
+                } catch (Exception e) {
+                    LOGGER.error("Error processing patient record: " + e.getMessage());
+                    // Continue with next record instead of failing entire batch
+                }
+            }
+            
+            if (!patientData.isEmpty()) {
+                patientRepository.saveAll(patientData);
+                LOGGER.info("Processed {} patients starting from offset {}", patientData.size(), offset);
+            } else {
+                LOGGER.warn("No patients found for offset {}", offset);
+            }
+            
+        } catch (Exception e) {
+            LOGGER.error("Error in patient migration: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to process patient batch", e);
+        }
     }
 
+
+    public List<PatientData> getLegacyPatients() {
+        List<PatientData> patientData = new ArrayList<>();
+        // Note: Set<String> mrNumbers is declared but never used
+        
+        String sql = "SELECT * FROM patient";
+    
+            SqlRowSet resultSet = legJdbcTemplate.queryForRowSet(sql);
+            while (resultSet.next()) {
+                try {
+                    PatientData data = new PatientData();
+                    
+                    // Basic data mapping
+                    data.setUuid(resultSet.getString("uuid"));
+                    data.setExternalId(resultSet.getString("mr_number"));
+                    data.setExternalSystem("opd");
+                    
+                    // Date handling
+                    String createdAtStr = resultSet.getString("created_at");
+                    if (createdAtStr != null) {
+                        String timestampStr = createdAtStr.split("\\.")[0];
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                        LocalDateTime dateTime = LocalDateTime.parse(timestampStr, formatter);
+                        data.setCreatedAt(dateTime.toString());
+                        
+                        // Generate MR number
+                        String mrNumber = generateMRNumber("NMC", dateTime);
+                        data.setMrNumber(mrNumber);
+                    }
+                    
+                    // Patient demographics
+                    data.setBirthDate(resultSet.getString("birth_date"));
+                    data.setFirstName(resultSet.getString("first_name"));
+                    data.setLastName(resultSet.getString("last_name"));
+                    data.setGender(resultSet.getString("gender"));
+                    data.setEmail(resultSet.getString("email"));
+                    data.setMobile(resultSet.getString("mobile"));
+                    data.setNationalMobileNumber(resultSet.getString("national_mobile_number"));
+                    
+                    patientData.add(data);
+                } catch (Exception e) {
+                    LOGGER.error("Error processing patient record: " + e.getMessage());
+                    // Continue with next record instead of failing entire batch
+                }
+            }
+         return patientData;   
+        }
+            
+
+    
 
 
     public void setupAllPatients(){
@@ -469,12 +538,11 @@ public class PatientService {
 
 
     public void getLegacyPatientsThreads(){ 
-        String sql ="SELECT count(*) FROM patient";
-        int rows = legJdbcTemplate.queryForObject(sql, int.class);
-        LOGGER.info("Rows "+rows);
+        List<PatientData> data = getLegacyPatients();
+        LOGGER.info("Rows "+data.size());
     ExecutorService executorService =  Executors.newFixedThreadPool(10);
     try {
-        List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, 1000));
+        List<Future<Integer>> futures = executorService.invokeAll(submitTask2(100, data));
         for(Future<Integer> future : futures){
             System.out.println("future.get = " + future.get());
         }
@@ -484,16 +552,16 @@ public class PatientService {
     }
     
     executorService.shutdown();
-    System.err.println("patiend count is "+rows);
+    System.err.println("patiend count is "+data.size());
     
     
         
     }
 
-    public Set<Callable<Integer>> submitTask2(int batchSize,int rows) {
+    public Set<Callable<Integer>> submitTask2(int batchSize,List<PatientData> rows) {
     
         Set<Callable<Integer>> callables = new HashSet<>();
-        int totalSize = rows;
+        int totalSize = rows.size();
         int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
@@ -504,7 +572,7 @@ public class PatientService {
                 int endIndex = Math.min(startIndex + batchSize, totalSize);
                 LOGGER.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
-                getLegacyPatients(startIndex);
+                 patientRepository.saveAll(rows.subList(startIndex, endIndex));
                
                 return 1;
             });
