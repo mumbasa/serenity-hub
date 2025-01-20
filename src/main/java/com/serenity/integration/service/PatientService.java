@@ -400,9 +400,11 @@ public class PatientService {
                         "AND T1.externalid = T2.externalid;\n" + //
                         "";
         String sql2 ="update patient_information set birthdate='' where externalsystem ='opd' and birthdate is null";
-                
+        sql="update patient_information set mobile='' where externalsystem ='opd' and mobile is null";        
         vectorJdbcTemplate.update(sql);
         vectorJdbcTemplate.update(sql2);
+        vectorJdbcTemplate.update(sql);
+
 
      
     }
