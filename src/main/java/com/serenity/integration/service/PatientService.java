@@ -522,7 +522,7 @@ public class PatientService {
                     // Continue with next record instead of failing entire batch
                 }
             }
-            patientRepository.saveAll(patientData);
+           // patientRepository.saveAll(patientData);
          return patientData;   
         }
             
