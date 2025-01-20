@@ -75,7 +75,10 @@ public class IntegrationApplication {
 		//logger.info("Starting import");
 		//patientService.getLegacyPatients();
 		//patientService.getHisNotes();
-		patientMigrationService.getPatientsThreads();;
+		//patientMigrationService.getPatientsThreads();;
+		visitService.getHisThreads();
+		visitService.getIPDVISITSThreads();
+		visitService.getlegacyThreads();
 		logger.info("finishing import");
 
 	}
