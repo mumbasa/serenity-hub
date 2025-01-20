@@ -73,7 +73,9 @@ public class IntegrationApplication {
 	@PostConstruct
 	public void coke() {
 		logger.info("Starting import");
+		patientService.getLegacyPatients();
 		patientService.getHisNotes();
+		
 		logger.info("finishing import");
 
 	}
