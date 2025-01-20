@@ -642,12 +642,12 @@ public class PatientService {
     public void getHISPatientsThreads(){
         String sql = "SELECT external_id from patient_information";
         List<String> set = legJdbcTemplate.queryForList(sql,String.class);
-       
+       Set<String> sets = new HashSet<>(set);
         ExecutorService executorService =  Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitHisTask(270691, set, 1000));
+            List<Future<Integer>> futures = executorService.invokeAll(submitHisTask(270691, sets, 1000));
             for(Future<Integer> future : futures){
-                System.out.println("future.get = " + future.get());
+                System.out.println("future.get =  " + future.get());
             }
         } catch (InterruptedException | ExecutionException e) {
             // TODO Auto-generated catch block
