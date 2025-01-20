@@ -209,7 +209,8 @@ public class PatientService {
 
     }
 
-    public static String generateMRNumber(String prefix, LocalDateTime createdAt) {
+    public static String 
+    generateMRNumber(String prefix, LocalDateTime createdAt) {
         // Format the date for a more precise timestamp (e.g., YYMMDD)
         String dateSuffix = createdAt.format(DateTimeFormatter.ofPattern("yy"));
 
@@ -522,7 +523,8 @@ public class PatientService {
                     // Continue with next record instead of failing entire batch
                 }
             }
-           // patientRepository.saveAll(patientData);
+            patientRepository.saveAll(patientData);
+            LOGGER.info("finish this job");
          return patientData;   
         }
             
