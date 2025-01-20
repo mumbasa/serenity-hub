@@ -245,12 +245,11 @@ public class PatientService {
         }
     }
 
-    public int getHisNote(Set<String> data,int offset) {
+    public int getHisNotes() {
         List<PatientData> fallouts = new ArrayList<>();
-        Set<UUID> uuids = new HashSet<>();
         Set<String> mrs = new HashSet<>();
-        String sql = "SELECT * FROM patient_master LIMIT ? , 1000";
-        SqlRowSet record = hisJdbcTemplate.queryForRowSet(sql,offset);
+        String sql = "SELECT * FROM patient_master";
+        SqlRowSet record = hisJdbcTemplate.queryForRowSet(sql);
         while (record.next()) {
             PatientData pd = new PatientData();
             pd.setExternalId(record.getString("patient_id"));
@@ -288,8 +287,8 @@ public class PatientService {
             pd.setManagingOrganizationId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
             fallouts.add(pd);
         }
-       List<PatientData> cleaned = fallouts.stream().filter(e -> !data.contains(e.getExternalId())).toList(); 
-       patientRepository.saveAll(cleaned);
+     //  List<PatientData> cleaned = fallouts.stream().filter(e -> !data.contains(e.getExternalId())).toList(); 
+       patientRepository.saveAll(fallouts);
             return 1;
         }
 
@@ -680,7 +679,7 @@ public class PatientService {
                     int endIndex = Math.min(startIndex + batchSize, totalSize);
                     LOGGER.debug("Processing batch {}/{}, indices [{}]",
                             batchNumber + 1, batches, startIndex);
-                            getHisNote(ids, startIndex);
+                        //    getHisNote(ids, startIndex);
                      
                    
                     return 1;

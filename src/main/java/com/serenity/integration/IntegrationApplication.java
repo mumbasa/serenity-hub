@@ -73,7 +73,7 @@ public class IntegrationApplication {
 	@PostConstruct
 	public void coke() {
 		logger.info("Starting import");
-		patientService.getHISPatientsThreads();
+		patientService.getHisNotes();
 		logger.info("finishing import");
 
 	}
