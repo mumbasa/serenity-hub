@@ -243,7 +243,7 @@ public class PatientService {
     public static String checkAndGenereate(Set<String> mrNumbers, String mrNumber, String prefix,
             LocalDateTime createdAt) {
         int attempts = 0;
-        final int MAX_ATTEMPTS = 100;
+        final int MAX_ATTEMPTS = 10;
         if (!mrNumbers.contains(mrNumber)) {
             mrNumbers.add(mrNumber);
             return mrNumber;
@@ -422,7 +422,7 @@ public class PatientService {
     public void getLegacyPatients(int offset) {
         List<PatientData> patientData = new ArrayList<>();
         Set<String> mrNumbers = new HashSet<>();
-       // List<String> extNumber = patientRepository.findAll().stream().map(PatientData::getExternalId).toList();
+       ///List<String> extNumber = patientRepository.findAll().stream().map(PatientData::getExternalId).toList();
         String sql = "SELECT * FROM patient offset ? LIMIT 1000";
         SqlRowSet set = legJdbcTemplate.queryForRowSet(sql,offset);
         while (set.next()) {
@@ -433,13 +433,13 @@ public class PatientService {
                 data.setExternalId(set.getString("mr_number"));
                 data.setExternalSystem("opd");
                 String str = set.getString("created_at").split("\\.")[0];
-                if (str != null) {
+              
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                     LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
                     data.setCreatedAt(dateTime.toString());
                     String mr = generateMRNumber("NMC", dateTime);
-                    data.setMrNumber(checkAndGenereate(mrNumbers, mr, "NMC", dateTime));
-                }
+                    data.setMrNumber(mr);
+            
                 data.setBirthDate(set.getString("birth_date"));
                 data.setFirstName(set.getString("first_name"));
                 data.setLastName(set.getString("last_name"));
