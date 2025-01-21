@@ -52,7 +52,8 @@ public class VisitMigration {
     PatientRepository patientRepository;
 
     public void getVisitThreads() {
-        int dataSize = visitRepository.countByEncounterClass("inpatient-encounter");
+        long dataSize = visitRepository.count();
+        //.countByEncounterClass("inpatient-encounter");
 
      logger.info("kooooooooooooooading----\t"+dataSize);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
@@ -71,11 +72,11 @@ public class VisitMigration {
 
     }
 
-    public Set<Callable<Integer>> submitTask2(int batchSize, int rows) {
+    public Set<Callable<Integer>> submitTask2(int batchSize, long rows) {
 
         Set<Callable<Integer>> callables = new HashSet<>();
-        int totalSize = rows;
-        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+        long totalSize = rows;
+        long batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
             final int batchNumber = i; // For use in lambda

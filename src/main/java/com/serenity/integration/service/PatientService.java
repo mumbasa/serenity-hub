@@ -358,6 +358,7 @@ public class PatientService {
 
                 // Basic data mapping
                 data.setUuid(resultSet.getString("uuid"));
+                data.setId(resultSet.getLong("id"));
                 data.setExternalId(resultSet.getString("mr_number"));
                 data.setExternalSystem("opd");
 

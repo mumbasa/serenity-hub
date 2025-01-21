@@ -376,7 +376,7 @@ return visits.size();
         List<Visits> visits = new ArrayList<>();
         String sql = "SELECT * FROM visit v join patient p  on p.id = v.patient_id";
         SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
-        Map<String,String> mps = patientRepository.findAll().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getMrNumber()));
+        Map<String,PatientData> mps = patientRepository.findAll().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
         while(set.next()){
             System.err.println(set.getString(1) +"=========");
           //  Optional<PatientData> data = patientRepository.findByExternalId(set.getString("mr_number"));
@@ -394,9 +394,9 @@ return visits.size();
             visit.setPatientDob(set.getString("birth_date"));
             visit.setGender(set.getString("gender"));
             visit.setEncounterClass(set.getString("visit_class"));
-            visit.setPatientId(set.getString("patient_uuid"));
+            visit.setPatientId(mps.get(set.getString("mr_number")).getUuid());
             try{
-            visit.setPatientMrNumber(mps.get(set.getString("mr_number")));
+            visit.setPatientMrNumber(mps.get(set.getString("mr_number")).getMrNumber());
             }catch(Exception e){
                 logger.info("patient not found");
 
