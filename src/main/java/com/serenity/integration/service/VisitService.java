@@ -273,25 +273,7 @@ HAVING MIN(ip.StartDate) LIMIT ? ,1000
 return visits.size();
     }
 
-    
-    public void setITem() {
-        int rounds = 640871 / 1000;
-
-        for (int i = 0; i <= rounds; i++) {
-            List<Visits> visits = visitRepository.getfirst100k((i * 1000) + 3900, 1000);
-            System.err.println(visits.size() + "-----------");
-
-            System.err.println("doing");
-            try {
-                insertIntoSerenity(visits);
-            } catch (Exception e) {
-                System.err.println("error in adding");
-            }
-
-        }
-
-    }
-
+ 
     public void insertIntoSerenity(List<Visits> visitss) {
         List<Visits> visits = new ArrayList<>();
 
