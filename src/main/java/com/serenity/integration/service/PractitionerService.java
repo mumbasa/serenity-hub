@@ -117,38 +117,33 @@ FROM   doctor_master dm    left JOIN doctor_employee de ON dm.doctor_id = de.doc
     }
 
 
-    public void getPractitioner() {
-        List<Doctors> doctors = doctorRepository.findAll().stream().filter(e -> e.getSerenityId() == null).toList();
-        for (Doctors doctor : doctors) {
-            if (!doctor.getMobile().isBlank() | doctor.getMobile().length() > 6 | doctor.getMobile() != null) {
-                doctor.setEmail(doctor.getMobile() + "@nyahomedical.com");
-                doctor.setMobile(doctor.getMobile().replaceFirst("0", "+233"));
-            } else {
-                doctor.setEmail(doctor.getFirstName() + "@nyahomedical.com");
-                Random rand = new Random();
-                int ge = rand.nextInt(999999999);
-                String numGen = String.format("%09d", ge);
-                doctor.setMobile("+233" + numGen);
-            }
+    public void getLegacyPractitioner() {
+        List<Doctors> doctors = new ArrayList<>();
+       String sql ="SELECT   * FROM public.practitioner_role";
 
-        }
+       SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
+       while (set.next()) {
+        Doctors doctor = new Doctors();
+        doctor.setManagingOrganisation("Nyaho Medical Center");
+        doctor.setManagingOrganisationId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+        doctor.setGender(set.getString("gender"));
+        doctor.setTitle(set.getString("title"));
+        doctor.setDateOfBirth(set.getString("birth_date"));
+        doctor.setExternalId(set.getString("id"));
+        doctor.setHomeAddress(set.getString("address"));
+        doctor.setSerenityUUid(set.getString("id"));
+        doctor.setExternalId(set.getString("id"));
+        doctor.setCountryCode("+233");
+        doctor.setCreatedAt(set.getString("created_at"));
+        doctor.setExternalSystem("opd");
+        doctor.setFirstName(set.getString("first_name"));
+        doctor.setMobile(set.getString("mobile"));
+        doctor.setLastName(set.getString("last_name"));
+        doctor.setFullName(doctor.getFirstName()+" "+doctor.getLastName());
+        doctors.add(doctor);
+       }
 
-        Map<String, Doctors> map = insertCSVData();
-        int count = 1;
-        for (Doctors doctor : doctors) {
-            if (map.containsKey(doctor.getMobile())) {
-                doctor.setSerenityId(map.get(doctor.getMobile()).getSerenityId());
-                doctor.setSerenityUUid(map.get(doctor.getMobile()).getSerenityUUid());
-                doctor.setEmail(map.get(doctor.getMobile()).getEmail());
-                doctor.setDateOfBirth(map.get(doctor.getMobile()).getDateOfBirth());
-                doctorRepository.save(doctor);
-                System.err.println("Found ");
-                count++;
-            }
-
-        }
-
-        System.err.println("Found entries :" + count);
+       doctorRepository.saveAll(doctors);
 
     }
 
@@ -620,8 +615,17 @@ FROM   doctor_master dm    left JOIN doctor_employee de ON dm.doctor_id = de.doc
                 ps.setString(3, doctors.get(i).getFirstName());
                 ps.setString(4, doctors.get(i).getLastName()==null?"": doctors.get(i).getLastName());
                 ps.setString(5, doctors.get(i).getFullName()==null?"": doctors.get(i).getFullName());
-            
-                ps.setString(6, doctors.get(i).getMobile().strip());
+             
+                Random r = new Random();
+
+                int i1 = r.nextInt(8); // returns random number between 0 and 7
+                int i2 = r.nextInt(8);
+                int i3 = r.nextInt(8);
+                int i4 = r.nextInt(742); // returns random number between 0 and 741
+                int i5 = r.nextInt(10000); // returns random number between 0 and 9999
+                
+                String phoneNumber = String.format("%d%d%d-%03d-%04d", i1, i2, i3, i4, i5);
+                ps.setString(6,phoneNumber );
                 ps.setString(7, doctors.get(i).getEmail());
                 ps.setString(9, doctors.get(i).getGender());
                 ps.setString(8, doctors.get(i).getDateOfBirth());
