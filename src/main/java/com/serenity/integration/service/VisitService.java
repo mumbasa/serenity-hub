@@ -359,6 +359,8 @@ return visits.size();
         String sql = "SELECT * FROM visit v join patient p  on p.id = v.patient_id";
         SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
         Map<String,PatientData> mps = patientRepository.findAll().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+        Map<String,Doctors> doc = doctorRepository.findAll().stream().collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+
         while(set.next()){
             System.err.println(set.getString(1) +"=========");
           //  Optional<PatientData> data = patientRepository.findByExternalId(set.getString("mr_number"));
@@ -370,6 +372,14 @@ return visits.size();
             visit.setEndedAt(set.getString("ended_at"));
             visit.setHisNumber(set.getString("mr_number"));
             visit.setExternalSystem("opd");
+            visit.setAssignedToId(set.getString("assigned_to_id"));
+            try{
+                visit.setAssignedToName(doc.get(set.getString("assigned_to_id")).getFullName());
+            }catch (Exception e){
+                visit.setAssignedToName("");
+
+            }
+            visit.setPractitionerId(sql);
             visit.setLocationId(set.getString("primary_location_id"));
             visit.setPatientMobile(set.getString("mobile"));
             visit.setPatientName(set.getString("first_name")+" "+set.getString("last_name"));
@@ -386,6 +396,8 @@ return visits.size();
             visit.setDisplay("opd-"+visit.getHisNumber());
             visit.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
             visit.setServiceProviderName("Nyaho Medical Center");
+            visit.setLocationId("23f59485-8518-4f4e-9146-d061dfe58175\"");
+            visit.setLocationName("Airport Primary Care");
             visits.add(visit);
         
 
