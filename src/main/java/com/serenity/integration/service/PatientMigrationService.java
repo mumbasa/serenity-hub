@@ -7,14 +7,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -45,7 +42,7 @@ public class PatientMigrationService {
         String sql = "SELECT external_id from public.patients";
         List<String> set = serenityJdbcTemplate.queryForList(sql, String.class);
         List<PatientData> patientData = patientRepository.findTop5();
-        task(patientData, set);
+        task(patientData);
 
         System.err.println("patiend count is " + patientData.size() + set.size());
 
@@ -53,11 +50,11 @@ public class PatientMigrationService {
 
     public void getPatientsThreads() {
         String sql = "SELECT external_id from public.patients";
-        List<String> set = serenityJdbcTemplate.queryForList(sql, String.class);
-        List<PatientData> patientData = patientRepository.findySystem();
+        Set<String> set = new HashSet<>(serenityJdbcTemplate.queryForList(sql, String.class));
+        List<PatientData> patientData = patientRepository.findySystem().stream().filter(e -> !set.contains(e.getExternalId())).toList();
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(sumitTask(patientData, set, 1000));
+            List<Future<Integer>> futures = executorService.invokeAll(sumitTask(patientData,  100));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
@@ -71,43 +68,36 @@ public class PatientMigrationService {
 
     }
 
-    public Set<Callable<Integer>> sumitTask(List<PatientData> data, List<String> ids, int size) {
+    public Set<Callable<Integer>> sumitTask(List<PatientData> data, int size) {
         Set<Callable<Integer>> callables = new HashSet<Callable<Integer>>();
-        int rounds = data.size() / size;
+        long totalSize = data.size();
+        long batches = (totalSize + size - 1) / size; // Ceiling division
 
-        for (int i = 0; i <= rounds; i++) {
-            if (i < rounds) {
+
+        for (int i = 0; i <batches; i++) {
+
+            final int batchNumber = i; // For use in lambda
                 System.err.println("Round submission " + i);
-                List<PatientData> ds = data.subList(i * size, (i * size) + size);
+               
                 callables.add(new Callable<Integer>() {
-
+                    int startIndex = batchNumber * size;
+                    int endIndex =(int) Math.min(startIndex + size, totalSize);
+                    List<PatientData> ds = data.subList(startIndex,endIndex);
                     @Override
                     public Integer call() throws Exception {
                         // TODO Auto-generated method stub
-                        return task(ds, ids);
+                        return task(ds);
 
                     }
 
                 });
-            } else {
-                System.err.println("Finishing Round submission " + i);
-
-                List<PatientData> ds = data.subList((i * size), data.size());
-                callables.add(new Callable<Integer>() {
-
-                    @Override
-                    public Integer call() throws Exception {
-                        // TODO Auto-generated method stub
-                        return task(ds, ids);
-                    }
-
-                });
-            }
-
+            };
+            
+return callables;
         }
 
-        return callables;
-    }
+        
+    
 
     public void sumitTasker(int size) {
         String sql = "SELECT external_id from public.patients";
@@ -172,7 +162,7 @@ public class PatientMigrationService {
                 System.err.println("Round submission " + i);
                 List<PatientData> ds = patientData.subList(i * size, (i * size) + size);
                 try {
-                    task(ds, ids);
+                    task(ds);
                 } catch (Exception e) {
 
                     e.printStackTrace();
@@ -181,7 +171,7 @@ public class PatientMigrationService {
                 System.err.println("Finishing Round submission " + i);
 
                 List<PatientData> ds = patientData.subList((i * size), patientData.size());
-                task(ds, ids);
+                task(ds);
 
             }
             ;
@@ -189,16 +179,15 @@ public class PatientMigrationService {
 
     }
 
-    public int task(List<PatientData> data, List<String> ids) {
-        List<PatientData> datas = data.stream().filter(e -> !ids.contains(e.getExternalId()))
-                .collect(Collectors.toList());
+    public int task(List<PatientData> data) {
+       
         String sql = "INSERT INTO public.patients(created_at, id,  \"uuid\", first_name, last_name, full_name, other_names, mobile, email, birth_date, gender, nationality, mr_number,  blood_type,  managing_organization_id, managing_organization_name,marital_status, name_prefix, occupation,  national_mobile_number, passport_number,  external_id, external_system) VALUES (CAST(? AS TIMESTAMP WITH TIME ZONE),nextval('patients_id_seq'::regclass),uuid(?),?,?,?,?,?,?,CAST(? AS DATE),?,?,?,?,CAST(? AS UUID),?,?,?,?,?,?,?,?)";
         serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
             @SuppressWarnings("null")
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                PatientData k = datas.get(i);
+                PatientData k = data.get(i);
                 try{
                 ps.setString(1, k.getCreatedAt().split("T")[0] + " 00:00:00.000 +0000");
                 }catch (Exception e){
@@ -232,7 +221,7 @@ public class PatientMigrationService {
             @Override
             public int getBatchSize() {
                 // TODO Auto-generated method stub
-                return datas.size();
+                return data.size();
             }
 
         });
