@@ -199,7 +199,12 @@ public class PatientMigrationService {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 PatientData k = datas.get(i);
+                try{
                 ps.setString(1, k.getCreatedAt().split("T")[0] + " 00:00:00.000 +0000");
+                }catch (Exception e){
+                    ps.setString(1,LocalDate.now() + " 00:00:00.000 +0000");
+
+                }
                 ps.setString(2, k.getUuid());
                 ps.setString(3, k.getFirstName());
                 ps.setString(4, k.getLastName());
