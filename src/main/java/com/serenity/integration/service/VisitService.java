@@ -372,6 +372,7 @@ return visits.size();
             visit.setEndedAt(set.getString("ended_at"));
             visit.setHisNumber(set.getString("mr_number"));
             visit.setExternalSystem("opd");
+            visit.setExternalId(set.getString(5));
             visit.setAssignedToId(set.getString("assigned_to_id"));
             try{
                 visit.setAssignedToName(doc.get(set.getString("assigned_to_id")).getFullName());
@@ -572,5 +573,14 @@ return 1;
 
 }
 
+public void removeDuplication(){
+    String sql ="""
+            delete from visits a using visits b
+  where a.id > b.id
+    and a.externalid = b.externalid;
+            """;
+  
+  
+  }
 
 }
