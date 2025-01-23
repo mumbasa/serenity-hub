@@ -78,10 +78,10 @@ public class IntegrationApplication {
 		//practitionerService.getLegacyPractitioner();
 		//practitionerService.migrateDoctors();
 	//	visitService.getHisThreads();
-	//	visitService.getIPDVISITSThreads();
-		//visitService.getlegacyThreads();
+	///	visitService.getIPDVISITSThreads();
+		visitService.getlegacyThreads();
 		//visitMigration.getVisitThreads();
-		encounterService.encounterOPDthread();
+		//encounterService.encounterOPDthread();
 		logger.info("finishing import");
 
 	}

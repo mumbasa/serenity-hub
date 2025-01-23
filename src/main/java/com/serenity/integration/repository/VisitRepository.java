@@ -18,10 +18,11 @@ public interface VisitRepository extends JpaRepository<Visits,Long>{
     List<Visits> getfirst1();
 
     public int countByEncounterClass(String encounterClass);
+    public int countByExternalSystem(String externalSystem);
     public List<Visits>  findByEncounterClass(String encounterClass);
 
 
-    @Query(value = "select * from visits where externalsystem='his' order by id  OFFSET ?1  LIMIT 1000",nativeQuery = true)
+    @Query(value = "select * from visits where externalsystem='opd' order by id  OFFSET ?1  LIMIT 1000",nativeQuery = true)
     List<Visits> getfirst100k(int offset);
 
     @Query(value = "select * from visits where visits.encounterclass='ambulatory' order by id  OFFSET ?1  LIMIT 100",nativeQuery = true)

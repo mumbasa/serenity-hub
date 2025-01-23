@@ -52,7 +52,7 @@ public class VisitMigration {
     PatientRepository patientRepository;
 
     public void getVisitThreads() {
-        long dataSize = visitRepository.count();
+        long dataSize = visitRepository.countByExternalSystem("opd");
         //.countByEncounterClass("inpatient-encounter");
 
      logger.info("kooooooooooooooading----\t"+dataSize);

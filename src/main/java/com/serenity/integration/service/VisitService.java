@@ -380,7 +380,7 @@ return visits.size();
                 visit.setAssignedToName("");
 
             }
-            visit.setPractitionerId(sql);
+            visit.setPractitionerId(doc.get(set.getString("assigned_to_id")).getSerenityUUid());
             visit.setLocationId(set.getString("primary_location_id"));
             visit.setPatientMobile(set.getString("mobile"));
             visit.setPatientName(set.getString("first_name")+" "+set.getString("last_name"));
