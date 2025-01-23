@@ -184,7 +184,7 @@ public class EncounterService {
                 "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),  nextval('encounters_id_seq'::regclass),  uuid(?),?,?,"
                 +
                 "'',?, ?,uuid(?),?,uuid(?), ?," +
-                "(SELECT mobile from patients where mr_number=?),to_date(?, 'YYYY-MM-DD'),?,?,?,uuid(?),?, uuid(?),?,?)";
+                "?,to_date(?, 'YYYY-MM-DD'),?,?,?,uuid(?),?, uuid(?),?,?)";
 
         serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
@@ -200,7 +200,7 @@ public class EncounterService {
                 ps.setString(8, notes.get(i).getPatientMrNumber());
                 ps.setString(9, notes.get(i).getPatientId());
                 ps.setString(10, notes.get(i).getPatientFullName());
-                ps.setString(11, notes.get(i).getPatientMrNumber());
+                ps.setString(11, notes.get(i).getPatientMobile()==null?"":notes.get(i).getPatientMobile());
                 ps.setString(12, notes.get(i).getPatientBirthDate());
                 ps.setString(13, notes.get(i).getPatientGender());
 
