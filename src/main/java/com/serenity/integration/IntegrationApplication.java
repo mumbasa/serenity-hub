@@ -79,8 +79,9 @@ public class IntegrationApplication {
 		//practitionerService.migrateDoctors();
 	//	visitService.getHisThreads();
 	//	visitService.getIPDVISITSThreads();
-		visitService.getlegacyThreads();
-		visitMigration.getVisitThreads();
+		//visitService.getlegacyThreads();
+		//visitMigration.getVisitThreads();
+		encounterService.encounterOPDthread();
 		logger.info("finishing import");
 
 	}
