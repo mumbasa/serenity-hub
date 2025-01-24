@@ -161,7 +161,7 @@ public class NoteService {
   NULL AS "edit_history"
 FROM cpoe_hpexam
   LEFT JOIN employee_master AS practitioners ON cpoe_hpexam.EntryBy = practitioners.Employee_ID
-where MainComplaint <> '';
+where MainComplaint <> '' 
         LIMIT ?, 1000
     """;
 
@@ -409,7 +409,7 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows, 100, mps, doc));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(rows, 1000, mps, doc));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
