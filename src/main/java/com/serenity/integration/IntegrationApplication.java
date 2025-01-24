@@ -80,7 +80,8 @@ public class IntegrationApplication {
 	//	visitService.getHisThreads();
 	///	visitService.getIPDVISITSThreads();
 		//visitService.getlegacyThreads();
-		visitMigration.getVisitThreads();
+		//visitMigration.getVisitThreads();
+		 noteService.chiefThreads();
 		//encounterService.encounterOPDthread();
 		logger.info("finishing import");
 

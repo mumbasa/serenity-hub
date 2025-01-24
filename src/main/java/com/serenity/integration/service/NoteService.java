@@ -144,24 +144,25 @@ public class NoteService {
 
     public int getChiefNote(int offset, Map<String, PatientData> patientDataMap, Map<String, String> doctorMap) {
     final String sqlQuery = """
-        SELECT 
-            Transaction_ID AS uuid,
-            Transaction_ID AS encounter_id,
-            PatientID AS patient_mr_number,
-            MainComplaint AS note,
-            EntryBy AS practitioner_id,
-            DATE_FORMAT(EntryDate, '%Y-%m-%dT%TZ') AS encounter_date,
-            NULL AS created_at,
-            NULL AS updated_at,
-            'chief-complaint' AS note_type,
-            'outpatient-consultation' AS encounter_type,
-            FALSE AS is_edited,
-            FALSE AS is_recalled,
-            'unknown' AS practitioner_role_type,
-            CONCAT(practitioners.title, ' ', practitioners.Name) AS practitioner_name
-        FROM cpoe_hpexam 
-        LEFT JOIN employee_master AS practitioners ON cpoe_hpexam.EntryBy = practitioners.Employee_ID 
-        LIMIT ?, 100
+        SELECT Transaction_ID AS "uuid",
+  Transaction_ID AS "encounter_id",
+  PatientID AS "patient_mr_number",
+  MainComplaint AS "note",
+  EntryBy AS "practitioner_id",
+  EntryDate AS "encounter_date",
+  NULL AS "created_at",
+  NULL AS "updated_at",
+  "chief-complaint" AS "note_type",
+  "outpatient-consultation" AS "encounter_type",
+  FALSE AS is_edited,
+  FALSE AS is_recalled,
+  'unknown' AS practitioner_role_type,
+  CONCAT(practitioners.title, ' ', practitioners.Name) AS "practitioner_name",
+  NULL AS "edit_history"
+FROM cpoe_hpexam
+  LEFT JOIN employee_master AS practitioners ON cpoe_hpexam.EntryBy = practitioners.Employee_ID
+where MainComplaint <> '';
+        LIMIT ?, 1000
     """;
 
     List<EncounterNote> notes = new ArrayList<>();
@@ -178,29 +179,10 @@ public class NoteService {
         EncounterNote note = createEncounterNote(rs, patientData, doctorMap);
         notes.add(note);
 
-        try {
-            String encounterDate = note.getEncounterDate().split(" ")[0];
-            Visits visit = visitRepository.getVistByDateDoctorPatient(
-                encounterDate, 
-                patientId,
-                doctorMap.get(rs.getString("practitioner_id"))
-            );
-            encounters.add(new Encounter(note, visit, patientData));
-        } catch (Exception e) {
-            logger.error("Error finding visit, creating new: {}", e.getMessage());
-            UUID visitUuid = UUID.randomUUID();
-            Visits newVisit = new Visits(note, visitUuid, patientData);
-            visitRepository.save(newVisit);
-            
-            Encounter encounter = new Encounter(note, newVisit, patientData);
-            encounter.setVisitId(visitUuid.toString());
-            encounters.add(encounter);
-        }
+       
     });
 
-    if (!encounters.isEmpty()) {
-        encounterRepository.saveAll(encounters);
-    }
+   
     if (!notes.isEmpty()) {
         encounterNoteRepository.saveAll(notes);
     }
