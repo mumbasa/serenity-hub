@@ -81,7 +81,10 @@ public class IntegrationApplication {
 	///	visitService.getIPDVISITSThreads();
 		//visitService.getlegacyThreads();
 		//visitMigration.getVisitThreads();
-		 noteService.getChiefNotes();
+		// noteService.getChiefNotes();
+		 noteService.getCarePlan();
+		 noteService.getPresentingIllness();
+		 noteService.getProgressNote();
 		//encounterService.encounterOPDthread();
 		logger.info("finishing import");
 
