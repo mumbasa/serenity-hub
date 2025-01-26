@@ -340,7 +340,7 @@ public class EncounterService {
         int dataSize = visitRepository.countByEncounterClass("ambulatory");
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(10000, dataSize));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
