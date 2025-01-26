@@ -201,7 +201,14 @@ where MainComplaint <> ''
 
 
 
-public int getChiefNotes(int offset, Map<String, PatientData> patientDataMap, Map<String, String> doctorMap) {
+public int getChiefNotes() {
+   
+
+        Map<String, PatientData> patientDataMap = patientRepository.findAll().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+        Map<String, String> doctorMap = doctorRepository.findHisPractitioners().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+   
     final String sqlQuery = """
         SELECT Transaction_ID AS "uuid",
   Transaction_ID AS "encounter_id",
