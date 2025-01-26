@@ -166,7 +166,6 @@ where MainComplaint <> ''
     """;
 
     List<EncounterNote> notes = new ArrayList<>();
-    List<Encounter> encounters = new ArrayList<>();
 
     hisJdbcTemplate.query(sqlQuery, ps -> ps.setInt(1, offset), rs -> {
         String patientId = rs.getString("patient_mr_number");
@@ -189,6 +188,120 @@ where MainComplaint <> ''
     
     return 1;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+public int getChiefNotes(int offset, Map<String, PatientData> patientDataMap, Map<String, String> doctorMap) {
+    final String sqlQuery = """
+        SELECT Transaction_ID AS "uuid",
+  Transaction_ID AS "encounter_id",
+  PatientID AS "patient_mr_number",
+  MainComplaint AS "note",
+  EntryBy AS "practitioner_id",
+  EntryDate AS "encounter_date",
+  NULL AS "created_at",
+  NULL AS "updated_at",
+  "chief-complaint" AS "note_type",
+  "outpatient-consultation" AS "encounter_type",
+  FALSE AS is_edited,
+  FALSE AS is_recalled,
+  'unknown' AS practitioner_role_type,
+  CONCAT(practitioners.title, ' ', practitioners.Name) AS "practitioner_name",
+  NULL AS "edit_history"
+FROM cpoe_hpexam
+  LEFT JOIN employee_master AS practitioners ON cpoe_hpexam.EntryBy = practitioners.Employee_ID
+where MainComplaint <> '' 
+    
+    """;
+
+    List<EncounterNote> notes = new ArrayList<>();
+    SqlRowSet rs = hisJdbcTemplate.queryForRowSet(sqlQuery);
+    while (rs.next()){
+        EncounterNote note = new EncounterNote();
+        note.setUuid(UUID.randomUUID().toString());
+        note.setEncounterId(UUID.randomUUID().toString());
+        note.setCreatedAt(cleanString(rs.getString("created_at")));
+        note.setUpdatedAt(cleanString(rs.getString("updated_at")));
+        note.setNote((rs.getString("note")));
+        note.setNoteType(rs.getString("note_type"));
+        note.setEncounterDate(rs.getString("encounter_date"));
+        note.setPatientMrNumber(patientDataMap.get(rs.getString("patient_mr_number")).getMrNumber());
+        note.setPatientId(patientDataMap.get(rs.getString("patient_mr_number")).getUuid());
+        note.setEncounterType(rs.getString("encounter_type"));
+        note.setRecalled(rs.getBoolean("is_recalled"));
+        note.setPatientGender(patientDataMap.get(rs.getString("patient_mr_number")).getGender());
+        note.setPatientBirthDate(patientDataMap.get(rs.getString("patient_mr_number")).getBirthDate());
+        note.setPatientFullName(patientDataMap.get(rs.getString("patient_mr_number")).getFullName());
+        note.setPatientMobile(patientDataMap.get(rs.getString("patient_mr_number")).getManagingOrganizationId());
+        note.setPractitionerName(rs.getString("practitioner_name"));
+        note.setHisVisitId(rs.getString("uuid"));
+        try{
+        note.setPractitionerId(doctorMap.get(rs.getString("practitioner_id")));
+        }catch(Exception e){
+    
+        }
+        note.setExternalId(rs.getString("uuid"));
+        note.setEdited(false);
+        note.setExternalSystem("his");
+        note.setLocationId("23f59485-8518-4f4e-9146-d061dfe58175");
+        note.setLocationName("Airport Primary Care");
+        notes.add(note);
+
+    }
+    
+    ExecutorService executorService = Executors.newFixedThreadPool(10);
+    try {
+        List<Future<Integer>> futures = executorService.invokeAll(submitNote(notes, 20000));
+        for (Future<Integer> future : futures) {
+            System.out.println("future.get = " + future.get());
+        }
+    } catch (InterruptedException | ExecutionException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+    }
+
+    executorService.shutdown();
+    System.err.println("patiend count is ");
+
+    return 1;
+}
+
+
+public Set<Callable<Integer>> submitNote(List<EncounterNote> notes, int batchSize) {
+
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = notes.size();
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                int endIndex = Math.min(startIndex + batchSize, totalSize);
+                logger.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+                encounterNoteRepository.saveAll(notes.subList(startIndex, endIndex));
+                return 1;
+            });
+        }
+
+        return callables;
+    }
+
+
+
+
 
 private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData, Map<String, String> doctorMap) throws SQLException {
     EncounterNote note = new EncounterNote();
