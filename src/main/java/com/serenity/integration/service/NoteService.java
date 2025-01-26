@@ -571,7 +571,11 @@ public class NoteService {
 
     public void truncate() {
         String sql = """
-        truncate table encounternote
+       update encounter 
+set assigned_to_id =visits.practitionerid ,assigned_to_name =visits.assignedtoname 
+from visits 
+where split_part(externalid,'_',1)=visits.externalid 
+and encounter.visit_id is null
                                         """;
         vectorJdbcTemplate.execute(sql);
 
