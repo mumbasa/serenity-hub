@@ -281,20 +281,20 @@ public class NoteService {
             EncounterNote note = new EncounterNote();
             note.setUuid(UUID.randomUUID().toString());
             note.setEncounterId(note.getUuid());
-            note.setCreatedAt(set.getString(7));
-            note.setUpdatedAt(set.getString(8));
-            note.setNote(set.getString(4));
-            note.setNoteType(set.getString(9));
-            note.setEncounterDate(set.getString(6));
+            note.setCreatedAt(cleanString(set.getString(7)));
+            note.setUpdatedAt(cleanString(set.getString(8)));
+            note.setNote(cleanString(set.getString(4)));
+            note.setNoteType(cleanString(set.getString(9)));
+            note.setEncounterDate(cleanString(set.getString(6)));
             note.setPatientMrNumber(mps.get(set.getString(3)).getMrNumber());
-            note.setEncounterType(set.getString(10));
+            note.setEncounterType(cleanString(set.getString(10)));
             note.setPatientGender(mps.get(set.getString("patient_mr_number")).getGender());
             note.setPatientBirthDate(mps.get(set.getString("patient_mr_number")).getBirthDate());
             note.setPatientFullName(mps.get(set.getString("patient_mr_number")).getFullName());
             note.setPatientMobile(mps.get(set.getString("patient_mr_number")).getMobile());
             note.setPractitionerName(cleanString(set.getString("practitioner_name")));
-            note.setRecalled(set.getBoolean(12));
-            note.setPractitionerRoleType(set.getString(13));
+            note.setRecalled(false);
+            note.setPractitionerRoleType("doctor");
             try {
                 note.setPractitionerName(set.getString("practitioner_name"));
                 note.setPractitionerId(doc.get(set.getString("practitioner_id")));
@@ -302,7 +302,7 @@ public class NoteService {
                 logger.info("Doctor not found");
             }
             note.setExternalId(set.getString("uuid"));
-            note.setEdited(set.getBoolean(11));
+            note.setEdited(false);
             note.setExternalSystem("his");
             note.setLocationId("23f59485-8518-4f4e-9146-d061dfe58175");
             note.setLocationName("Airport Primary Care");
