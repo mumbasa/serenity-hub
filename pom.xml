@@ -131,20 +131,15 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
-				</configuration>
-			</plugin>
 
-			<plugin>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-maven-plugin</artifactId>
-    <version>3.3.4</version>
-    <configuration>
-        <jvmArguments>
+					  <jvmArguments>
             <jvmArgument>-Xms2048m</jvmArgument>
             <jvmArgument>-Xmx4096m</jvmArgument>
         </jvmArguments>
-    </configuration>
-</plugin>
+				</configuration>
+			</plugin>
+
+			
 		</plugins>
 	</build>
 
