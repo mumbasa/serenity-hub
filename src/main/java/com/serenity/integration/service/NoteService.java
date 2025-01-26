@@ -194,19 +194,23 @@ private EncounterNote createEncounterNote(ResultSet rs, PatientData patientData,
     EncounterNote note = new EncounterNote();
     note.setUuid(UUID.randomUUID().toString());
     note.setEncounterId(UUID.randomUUID().toString());
-    note.setCreatedAt(rs.getString("created_at"));
-    note.setUpdatedAt(rs.getString("updated_at"));
-    note.setNote(rs.getString("note"));
+    note.setCreatedAt(cleanString(rs.getString("created_at")));
+    note.setUpdatedAt(cleanString(rs.getString("updated_at")));
+    note.setNote((rs.getString("note")));
     note.setNoteType(rs.getString("note_type"));
     note.setEncounterDate(rs.getString("encounter_date").replaceAll("T", " "));
     note.setPatientMrNumber(patientData.getMrNumber());
     note.setEncounterType(rs.getString("encounter_type"));
     note.setRecalled(rs.getBoolean("is_recalled"));
-    note.setPractitionerRoleType(rs.getString("practitioner_role_type"));
+   //s note.setPractitionerRoleType(rs.getString("practitioner_role_type"));
     note.setPractitionerName(rs.getString("practitioner_name"));
+    try{
     note.setPractitionerId(doctorMap.get(rs.getString("practitioner_id")));
+    }catch(Exception e){
+
+    }
     note.setExternalId(rs.getString("uuid"));
-    note.setEdited(rs.getBoolean("is_edited"));
+    note.setEdited(false);
     note.setExternalSystem("his");
     return note;
 }
@@ -630,4 +634,12 @@ serenityJdbcTemplate.batchUpdate(sql,new  BatchPreparedStatementSetter() {
     
 });
 
-}}
+}
+public String cleanString(String input) {
+    if (input == null) return null;
+    return input.replace("\0", "")
+                .replace("\u0000", "");
+}
+
+}
+
