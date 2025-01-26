@@ -239,18 +239,18 @@ where MainComplaint <> ''
         note.setEncounterId(UUID.randomUUID().toString());
         note.setCreatedAt(cleanString(rs.getString("created_at")));
         note.setUpdatedAt(cleanString(rs.getString("updated_at")));
-        note.setNote((rs.getString("note")));
-        note.setNoteType(rs.getString("note_type"));
-        note.setEncounterDate(rs.getString("encounter_date"));
+        note.setNote(cleanString(rs.getString("note")));
+        note.setNoteType(cleanString(rs.getString("note_type")));
+        note.setEncounterDate(cleanString(rs.getString("encounter_date")));
         note.setPatientMrNumber(patientDataMap.get(rs.getString("patient_mr_number")).getMrNumber());
         note.setPatientId(patientDataMap.get(rs.getString("patient_mr_number")).getUuid());
-        note.setEncounterType(rs.getString("encounter_type"));
-        note.setRecalled(rs.getBoolean("is_recalled"));
+        note.setEncounterType(cleanString(rs.getString("encounter_type")));
+        note.setRecalled(false);
         note.setPatientGender(patientDataMap.get(rs.getString("patient_mr_number")).getGender());
         note.setPatientBirthDate(patientDataMap.get(rs.getString("patient_mr_number")).getBirthDate());
         note.setPatientFullName(patientDataMap.get(rs.getString("patient_mr_number")).getFullName());
         note.setPatientMobile(patientDataMap.get(rs.getString("patient_mr_number")).getManagingOrganizationId());
-        note.setPractitionerName(rs.getString("practitioner_name"));
+        note.setPractitionerName(cleanString(rs.getString("practitioner_name")));
         note.setHisVisitId(rs.getString("uuid"));
         try{
         note.setPractitionerId(doctorMap.get(rs.getString("practitioner_id")));

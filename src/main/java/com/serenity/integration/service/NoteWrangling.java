@@ -437,8 +437,8 @@ public class NoteWrangling {
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery);
         while (set.next()) {
             EncounterNote note = new EncounterNote();
-            note.setCreatedAt(set.getString(1));
-            note.setUpdatedAt(set.getString(2));
+          //  note.setCreatedAt(set.getString(1));
+           // note.setUpdatedAt(set.getString(2));
             note.setNote(cleanString(set.getString(3)));
             note.setNoteType(set.getString(4));
             note.setEncounterDate(set.getString(5));
