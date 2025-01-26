@@ -82,7 +82,7 @@ public class IntegrationApplication {
 		//visitService.getlegacyThreads();
 		//visitMigration.getVisitThreads();
 		//noteService.truncate();
-		 noteService.getChiefNotes();
+		//noteService.getChiefNotes();
 		noteService.cleanData();
 
 		noteService.getCarePlan();

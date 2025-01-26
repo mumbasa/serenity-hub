@@ -556,16 +556,8 @@ public class NoteService {
     }
 
     public void cleanData() {
-        String sql = """
-        delete from encounternote a using encounternote b
-where a.id > b.id
-and a.externalid=b.externalid
-and a.encountertype=b.encountertype;
-and a.visitid is null 
-                                """;
-        vectorJdbcTemplate.update(sql);
-
-        sql = """
+        String sql ="""
+                
                                 update encounternote
                 set visitid =visits."uuid"
                 from visits
