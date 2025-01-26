@@ -369,10 +369,10 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
             note.setEncounterDate(cleanString(set.getString(6)));
             note.setPatientMrNumber(mps.get(set.getString(3)).getMrNumber());
             note.setEncounterType(cleanString(set.getString(10)));
-            note.setPatientGender(mps.get(set.getString("patient_mr_number")).getGender());
-            note.setPatientBirthDate(mps.get(set.getString("patient_mr_number")).getBirthDate());
-            note.setPatientFullName(mps.get(set.getString("patient_mr_number")).getFullName());
-            note.setPatientMobile(mps.get(set.getString("patient_mr_number")).getMobile());
+            note.setPatientGender(mps.get(set.getString("mr_number")).getGender());
+            note.setPatientBirthDate(mps.get(set.getString("mr_number")).getBirthDate());
+            note.setPatientFullName(mps.get(set.getString("mr_number")).getFullName());
+            note.setPatientMobile(mps.get(set.getString("mr_number")).getMobile());
             note.setRecalled(false);
             note.setPractitionerRoleType("doctor");
             note.setPractitionerName(cleanString(set.getString("practitioner_name")));
