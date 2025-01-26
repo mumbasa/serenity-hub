@@ -437,11 +437,11 @@ public class NoteWrangling {
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery);
         while (set.next()) {
             EncounterNote note = new EncounterNote();
-          //  note.setCreatedAt(set.getString(1));
-           // note.setUpdatedAt(set.getString(2));
+           note.setCreatedAt(cleanString(set.getString(1)));
+            note.setUpdatedAt(cleanString(set.getString(2)));
             note.setNote(cleanString(set.getString(3)));
-            note.setNoteType(set.getString(4));
-            note.setEncounterDate(set.getString(5));
+            note.setNoteType(cleanString(set.getString(4)));
+            note.setEncounterDate(cleanString(set.getString(5)));
             try{
             note.setPatientMrNumber(mps.get(set.getString(6)).getMrNumber());
             note.setPatientGender(mps.get(set.getString(6)).getGender());
@@ -457,9 +457,9 @@ public class NoteWrangling {
             }
             note.setEncounterType(set.getString(7));
             note.setPractitionerRoleType("doctor");
-            String pName =set.getString(10);
+            String pName =cleanString(set.getString(10));
             try{
-            note.setPractitionerName(pName.replaceAll("\u0000", ""));
+            note.setPractitionerName(pName);
             note.setPractitionerId(doc.get(set.getString(11)));
               }catch (Exception e){
 

@@ -48,6 +48,10 @@ public class NoteService {
     JdbcTemplate serenityJdbcTemplate;
 
     @Autowired
+    @Qualifier("vectorJdbcTemplate")
+    JdbcTemplate vectorJdbcTemplate;
+
+    @Autowired
     EncounterNoteRepository encounterNoteRepository;
     Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -326,12 +330,12 @@ public class NoteService {
 
     }
 
-    public void  getCarePlan() {
+    public void getCarePlan() {
         List<EncounterNote> notes = new ArrayList<>();
         Map<String, PatientData> mps = patientRepository.findAll().stream()
-        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
-Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
-        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+        Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
 
         String query = "SELECT " +
                 "  cc.TransactionID AS \"uuid\", " +
@@ -400,7 +404,6 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
     }
 
     public void getProgressNote() {
-
 
         Map<String, PatientData> patientDataMap = patientRepository.findAll().stream()
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
@@ -503,10 +506,9 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
 
         executorService.shutdown();
         System.err.println("patiend count is ");
-    
+
     }
 
- 
     public void saveNotes(List<EncounterNote> notes) {
 
         String sql = "INSERT INTO public.encounter_notes\n" + //
@@ -553,4 +555,25 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
                 .replace("\u0000", "");
     }
 
+    public void cleanData() {
+        String sql = """
+        delete from encounternote a using encounternote b
+where a.id > b.id
+and a.externalid=b.externalid
+and a.encountertype=b.encountertype;
+and a.visitid is null 
+                                """;
+        vectorJdbcTemplate.update(sql);
+
+        sql = """
+                                update encounternote
+                set visitid =visits."uuid"
+                from visits
+                where encounternote.externalid=visits.externalid
+                and encounternote.visitid is null;
+                                """;
+
+        vectorJdbcTemplate.update(sql);
+
+    }
 }
