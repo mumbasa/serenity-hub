@@ -576,4 +576,14 @@ and a.visitid is null
         vectorJdbcTemplate.update(sql);
 
     }
+
+    public void truncate() {
+        String sql = """
+        truncate table encounternote
+                                        """;
+        vectorJdbcTemplate.execute(sql);
+
+       
+
+    }
 }
