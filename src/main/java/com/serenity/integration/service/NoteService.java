@@ -512,29 +512,54 @@ public class NoteService {
     public void saveNotes(List<EncounterNote> notes) {
 
         String sql = "INSERT INTO public.encounter_notes\n" + //
-                "(created_at, updated_at, pk, encounter_id, patient_id, visit_id, \"uuid\", note, is_formatted, note_type, is_edited, is_recalled, practitioner_id, encounter_date, practitioner_name, practitioner_role_type, encounter_type, patient_mr_number, edit_history)\n"
+                "(created_at, updated_at, pk, encounter_id, patient_id,"+
+                 "visit_id, \"uuid\", note, is_formatted, note_type,"+ 
+                 "is_edited, is_recalled, practitioner_id, encounter_date, practitioner_name,"+
+                  "practitioner_role_type, encounter_type, patient_mr_number)\n"
                 + //
-                "VALUES(?, ?, nextval('encounter_notes_pk_seq'::regclass), uuid(?), uuid(?), ?, ?, '', false, '', false, false, ?, '', '', '', '', '', '');";
+                "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'), to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'), ?, uuid(?), uuid(?)," +
+               "uuid(?), uuid(?), ?, ?, ?,"+
+                "?, ?, uuid(?), to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'), ?,"+ 
+                "?, ?, ?);";
 
         serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
             @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                // TODO Auto-generated method stub
-                EncounterNote note = new EncounterNote();
-                ps.setString(1, note.getCreatedAt());
-                ps.setString(2, note.getCreatedAt());
-                ps.setString(3, note.getEncounterId());
-                ps.setString(4, note.getPatientId());
-                ps.setString(5, note.getVisitId());
-                ps.setString(6, note.getUuid());
-                ps.setString(7, note.getNote());
-                ps.setBoolean(8, false);
-                ps.setString(9, note.getNoteType());
-                ps.setBoolean(10, false);
+            public void setValues(@SuppressWarnings("null") PreparedStatement ps, int i) throws SQLException {
+                EncounterNote note = notes.get(i);
+                try{
+                    ps.setString(1, notes.get(i).getEncounterDate().replaceAll("T|Z", " ").strip());
+                    ps.setString(2, notes.get(i).getEncounterDate().replaceAll("T|Z", " ").strip());
+                      
+                }catch (Exception e){
+                        ps.setString(1, notes.get(i).getCreatedAt()+" 14:55:37");
+                        ps.setString(2, notes.get(i).getCreatedAt()+" 14:55:37");
+
+    
+                    }
+                ps.setLong(3, note.getId());
+                ps.setString(4, note.getEncounterId());
+                ps.setString(5, note.getPatientId());
+                ps.setString(6, note.getVisitId());
+                ps.setString(7, note.getUuid());
+                ps.setString(8, note.getNote());
+                ps.setBoolean(9, false);
+                ps.setString(10, note.getNoteType());
                 ps.setBoolean(11, false);
-                ps.setString(12, note.getPractitionerId());
-                ps.setString(13, note.getEncounterDate());
+                ps.setBoolean(12, false);
+                ps.setString(13, note.getPractitionerId());
+                try{
+                ps.setString(14, note.getEncounterDate().replaceAll("T|Z", " ").strip());
+                }catch(Exception e){
+                    ps.setString(14, notes.get(i).getCreatedAt()+" 14:55:37");
+
+
+                }
+                ps.setString(15, note.getPractitionerName());
+                ps.setString(16, "doctor");
+                ps.setString(17, note.getEncounterType());
+                ps.setString(18, note.getPatientMrNumber());
+            
 
             }
 
@@ -584,6 +609,7 @@ public class NoteService {
                 logger.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
                         List<EncounterNote> notes = encounterNoteRepository.findOffset(startIndex);
+                        System.err.println(notes.get(0).toString());
 
                 try {
                     saveNotes(notes);

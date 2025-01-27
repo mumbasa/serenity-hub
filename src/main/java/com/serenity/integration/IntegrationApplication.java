@@ -95,8 +95,9 @@ public class IntegrationApplication {
 	//	 noteService.cleanData();
 
 	//	 noteService.cleanData();
-		encounterService.encounterOPDthread();
-		logger.info("finishing import");
+	//	encounterService.encounterOPDthread();
+	noteService.noteThread();
+		logger.info("finishi.ng import");
 
 	}
 
