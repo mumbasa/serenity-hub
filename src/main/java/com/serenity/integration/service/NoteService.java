@@ -583,7 +583,7 @@ public class NoteService {
                 int endIndex = Math.min(startIndex + batchSize, totalSize);
                 logger.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
-                        List<EncounterNote> notes = encounterNoteRepository.findOffsetData(startIndex);
+                        List<EncounterNote> notes = encounterNoteRepository.findOffset(startIndex);
 
                 try {
                     saveNotes(notes);
