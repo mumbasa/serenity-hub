@@ -73,10 +73,10 @@ public class EncounterService {
 
     }
 
-    public Set<Callable<Integer>> submitTask2(int batchSize, int rows) {
+    public Set<Callable<Integer>> submitTask2(int batchSize, long rows) {
 
         Set<Callable<Integer>> callables = new HashSet<>();
-        int totalSize = rows;
+        int totalSize = (int) rows;
         int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
@@ -181,7 +181,7 @@ public class EncounterService {
                 "patient_id, patient_full_name, patient_mobile, patient_birth_date, patient_gender," +
                 "encounter_type, practitioner_name, practitioner_id, service_provider_name,  visit_id," +
                 "has_prescriptions,has_service_requests)" + //
-                "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),  nextval('encounters_id_seq'::regclass),  uuid(?),?,?,"
+                "VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'),  ?,  uuid(?),?,?,"
                 +
                 "'',?, ?,uuid(?),?,uuid(?), ?," +
                 "?,to_date(?, 'YYYY-MM-DD'),?,?,?,uuid(?),?, uuid(?),?,?)";
@@ -190,28 +190,29 @@ public class EncounterService {
 
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setString(1, notes.get(i).getCreatedAt().replaceAll("T|Z", " ").strip());
-                ps.setString(2, notes.get(i).getUuid());
-                ps.setString(3, "ambulatory");
-                ps.setString(4, "finished");
-                ps.setString(5, UUID.randomUUID().toString());
-                ps.setString(6, "his");
-                ps.setString(7, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
-                ps.setString(8, notes.get(i).getPatientMrNumber());
-                ps.setString(9, notes.get(i).getPatientId());
-                ps.setString(10, notes.get(i).getPatientFullName());
-                ps.setString(11, notes.get(i).getPatientMobile()==null?"":notes.get(i).getPatientMobile());
-                ps.setString(12, notes.get(i).getPatientBirthDate());
-                ps.setString(13, notes.get(i).getPatientGender());
+                ps.setString(1, notes.get(i).getStartedAt().replaceAll("T|Z", " ").strip());
+                ps.setLong(2, notes.get(i).getId());
+                ps.setString(3, notes.get(i).getUuid());
+                ps.setString(4, "ambulatory");
+                ps.setString(5, "finished");
+                ps.setString(6, notes.get(i).getExternalId()+"-"+notes.get(i).getUuid());
+                ps.setString(7, "his");
+                ps.setString(8, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
+                ps.setString(9, notes.get(i).getPatientMrNumber());
+                ps.setString(10, notes.get(i).getPatientId());
+                ps.setString(11, notes.get(i).getPatientFullName());
+                ps.setString(12, notes.get(i).getPatientMobile()==null?"":notes.get(i).getPatientMobile());
+                ps.setString(13, notes.get(i).getPatientBirthDate());
+                ps.setString(14, notes.get(i).getPatientGender());
 
-                ps.setString(14, notes.get(i).getEncounterClass());
-                ps.setString(15, notes.get(i).getAssignedToName());
-                ps.setString(16, notes.get(i).getAssignedToId());
+                ps.setString(15, notes.get(i).getEncounterClass());
+                ps.setString(16, notes.get(i).getAssignedToName());
+                ps.setString(17, notes.get(i).getAssignedToId());
 
-                ps.setString(17, "Nyaho Medical Centre");
-                ps.setString(18, notes.get(i).getVisitId());
-                ps.setBoolean(19, false);
+                ps.setString(18, "Nyaho Medical Centre");
+                ps.setString(19, notes.get(i).getVisitId());
                 ps.setBoolean(20, false);
+                ps.setBoolean(21, false);
             }
 
             @Override
@@ -337,10 +338,10 @@ public class EncounterService {
 
     public void encounterOPDthread() {
         logger.info("kooooooooooooooading");
-        int dataSize = visitRepository.countByEncounterClass("ambulatory");
+        long dataSize = visitRepository.count();
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(10000, dataSize));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }

@@ -577,7 +577,8 @@ from visits
 where split_part(externalid,'_',1)=visits.externalid 
 and encounter.visit_id is null
                                         """;
-        vectorJdbcTemplate.execute(sql);
+                                String sql2 ="drop table encounter";
+        vectorJdbcTemplate.execute(sql2);
 
        
 
