@@ -190,7 +190,13 @@ public class EncounterService {
 
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
+                try{
                 ps.setString(1, notes.get(i).getStartedAt().replaceAll("T|Z", " ").strip());
+                }catch (Exception e){
+                    ps.setString(1, notes.get(i).getCreatedAt()+" 14:55:37");
+
+
+                }
                 ps.setLong(2, notes.get(i).getId());
                 ps.setString(3, notes.get(i).getUuid());
                 ps.setString(4, "ambulatory");
@@ -338,7 +344,7 @@ public class EncounterService {
 
     public void encounterOPDthread() {
         logger.info("kooooooooooooooading");
-        long dataSize = visitRepository.count();
+        long dataSize =encounterRepository.count();
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));

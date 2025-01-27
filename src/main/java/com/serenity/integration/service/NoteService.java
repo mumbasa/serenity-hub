@@ -548,6 +548,59 @@ public class NoteService {
 
     }
 
+    public void noteThread() {
+        logger.info("kooooooooooooooading");
+        long dataSize =encounterNoteRepository.count();
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+        System.err.println("patiend count is " + dataSize);
+
+    }
+
+
+
+    public Set<Callable<Integer>> submitTask2(int batchSize, long rows) {
+
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = (int) rows;
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                int endIndex = Math.min(startIndex + batchSize, totalSize);
+                logger.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+                        List<EncounterNote> notes = encounterNoteRepository.findOffsetData(startIndex);
+
+                try {
+                    saveNotes(notes);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                    logger.info("error adding note");
+
+                }
+
+                return 1;
+            });
+        }
+
+        return callables;
+    }
+
     public String cleanString(String input) {
         if (input == null)
             return null;
