@@ -20,6 +20,6 @@ public interface EncounterRepository extends JpaRepository<Encounter,Long>{
     @Query(value = "select * from encounter e   OFFSET 0  LIMIT 100000",nativeQuery = true)
     List<Encounter> getfirst100k();
 
-    List<Encounter> findByExternalIdAndDoctor(String externalId,String patient);
+    List<Encounter> findByExternalIdAndAssignedToId(String externalId,String patient);
 
 }

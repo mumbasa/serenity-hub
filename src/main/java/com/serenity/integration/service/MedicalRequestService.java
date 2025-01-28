@@ -170,7 +170,7 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
             String date = set.getString("created_at");
             String doctor = set.getString("practitioner_id");
             String externalId=set.getString("visit_id");
-            List<Encounter> ecounter = encounterRepository.findByExternalIdAndDoctor(externalId, doc.get(doctor));
+            List<Encounter> ecounter = encounterRepository.findByExternalIdAndAssignedToId(externalId, doc.get(doctor));
             if (ecounter.size()>0) {
                 MedicalRequest request = new MedicalRequest();
                 request.setUuid(UUID.randomUUID().toString());
