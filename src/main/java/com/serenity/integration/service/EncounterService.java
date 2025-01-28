@@ -383,7 +383,8 @@ public class EncounterService {
         String sql = "select * from encounter e join patient p on p.id=e.patient_id";
         SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
         while (set.next()) {
-            PatientData patient = patientDataMap.get(set.getString(47));
+            System.err.println(set.getString(48)+"-----------------");
+            PatientData patient = patientDataMap.get(set.getString(48));
             Encounter encounter = new Encounter();
             encounter.setUuid(set.getString(5));
             encounter.setExternalId(set.getString(5));
