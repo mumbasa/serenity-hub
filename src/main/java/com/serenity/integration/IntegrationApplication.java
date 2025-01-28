@@ -103,7 +103,7 @@ public class IntegrationApplication {
 	//medicalRequestService.medicalRequestOPD2();
 	//medicalRequestService.medicalRequestOPD2();
 	//encounterService.encounterLegacythread();
-	noteService.getLegacyEncounters();
+	noteService.noteThread();
 	logger.info("finishi.ng import");
 
 	}

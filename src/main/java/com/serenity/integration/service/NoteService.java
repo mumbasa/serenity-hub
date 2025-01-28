@@ -580,10 +580,10 @@ public class NoteService {
 
     public void noteThread() {
         logger.info("kooooooooooooooading");
-        long dataSize =encounterNoteRepository.countByNoteType("progress-note");
+        long dataSize =encounterNoteRepository.countByExternalSystem("opd");
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(100, dataSize));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
@@ -722,7 +722,6 @@ and encounter.visit_id is null
                 encounter.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
                 encounter.setServiceProviderName("Nyaho Medical Centre");
                 encounters.add(encounter);
-
             }
             logger.info("adding encounter");
         }
@@ -743,6 +742,28 @@ and encounter.visit_id is null
 
     }
 
+
+    public void cleanLegacyData(){
+        String sql ="""
+                update encounternote 
+set practitionerid =v.practitionerid 
+from visits  v
+where v.externalid =encounternote.visitid 
+and encounternote.practitionerid is null
+and encounternote.externalsystem ='opd'
+                """;
+        vectorJdbcTemplate.update(sql);
+         sql ="""
+                update encounternote 
+set visitid =v."uuid" 
+from visits  v
+where v.externalid =encounternote.visitid 
+and encounternote.externalsystem ='opd'
+                """;
+                vectorJdbcTemplate.update(sql);
+
+
+    }
 
 
 
