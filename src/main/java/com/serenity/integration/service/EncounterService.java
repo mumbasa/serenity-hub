@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -26,8 +27,11 @@ import org.springframework.stereotype.Service;
 
 import com.serenity.integration.models.Encounter;
 import com.serenity.integration.models.EncounterNote;
+import com.serenity.integration.models.PatientData;
+import com.serenity.integration.repository.DoctorRepository;
 import com.serenity.integration.repository.EncounterNoteRepository;
 import com.serenity.integration.repository.EncounterRepository;
+import com.serenity.integration.repository.PatientRepository;
 import com.serenity.integration.repository.VisitRepository;
 
 @Service
@@ -48,16 +52,26 @@ public class EncounterService {
     JdbcTemplate hisJdbcTemplate;
 
     @Autowired
+    @Qualifier(value = "legJdbcTemplate")
+    JdbcTemplate legJdbcTemplate;
+
+    @Autowired
     @Qualifier(value = "vectorJdbcTemplate")
     JdbcTemplate vectorJdbcTemplate;
+
+    @Autowired
+    PatientRepository patientRepository;
+
+    @Autowired
+    DoctorRepository doctorRepository;
 
     @Autowired
     VisitRepository visitRepository;
     Logger logger = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
     public void generateOPDEncounter() {
-       int rows= visitRepository.countByEncounterClass("ambulatory");
-       logger.info(rows +" number of rows");
+        int rows = visitRepository.countByEncounterClass("ambulatory");
+        logger.info(rows + " number of rows");
         ExecutorService executorService = Executors.newFixedThreadPool(2);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitTask2(100, 1000));
@@ -82,13 +96,12 @@ public class EncounterService {
         for (int i = 0; i < batches; i++) {
             final int batchNumber = i; // For use in lambda
 
-
             callables.add(() -> {
                 int startIndex = batchNumber * batchSize;
                 int endIndex = Math.min(startIndex + batchSize, totalSize);
                 logger.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
-                        List<Encounter> notes = encounterRepository.getfirst100k(startIndex);
+                List<Encounter> notes = encounterRepository.getfirst100k(startIndex);
 
                 try {
                     saveEncounters(notes);
@@ -190,24 +203,23 @@ public class EncounterService {
 
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                try{
-                ps.setString(1, notes.get(i).getStartedAt().replaceAll("T|Z", " ").strip());
-                }catch (Exception e){
-                    ps.setString(1, notes.get(i).getCreatedAt()+" 14:55:37");
-
+                try {
+                    ps.setString(1, notes.get(i).getStartedAt().replaceAll("T|Z", " ").strip());
+                } catch (Exception e) {
+                    ps.setString(1, notes.get(i).getCreatedAt() + " 14:55:37");
 
                 }
                 ps.setLong(2, notes.get(i).getId());
                 ps.setString(3, notes.get(i).getUuid());
                 ps.setString(4, "ambulatory");
                 ps.setString(5, "finished");
-                ps.setString(6, notes.get(i).getExternalId()+"-"+notes.get(i).getUuid());
+                ps.setString(6, notes.get(i).getExternalId() + "-" + notes.get(i).getUuid());
                 ps.setString(7, "his");
                 ps.setString(8, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
                 ps.setString(9, notes.get(i).getPatientMrNumber());
                 ps.setString(10, notes.get(i).getPatientId());
                 ps.setString(11, notes.get(i).getPatientFullName());
-                ps.setString(12, notes.get(i).getPatientMobile()==null?"":notes.get(i).getPatientMobile());
+                ps.setString(12, notes.get(i).getPatientMobile() == null ? "" : notes.get(i).getPatientMobile());
                 ps.setString(13, notes.get(i).getPatientBirthDate());
                 ps.setString(14, notes.get(i).getPatientGender());
 
@@ -344,7 +356,7 @@ public class EncounterService {
 
     public void encounterOPDthread() {
         logger.info("kooooooooooooooading");
-        long dataSize =encounterRepository.count();
+        long dataSize = encounterRepository.count();
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
@@ -359,4 +371,92 @@ public class EncounterService {
         System.err.println("patiend count is " + dataSize);
 
     }
+
+    public void getLegacyEncounters() {
+
+        Map<String, PatientData> patientDataMap = patientRepository.findAll().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+        Map<String, String> doctorMap = doctorRepository.findHisPractitioners().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+
+        List<Encounter> encounters = new ArrayList<>();
+        String sql = "select * from encounter e join patient p on p.id=e.patient_id";
+        SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
+        while (set.next()) {
+            PatientData patient = patientDataMap.get(set.getString(47));
+            Encounter encounter = new Encounter();
+            encounter.setUuid(set.getString(5));
+            encounter.setExternalId(set.getString(5));
+            encounter.setCreatedAt(set.getString(2));
+            encounter.setEncounterClass(set.getString("encounter_class"));
+            encounter.setPriority(set.getString("priority"));
+            encounter.setPatientId(patient.getUuid());
+            encounter.setPatientBirthDate(patient.getBirthDate());
+            encounter.setPatientFullName(patient.getFullName());
+            encounter.setPatientMobile(patient.getMobile());
+            encounter.setPatientMrNumber(patient.getMrNumber());
+            encounter.setExternalSystem("opd");
+            encounter.setDisplay(set.getString("uuid"));
+            encounter.setLocationId(set.getString("primary_location_id"));
+            encounter.setVisitId(set.getString("visit_id"));
+            encounter.setServiceProviderId(set.getNString("161380e9-22d3-4627-a97f-0f918ce3e4a9"));
+            encounter.setServiceProviderName("Nyaho Medical Centre");
+            encounter.setStatus(set.getString(6));
+            encounters.add(encounter);
+            logger.info("adding encounter");
+        }
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitNote(encounters, 20000));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+        System.err.println("patiend count is ");
+        populateWithVisits();
+
+    }
+
+    public Set<Callable<Integer>> submitNote(List<Encounter> notes, int batchSize) {
+
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = notes.size();
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                int endIndex = Math.min(startIndex + batchSize, totalSize);
+                logger.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+                encounterRepository.saveAll(notes.subList(startIndex, endIndex));
+                return 1;
+            });
+        }
+
+        return callables;
+    }
+
+    public void populateWithVisits() {
+        String sql = """
+                        update encounter m
+                set assigned_to_id = e.practitionerid ,
+                assigned_to_name =e.assignedtoname
+                from visits e
+                where e.externalid = m.external_id
+                and m.assigned_to_id is null and m.external_system ='opd'
+
+                        """;
+        vectorJdbcTemplate.update(sql);
+
+    }
+
 }

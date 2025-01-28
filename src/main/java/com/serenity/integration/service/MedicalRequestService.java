@@ -1,5 +1,6 @@
 package com.serenity.integration.service;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -65,6 +67,10 @@ public class MedicalRequestService {
 
     @Autowired
     MedicalRequestRepository medicalRequestRepository;
+
+    @Autowired
+    @Qualifier("serenityJdbcTemplate")
+    JdbcTemplate serenityJdbcTemplate;
 
     public  List<MedicalRequest> medicalRequestOPD2() {
         Map<String, PatientData> mps = patientRepository.findAll().stream()
@@ -898,5 +904,35 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
 
         return callables;
     }
+
+
+public void saveMedicalRequest(List<MedicalRequest> request){
+
+String sql ="""
+        INSERT INTO public.medication_requests
+(created_at, updated_at, "date", pk, authored_on, service_provider_id, "uuid", "name", category, code, notes, intended_dispenser, priority, status, dosage_display, dosage_form, dosage_route, dosage_site, dosage_frequency, dosage_frequency_unit, dosage_strength, dosage_period, dosage_period_unit, encounter_id, patient_id, patient_mr_number, patient_full_name, practitioner_name, practitioner_id, visit_id, dose, quantity_to_dispense, dose_unit, course_of_therapy, number_of_refills, dispense_status, quantity_dispensed)
+VALUES('', '', '', nextval('medication_requests_pk_seq'::regclass), '', ?, ?, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ?, ?, '', '', '', ?, ?, 0, 0, '', '', 0, '', 0);
+        """;
+
+serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+    @Override
+    public void setValues(PreparedStatement ps, int i) throws SQLException {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public int getBatchSize() {
+        // TODO Auto-generated method stub
+       return request.size();
+    }
+    
+});
+
+
+
+
+}
+
 
 }

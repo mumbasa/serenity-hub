@@ -101,8 +101,9 @@ public class IntegrationApplication {
 	//	encounterService.encounterOPDthread();
 	//noteService.noteThread();
 	//medicalRequestService.medicalRequestOPD2();
-	medicalRequestService.medicalRequestOPD2();
-		logger.info("finishi.ng import");
+	//medicalRequestService.medicalRequestOPD2();
+	encounterService.getLegacyEncounters();
+	logger.info("finishi.ng import");
 
 	}
 
