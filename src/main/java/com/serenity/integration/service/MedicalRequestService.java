@@ -329,6 +329,8 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
                 request.setAuthoredOn(set.getString("authored_on"));
                 request.setName(set.getString("name"));
                 request.setCategory(set.getString("category"));
+                request.setExternalSystem("his");
+                request.setExternalId(set.getString("visit_id"));
                 request.setCode(set.getString("code"));
                 request.setNotes(set.getString("notes"));
                 request.setPriority(set.getString("priority"));
@@ -348,9 +350,9 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
                 } catch (Exception e) {
                     logger.info("doctor not found");
                 }
-
-                request.setEncounterId(UUID.randomUUID().toString());
-                request.setVisitId(UUID.randomUUID().toString());
+                List<Encounter> encouter = encounterRepository.findByExternalIdAndAssignedToId(request.getExternalId(), request.getPractitionerId());
+                request.setEncounterId(encouter.get(0).getUuid());
+               // request.setVisitId(UUID.randomUUID().toString());
               ///  Encounter encounter = new Encounter(request, mps.get(set.getString("patient_id")), "his");
              //   Visits visit = new Visits(encounter);
              //   visits.add(visit);
