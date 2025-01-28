@@ -164,15 +164,15 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
                                     """;
 
         List<MedicalRequest> requests = new ArrayList<>();
-
+        System.err.println(" statring the rowset");
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
         while (set.next()) {
             String patientMr = set.getString("patient_id");
             String date = set.getString("created_at");
             String doctor = set.getString("practitioner_id");
             String externalId=set.getString("visit_id");
-            List<Encounter> ecounter = encounterRepository.findByExternalIdAndAssignedToId(externalId, doc.get(doctor));
-            if (ecounter.size()>0) {
+           // List<Encounter> ecounter = encounterRepository.findByExternalIdAndAssignedToId(externalId, doc.get(doctor));
+            
                 MedicalRequest request = new MedicalRequest();
                 request.setUuid(UUID.randomUUID().toString());
                 request.setCreatedAt(set.getString("created_at"));
@@ -186,7 +186,7 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
                 request.setDosageDisplay(set.getString("dosage_display"));
                 request.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
                 request.setServiceProviderName("Nyaho Medical Centre");
-                request.setVisitId(ecounter.get(0).getVisitId());
+             //   request.setVisitId(ecounter.get(0).getVisitId());
                 try {
                     request.setPatientId(mps.get(set.getString("patient_id")).getUuid());
                 } catch (Exception e) {
@@ -200,9 +200,9 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
                     logger.info("doctor not found");
                 }
 
-                request.setEncounterId(ecounter.get(0).getUuid());
+              //  request.setEncounterId(ecounter.get(0).getUuid());
                 requests.add(request);
-            } 
+        
 
         }
 
