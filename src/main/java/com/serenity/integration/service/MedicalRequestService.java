@@ -159,6 +159,7 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
 
                 	and pm.isReject = 0
 
+                    LIMIT 5000
              
                                     """;
 
