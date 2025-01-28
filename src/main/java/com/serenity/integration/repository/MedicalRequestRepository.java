@@ -11,7 +11,7 @@ import com.serenity.integration.models.MedicalRequest;
 
 @Repository
 public interface MedicalRequestRepository extends JpaRepository<MedicalRequest,Long>{
-    @Query(value = "select * from medicalrequest where externalsystem='opd' and practitionerid is not null and visitid is not null and patientid  is not null order by id OFFSET ?1 LIMIT 1000",nativeQuery = true)
+    @Query(value = "select * from medicalrequest where externalsystem='his' and practitionerid is not null and visitid is not null and patientid  is not null order by id OFFSET ?1 LIMIT 1000",nativeQuery = true)
     List<MedicalRequest> findOffset(int offset);
 
 }
