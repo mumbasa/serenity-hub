@@ -100,8 +100,8 @@ public class IntegrationApplication {
 	//	 noteService.cleanData();
 	//	encounterService.encounterOPDthread();
 	//noteService.noteThread();
-	medicalRequestService.medicalRequestOPD2();
-	
+	//medicalRequestService.medicalRequestOPD2();
+	medicalRequestService.OPDThread();
 		logger.info("finishi.ng import");
 
 	}

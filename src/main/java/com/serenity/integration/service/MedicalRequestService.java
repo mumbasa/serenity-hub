@@ -351,9 +351,9 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
                 } catch (Exception e) {
                     logger.info("doctor not found");
                 }
-                List<Encounter> encouter = encounterRepository.findByExternalIdAndAssignedToId(request.getExternalId(), request.getPractitionerId());
-                request.setEncounterId(encouter.get(0).getUuid());
-                request.setVisitId(encouter.get(0).getVisitId());
+            //    List<Encounter> encouter = encounterRepository.findByExternalIdAndAssignedToId(request.getExternalId(), request.getPractitionerId());
+              //  request.setEncounterId(encouter.get(0).getUuid());
+               // request.setVisitId(encouter.get(0).getVisitId());
                // request.setVisitId(UUID.randomUUID().toString());
               ///  Encounter encounter = new Encounter(request, mps.get(set.getString("patient_id")), "his");
              //   Visits visit = new Visits(encounter);
