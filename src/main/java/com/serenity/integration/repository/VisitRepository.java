@@ -2,6 +2,7 @@ package com.serenity.integration.repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,6 +21,8 @@ public interface VisitRepository extends JpaRepository<Visits,Long>{
     public int countByEncounterClass(String encounterClass);
     public int countByExternalSystem(String externalSystem);
     public List<Visits>  findByEncounterClass(String encounterClass);
+    public Optional<Visits>  findByExternalId(String encounterClass);
+
 
 
     @Query(value = "select * from visits where externalsystem='opd' order by id  OFFSET ?1  LIMIT 1000",nativeQuery = true)

@@ -247,7 +247,7 @@ public class EncounterService {
                 ps.setString(4, "ambulatory");
                 ps.setString(5, "finished");
                 ps.setString(6, notes.get(i).getExternalId() + "-" + notes.get(i).getUuid());
-                ps.setString(7, "his");
+                ps.setString(7, notes.get(i).getExternalSystem());
                 ps.setString(8, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
                 ps.setString(9, notes.get(i).getPatientMrNumber());
                 ps.setString(10, notes.get(i).getPatientId());

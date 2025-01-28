@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -66,6 +67,10 @@ public class NoteService {
 
     @Autowired
     EncounterRepository encounterRepository;
+
+    @Autowired
+    @Qualifier(value = "legJdbcTemplate")
+    JdbcTemplate legJdbcTemplate;
 
     public List<EncounterNote> getHisNote(List<String> numbers) {
         List<EncounterNote> notes = new ArrayList<>();
@@ -662,4 +667,85 @@ and encounter.visit_id is null
        
 
     }
+
+    public void getLegacyEncounters() {
+
+        Map<String, PatientData> patientDataMap = patientRepository.findAll().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+        Map<String, String> doctorMap = doctorRepository.findHisPractitioners().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+
+        List<EncounterNote> encounters = new ArrayList<>();
+        String sql = "select * from encounter e join patient p on p.id=e.patient_id";
+        SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
+        while (set.next()) {
+            System.err.println(set.getString("mr_number")+"-----------------");
+            PatientData patient = patientDataMap.get(set.getString("mr_number"));
+            Optional<Visits> visit = visitRepository.findByExternalId(set.getString("visit_id"));
+            if(set.getString("chief_complaint") != null){
+            EncounterNote encounter = new EncounterNote();
+            encounter.setUuid(UUID.randomUUID().toString());
+            encounter.setEncounterId(set.getString(5));
+            encounter.setExternalId(set.getString(5));
+            encounter.setCreatedAt(set.getString(2));
+            encounter.setEncounterType(set.getString("encounter_class"));
+            encounter.setPatientId(patient.getUuid());
+            encounter.setNoteType("chief-complaint");
+            encounter.setPatientBirthDate(patient.getBirthDate());
+            encounter.setPatientFullName(patient.getFullName());
+            encounter.setPatientMobile(patient.getMobile());
+            encounter.setPatientMrNumber(patient.getMrNumber());
+            encounter.setExternalSystem("opd");
+            encounter.setNote(set.getString("uuid"));
+            encounter.setLocationId(set.getString("primary_location_id"));
+            encounter.setVisitId(visit.isPresent()?visit.get().getUuid().toString() : null);
+            encounter.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+            encounter.setServiceProviderName("Nyaho Medical Centre");
+            encounters.add(encounter);
+            }else if(set.getString("history_of_presenting_illness") !=null){
+
+                EncounterNote encounter = new EncounterNote();
+                encounter.setUuid(UUID.randomUUID().toString());
+                encounter.setEncounterId(set.getString(5));
+                encounter.setExternalId(set.getString(5));
+                encounter.setCreatedAt(set.getString(2));
+                encounter.setEncounterType(set.getString("encounter_class"));
+                encounter.setPatientId(patient.getUuid());
+                encounter.setNoteType("history-of-presenting-illness");
+                encounter.setPatientBirthDate(patient.getBirthDate());
+                encounter.setPatientFullName(patient.getFullName());
+                encounter.setPatientMobile(patient.getMobile());
+                encounter.setPatientMrNumber(patient.getMrNumber());
+                encounter.setExternalSystem("opd");
+                encounter.setNote(set.getString("uuid"));
+                encounter.setLocationId(set.getString("primary_location_id"));
+                encounter.setVisitId(set.getString("visit_id"));
+                encounter.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+                encounter.setServiceProviderName("Nyaho Medical Centre");
+                encounters.add(encounter);
+
+            }
+            logger.info("adding encounter");
+        }
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitNote(encounters, 20000));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+        System.err.println("patiend count is ");
+
+    }
+
+
+
+
+
 }
