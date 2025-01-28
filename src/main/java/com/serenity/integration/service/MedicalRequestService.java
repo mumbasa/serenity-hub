@@ -726,7 +726,10 @@ String sql ="""
 category, code, notes, priority, status, 
 encounter_id,patient_id, patient_mr_number, patient_full_name,
 practitioner_name, practitioner_id,  visit_id)
- VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'), ?, ?, uuid(?),  ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?)
+ VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'), ?, uuid(?), uuid(?),  ?, 
+ ?, ?, ?,?, ?, 
+ uuid(?), uuid(?), ?, ?, ?,
+  uuid(?), uuid(?))
         """;
 
 serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
