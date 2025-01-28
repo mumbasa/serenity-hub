@@ -48,4 +48,6 @@ public class MedicalRequest {
     private String practitionerId;
     private String createdAt;
     private String visitId;
+    private String externalSystem;
+    private String externalId;
 }

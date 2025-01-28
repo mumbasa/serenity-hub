@@ -66,8 +66,11 @@ public class MedicalRequestService {
     @Autowired
     MedicalRequestRepository medicalRequestRepository;
 
-    public  List<MedicalRequest> medicalRequestOPD2(Map<String, PatientData> mps ,Map<String, String> doc,int batchSize) {
-       
+    public  List<MedicalRequest> medicalRequestOPD2() {
+        Map<String, PatientData> mps = patientRepository.findAll().stream()
+        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
+        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
         String query = """
                                         select
 
@@ -156,20 +159,19 @@ public class MedicalRequestService {
 
                 	and pm.isReject = 0
 
-                 LIMIT ?, 1000
+             
                                     """;
 
-      // List<Encounter> encounters = new ArrayList<>();
         List<MedicalRequest> requests = new ArrayList<>();
-       // List<Visits> visits = new ArrayList<>();
 
-        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query,batchSize);
+        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
         while (set.next()) {
             String patientMr = set.getString("patient_id");
             String date = set.getString("created_at");
             String doctor = set.getString("practitioner_id");
-            Optional<Encounter> ecounter = encounterRepository.findEcounterByPatientDateDoctor(patientMr, date, doctor);
-            if (ecounter.isPresent()) {
+            String externalId=set.getString("visit_id");
+            List<Encounter> ecounter = encounterRepository.findByExternalIdAndDoctor(externalId, doc.get(doctor));
+            if (ecounter.size()>0) {
                 MedicalRequest request = new MedicalRequest();
                 request.setUuid(UUID.randomUUID().toString());
                 request.setCreatedAt(set.getString("created_at"));
@@ -183,6 +185,7 @@ public class MedicalRequestService {
                 request.setDosageDisplay(set.getString("dosage_display"));
                 request.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
                 request.setServiceProviderName("Nyaho Medical Centre");
+                request.setVisitId(ecounter.get(0).getVisitId());
                 try {
                     request.setPatientId(mps.get(set.getString("patient_id")).getUuid());
                 } catch (Exception e) {
@@ -196,47 +199,25 @@ public class MedicalRequestService {
                     logger.info("doctor not found");
                 }
 
-                request.setEncounterId(ecounter.get().getUuid());
+                request.setEncounterId(ecounter.get(0).getUuid());
                 requests.add(request);
-            } else {
-                MedicalRequest request = new MedicalRequest();
-                request.setUuid(UUID.randomUUID().toString());
-                request.setCreatedAt(set.getString("created_at"));
-                request.setAuthoredOn(set.getString("authored_on"));
-                request.setName(set.getString("name"));
-                request.setCategory(set.getString("category"));
-                request.setCode(set.getString("code"));
-                request.setNotes(set.getString("notes"));
-                request.setPriority(set.getString("priority"));
-                request.setStatus(set.getString("status"));
-                request.setDosageDisplay(set.getString("dosage_display"));
-                request.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
-                request.setServiceProviderName("Nyaho Medical Centre");
-                try {
-                    request.setPatientId(mps.get(set.getString("patient_id")).getUuid());
-                } catch (Exception e) {
-                    logger.info("patient not found");
-                }
-                try {
-
-                    request.setPractitionerId(doc.get(set.getString("practitioner_id")));
-                    request.setPractitionerName(set.getString("practitioner_name"));
-                } catch (Exception e) {
-                    logger.info("doctor not found");
-                }
-
-                request.setEncounterId(UUID.randomUUID().toString());
-                request.setVisitId(UUID.randomUUID().toString());
-              ///  Encounter encounter = new Encounter(request, mps.get(set.getString("patient_id")), "his");
-             //   Visits visit = new Visits(encounter);
-             //   visits.add(visit);
-             //   encounters.add(encounter);
-                requests.add(request);
-               
-
-            }
+            } 
 
         }
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2( 1000,requests));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+
+        
        return requests;
     }
 
@@ -635,9 +616,7 @@ public class MedicalRequestService {
        return requests;
     }
 
-  
-
-
+    
 
     public void IPDThread() {
 

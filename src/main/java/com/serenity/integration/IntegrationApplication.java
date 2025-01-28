@@ -64,6 +64,9 @@ public class IntegrationApplication {
 	@Autowired
 	PatientService patientService;
 
+	@Autowired
+	MedicalRequestService medicalRequestService;
+
 	Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static void main(String[] args) {
@@ -97,6 +100,8 @@ public class IntegrationApplication {
 	//	 noteService.cleanData();
 	//	encounterService.encounterOPDthread();
 	noteService.noteThread();
+	medicalRequestService.medicalRequestOPD2();
+	
 		logger.info("finishi.ng import");
 
 	}

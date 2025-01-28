@@ -180,7 +180,7 @@ public class NoteService {
         while (rs.next()) {
             EncounterNote note = new EncounterNote();
             note.setUuid(UUID.randomUUID().toString());
-            note.setEncounterId(UUID.randomUUID().toString());
+            note.setEncounterId(note.getUuid());
             note.setCreatedAt(cleanString(rs.getString("created_at")));
             note.setUpdatedAt(cleanString(rs.getString("updated_at")));
             note.setNote(cleanString(rs.getString("note")));
@@ -464,7 +464,7 @@ public class NoteService {
         while (rs.next()) {
             EncounterNote note = new EncounterNote();
             note.setUuid(UUID.randomUUID().toString());
-            note.setEncounterId(UUID.randomUUID().toString());
+            note.setEncounterId(note.getUuid());
             note.setCreatedAt(cleanString(rs.getString("created_at")));
             note.setUpdatedAt(cleanString(rs.getString("updated_at")));
             note.setNote(cleanString(rs.getString("note")));
@@ -575,10 +575,10 @@ public class NoteService {
 
     public void noteThread() {
         logger.info("kooooooooooooooading");
-        long dataSize =encounterNoteRepository.count();
+        long dataSize =encounterNoteRepository.countByNoteType("progress-note");
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(100, dataSize));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
