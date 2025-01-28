@@ -695,7 +695,7 @@ and encounter.visit_id is null
             encounter.setPatientMobile(patient.getMobile());
             encounter.setPatientMrNumber(patient.getMrNumber());
             encounter.setExternalSystem("opd");
-            encounter.setNote(set.getString("uuid"));
+            encounter.setNote(set.getString("chief_complaint"));
             encounter.setLocationId(set.getString("primary_location_id"));
             encounter.setVisitId(set.getString("visit_id"));
             encounter.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
@@ -716,7 +716,7 @@ and encounter.visit_id is null
                 encounter.setPatientMobile(patient.getMobile());
                 encounter.setPatientMrNumber(patient.getMrNumber());
                 encounter.setExternalSystem("opd");
-                encounter.setNote(set.getString("uuid"));
+                encounter.setNote(set.getString("history_of_presenting_illness"));
                 encounter.setLocationId(set.getString("primary_location_id"));
                 encounter.setVisitId(set.getString("visit_id"));
                 encounter.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
