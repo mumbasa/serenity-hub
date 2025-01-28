@@ -676,12 +676,11 @@ and encounter.visit_id is null
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
 
         List<EncounterNote> encounters = new ArrayList<>();
-        String sql = "select * from encounter e join patient p on p.id=e.patient_id";
+        String sql = "select * from encounter e join patient p on p.id=e.patient_id LIMIT 5000";
         SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
         while (set.next()) {
-            System.err.println(set.getString("mr_number")+"-----------------");
             PatientData patient = patientDataMap.get(set.getString("mr_number"));
-            Optional<Visits> visit = visitRepository.findByExternalId(set.getString("visit_id"));
+           // Optional<Visits> visit = visitRepository.findByExternalId(set.getString("visit_id"));
             if(set.getString("chief_complaint") != null){
             EncounterNote encounter = new EncounterNote();
             encounter.setUuid(UUID.randomUUID().toString());
@@ -698,7 +697,7 @@ and encounter.visit_id is null
             encounter.setExternalSystem("opd");
             encounter.setNote(set.getString("uuid"));
             encounter.setLocationId(set.getString("primary_location_id"));
-            encounter.setVisitId(visit.isPresent()?visit.get().getUuid().toString() : null);
+            encounter.setVisitId(set.getString("visit_id"));
             encounter.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
             encounter.setServiceProviderName("Nyaho Medical Centre");
             encounters.add(encounter);
@@ -730,7 +729,7 @@ and encounter.visit_id is null
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitNote(encounters, 20000));
+            List<Future<Integer>> futures = executorService.invokeAll(submitNote(encounters, 1000));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
