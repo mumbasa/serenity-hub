@@ -71,6 +71,14 @@ public class MedicalRequestService {
         .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
 Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
         .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+
+    
+        int totalSize = 1179689;
+        int batches = (totalSize + 10000 - 1) / 10000; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; 
+
         String query = """
                                         select
 
@@ -159,13 +167,13 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
 
                 	and pm.isReject = 0
 
-                    LIMIT 5000
+                    LIMIT ?,10000
              
                                     """;
 
         List<MedicalRequest> requests = new ArrayList<>();
         System.err.println(" statring the rowset");
-        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query);
+        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query,10000);
         while (set.next()) {
             String patientMr = set.getString("patient_id");
             String date = set.getString("created_at");
@@ -217,9 +225,9 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
             e.printStackTrace();
         }
 
-
+    }
         
-       return requests;
+       return new ArrayList<>();
     }
 
 
