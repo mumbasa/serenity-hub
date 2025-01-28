@@ -77,7 +77,8 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
         int batches = (totalSize + 10000 - 1) / 10000; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
-            final int batchNumber = i; 
+            int startIndex = i * 10000;
+                int endIndex = Math.min(startIndex + 10000, totalSize);
 
         String query = """
                                         select
@@ -173,7 +174,7 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
 
         List<MedicalRequest> requests = new ArrayList<>();
         System.err.println(" statring the rowset");
-        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query,10000);
+        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query,startIndex);
         while (set.next()) {
             String patientMr = set.getString("patient_id");
             String date = set.getString("created_at");
