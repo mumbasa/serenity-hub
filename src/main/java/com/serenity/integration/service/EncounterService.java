@@ -400,7 +400,7 @@ public class EncounterService {
             encounter.setDisplay(set.getString("uuid"));
             encounter.setLocationId(set.getString("primary_location_id"));
             encounter.setVisitId(set.getString("visit_id"));
-            encounter.setServiceProviderId(set.getNString("161380e9-22d3-4627-a97f-0f918ce3e4a9"));
+            encounter.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
             encounter.setServiceProviderName("Nyaho Medical Centre");
             encounter.setStatus(set.getString(6));
             encounters.add(encounter);
