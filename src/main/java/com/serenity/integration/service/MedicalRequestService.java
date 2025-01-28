@@ -725,8 +725,8 @@ String sql ="""
 (created_at, pk, service_provider_id, "uuid", "name", 
 category, code, notes, priority, status, 
 encounter_id,patient_id, patient_mr_number, patient_full_name,
-practitioner_name, practitioner_id,  visit_id, dose)
-VALUES(VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'), ?, ?, uuid(?), ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?)
+practitioner_name, practitioner_id,  visit_id)
+VALUES(VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'), ?, ?, uuid(?),  ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
 serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
@@ -754,7 +754,6 @@ serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             
             ps.setString(16, request.getPractitionerId());
             ps.setString(17, request.getVisitId());
-            ps.setDouble(18, request.getDose());
 
     }
 
