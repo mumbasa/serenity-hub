@@ -50,4 +50,6 @@ public class MedicalRequest {
     private String visitId;
     private String externalSystem;
     private String externalId;
+    private String mrNumber;
+    private String patientName;
 }

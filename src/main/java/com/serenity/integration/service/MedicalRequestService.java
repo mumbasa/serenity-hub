@@ -206,6 +206,10 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
              //   request.setVisitId(ecounter.get(0).getVisitId());
                 try {
                     request.setPatientId(mps.get(set.getString("patient_id")).getUuid());
+                    request.setMrNumber(mps.get(set.getString("patient_id")).getMrNumber());
+                    request.setPatientName(mps.get(set.getString("patient_id")).getFullName());
+
+
                 } catch (Exception e) {
                     logger.info("patient not found");
                 }
@@ -241,149 +245,6 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
 
 
 
-
-    public  List<MedicalRequest> medicalRequestOPD(Map<String, PatientData> mps ,Map<String, String> doc,int batchSize) {
-       
-        String query = """
-                                        select
-
-                	pm.PatientMedicine_ID uuid,
-
-                	pm.EntryDate created_at,
-
-                	pm.EntryDate updated_at,
-
-                	pm.EntryDate authored_on,
-
-                	IFNULL(im.TypeName, pm.MedicineName) name,
-
-                	"outpatient" category,
-
-                	pm.Medicine_ID code,
-
-                	null date,
-
-                	pm.Remarks notes,
-
-                	null intended_dispenser,
-
-                	"routine" priority,
-
-                	"completed" status,
-
-                	concat(pm.dose, " - ", pm.NoTimesDay, " - ", pm.NoOfDays) dosage_display,
-
-                	null dosage_form,
-
-                	null dosage_route,
-
-                	null dosage_site,
-
-                	null dosage_frequency,
-
-                	null dosage_frequency_unit,
-                	null dose,
-
-                	null dose_unit,
-
-                	null dosage_strength,
-
-                	null dosage_period,
-
-                	null course_of_therapy,
-
-                	null quantity_to_dispense,
-
-                	null number_of_refills,
-
-                	null dosage_period_unit,
-
-                	"Nyaho Medical Centre" service_provider_id,
-
-                	null encounter_id,
-
-                	pm.Transaction_ID visit_id,
-
-                	pm.Patient_ID patient_id,
-
-                	pm.Patient_ID mr_number,
-
-                	patient_master.PName patient_full_name,
-
-                	CONCAT(dm.Title, ' ', dm.Name) practitioner_name,
-
-                	pm.DoctorID practitioner_id
-
-                from
-
-                	patient_medicine pm
-
-                join doctor_master dm on dm.Doctor_ID = pm.DoctorID
-
-                join patient_master on patient_master.Patient_ID = pm.Patient_ID
-
-                left join f_itemmaster im on
-
-                	pm.Medicine_ID = im.ItemID
-
-                where
-
-                	pm.IsChange = 0
-
-                	and pm.isReject = 0
-
-                 LIMIT ?, 1000
-                                    """;
-
-        List<MedicalRequest> requests = new ArrayList<>();
-
-        SqlRowSet set = hisJdbcTemplate.queryForRowSet(query,batchSize);
-        while (set.next()) {
-          
-           
-                MedicalRequest request = new MedicalRequest();
-                request.setUuid(UUID.randomUUID().toString());
-                request.setCreatedAt(set.getString("created_at"));
-                request.setAuthoredOn(set.getString("authored_on"));
-                request.setName(set.getString("name"));
-                request.setCategory(set.getString("category"));
-                request.setExternalSystem("his");
-                request.setExternalId(set.getString("visit_id"));
-                request.setCode(set.getString("code"));
-                request.setNotes(set.getString("notes"));
-                request.setPriority(set.getString("priority"));
-                request.setStatus(set.getString("status"));
-                request.setDosageDisplay(set.getString("dosage_display"));
-                request.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
-                request.setServiceProviderName("Nyaho Medical Centre");
-                try {
-                    request.setPatientId(mps.get(set.getString("patient_id")).getUuid());
-                } catch (Exception e) {
-                    logger.info("patient not found");
-                }
-                try {
-
-                    request.setPractitionerId(doc.get(set.getString("practitioner_id")));
-                    request.setPractitionerName(set.getString("practitioner_name"));
-                } catch (Exception e) {
-                    logger.info("doctor not found");
-                }
-            //    List<Encounter> encouter = encounterRepository.findByExternalIdAndAssignedToId(request.getExternalId(), request.getPractitionerId());
-              //  request.setEncounterId(encouter.get(0).getUuid());
-               // request.setVisitId(encouter.get(0).getVisitId());
-               // request.setVisitId(UUID.randomUUID().toString());
-              ///  Encounter encounter = new Encounter(request, mps.get(set.getString("patient_id")), "his");
-             //   Visits visit = new Visits(encounter);
-             //   visits.add(visit);
-             //   encounters.add(encounter);
-                requests.add(request);
-               
-
-        
-
-        }
-       return requests;
-    }
 
     public List<MedicalRequest> medicalRequestIPD(Map<String, PatientData> mps, Map<String, String> doc,int batchSize) {
       
@@ -665,30 +526,6 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
 
 
 
-    public void OPDThread() {
-
-    
-        List<MedicalRequest> notes = OPDDataThread();
-
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2( 1000,notes));
-            for (Future<Integer> future : futures) {
-                System.out.println("future.get = " + future.get());
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        executorService.shutdown();
-		logger.info("Starting importing Medical Requests");
-
-    }
-
-
-
-
     public List<MedicalRequest> IPDDataThread() {
         Map<String, PatientData> mps = patientRepository.findAll().stream()
         .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
@@ -747,64 +584,6 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
   
 
 
-    public List<MedicalRequest> OPDDataThread() {
-        Map<String, PatientData> mps = patientRepository.findAll().stream()
-        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
-Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
-        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
-        List<MedicalRequest> data = new ArrayList<>();
-        String sql ="""
-                
-     select
-
-                count(*)
-
-                from
-
-                	patient_medicine pm
-
-                join doctor_master dm on dm.Doctor_ID = pm.DoctorID
-
-                join patient_master on patient_master.Patient_ID = pm.Patient_ID
-
-                left join f_itemmaster im on
-
-                	pm.Medicine_ID = im.ItemID
-
-                where
-
-                	pm.IsChange = 0
-
-                	and pm.isReject = 0
-                   
-                    """;
-       
-        @SuppressWarnings("null")
-        int rows = hisJdbcTemplate.queryForObject(sql, Integer.class);            
-        logger.info("data srows found "+rows);
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        try {
-            List<Future<List<MedicalRequest>>> futures = executorService.invokeAll(getMedicalRequestsData( 1000,rows,mps,doc));
-            for (Future<List<MedicalRequest>> future : futures) {
-                data.addAll(future.get());
-
-            }
-
-            
-        } catch (InterruptedException | ExecutionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        executorService.shutdown();
-        System.err.println("patiend count is "+data.size());
-        return data;
-    }
-
-  
-    private static double calculateProgress(int processed, int total) {
-        return Math.round((double) processed / total * 100 * 100.0) / 100.0;
-    }
 
     public String cleanString(String input) {
         if (input == null)
@@ -853,33 +632,7 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
         return callables;
     }
 
-
-
-    public Set<Callable<List<MedicalRequest>>> getMedicalRequestsData(int batchSize, int rows,  Map<String, PatientData> mps,Map<String, String> doc ) {
-     
-        Set<Callable<List<MedicalRequest>>> callables = new HashSet<>();
-        int totalSize = rows;
-        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
-
-        for (int i = 0; i < batches; i++) {
-            final int batchNumber = i; // For use in lambda
-
-            callables.add(() -> {
-                int startIndex = batchNumber * batchSize;
-            
-                logger.debug("Processing batch {}/{}, indices [{}]",
-                        batchNumber + 1, batches, startIndex);
-                return  medicalRequestOPD(mps,doc,startIndex);
-                }
-
-               
-            );
-        }
-
-        return callables;
-    }
-
-
+    
 
     public Set<Callable<List<MedicalRequest>>> getMedicalIPDRequestsData(int batchSize, int rows,  Map<String, PatientData> mps,Map<String, String> doc ) {
      
@@ -906,12 +659,74 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
     }
 
 
-public void saveMedicalRequest(List<MedicalRequest> request){
+
+
+
+    public void saveMedicalRequestThread() {
+
+    
+        long count = medicalRequestRepository.count();
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2( 1000,count));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+		logger.info("Starting importing Medical Requests");
+
+    }
+
+    public Set<Callable<Integer>> submitTask2(int batchSize, long rows) {
+
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = (int) rows;
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                int endIndex = Math.min(startIndex + batchSize, totalSize);
+                logger.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+                        List<MedicalRequest> notes = medicalRequestRepository.findOffset(startIndex);
+                        System.err.println(notes.get(0).toString());
+
+                try {
+                    saveMedicalRequest(notes);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                    logger.info("error adding note");
+
+                }
+
+                return 1;
+            });
+        }
+
+        return callables;
+    }
+
+
+public void saveMedicalRequest(List<MedicalRequest> requests){
 
 String sql ="""
         INSERT INTO public.medication_requests
-(created_at, updated_at, "date", pk, authored_on, service_provider_id, "uuid", "name", category, code, notes, intended_dispenser, priority, status, dosage_display, dosage_form, dosage_route, dosage_site, dosage_frequency, dosage_frequency_unit, dosage_strength, dosage_period, dosage_period_unit, encounter_id, patient_id, patient_mr_number, patient_full_name, practitioner_name, practitioner_id, visit_id, dose, quantity_to_dispense, dose_unit, course_of_therapy, number_of_refills, dispense_status, quantity_dispensed)
-VALUES('', '', '', nextval('medication_requests_pk_seq'::regclass), '', ?, ?, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ?, ?, '', '', '', ?, ?, 0, 0, '', '', 0, '', 0);
+(created_at, pk, service_provider_id, "uuid", "name", 
+category, code, notes, priority, status, 
+encounter_id,patient_id, patient_mr_number, patient_full_name,
+practitioner_name, practitioner_id,  visit_id, dose)
+VALUES(VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'), ?, ?, uuid(?), ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
 serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
@@ -919,12 +734,34 @@ serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
     @Override
     public void setValues(PreparedStatement ps, int i) throws SQLException {
         // TODO Auto-generated method stub
+        MedicalRequest request = requests.get(i);
+        ps.setString(1, request.getCreatedAt());
+        ps.setLong(2, request.getId());
+        ps.setString(3, request.getServiceProviderId());
+        ps.setString(4, request.getUuid());
+        ps.setString(5, request.getName());
+        ps.setString(6, request.getCategory());
+        ps.setString(7, request.getCode());
+        ps.setString(8, request.getNotes());
+        ps.setString(9, request.getPriority());
+        ps.setString(10, request.getStatus());
+
+        ps.setString(11, request.getEncounterId());
+          ps.setString(12, request.getPatientId());
+            ps.setString(13, request.getMrNumber());
+            ps.setString(14, request.getPatientName());
+            ps.setString(15, request.getPractitionerName());
+            
+            ps.setString(16, request.getPractitionerId());
+            ps.setString(17, request.getVisitId());
+            ps.setDouble(18, request.getDose());
+
     }
 
     @Override
     public int getBatchSize() {
         // TODO Auto-generated method stub
-       return request.size();
+       return requests.size();
     }
     
 });
