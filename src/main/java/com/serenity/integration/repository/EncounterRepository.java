@@ -17,9 +17,14 @@ public interface EncounterRepository extends JpaRepository<Encounter,Long>{
     @Query(value = "SELECT * FROM encounter order by id OFFSET ?  LIMIT 1000 ",nativeQuery = true)
     List<Encounter> getfirst100k(int offset);
 
+    @Query(value = "select * from encounter e  where external_system='opd' and assigned_to_id is not null order by id OFFSET ?  LIMIT 1000 ",nativeQuery = true)
+    List<Encounter> getfirstOPD100k(int offset);
+
     @Query(value = "select * from encounter e   OFFSET 0  LIMIT 100000",nativeQuery = true)
     List<Encounter> getfirst100k();
 
     List<Encounter> findByExternalIdAndAssignedToId(String externalId,String patient);
-
+    
+    @Query(value = "select count(*) from encounter e  where external_system='opd' and assigned_to_id is not null;",nativeQuery = true)
+    int getOOPCount();
 }

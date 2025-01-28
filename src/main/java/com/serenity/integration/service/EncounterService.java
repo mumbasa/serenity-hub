@@ -119,6 +119,39 @@ public class EncounterService {
         return callables;
     }
 
+
+    public Set<Callable<Integer>> submitLegacyTask2(int batchSize, long rows) {
+
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = (int) rows;
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                int endIndex = Math.min(startIndex + batchSize, totalSize);
+                logger.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+                List<Encounter> notes = encounterRepository.getfirstOPD100k(startIndex);
+
+                try {
+                    saveEncounters(notes);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                    logger.info("error adding note");
+
+                }
+
+                return 1;
+            });
+        }
+
+        return callables;
+    }
+
     public void insertNote(EncounterNote note) {
         System.err.println("inserting note");
         String sql = "INSERT INTO public.encounter_notes\n" + //
@@ -354,6 +387,27 @@ public class EncounterService {
 
     }
 
+
+
+    public void encounterLegacythread() {
+        logger.info("kooooooooooooooading");
+        int dataSize = encounterRepository.getOOPCount();
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitLegacyTask2(1000, dataSize));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+        System.err.println("patiend count is " + dataSize);
+
+    }
+
     public void encounterOPDthread() {
         logger.info("kooooooooooooooading");
         long dataSize = encounterRepository.count();
@@ -452,11 +506,27 @@ public class EncounterService {
                 set assigned_to_id = e.practitionerid ,
                 assigned_to_name =e.assignedtoname
                 from visits e
-                where e.externalid = m.external_id
+                where e.externalid = m.visit_id
                 and m.assigned_to_id is null and m.external_system ='opd'
 
                         """;
         vectorJdbcTemplate.update(sql);
+        sql= """
+                update encounter m
+               set visit_id =e.uuid
+                from visits e
+                where e.externalid = m.visit_id
+                 and m.external_system ='opd'
+                """;
+                vectorJdbcTemplate.update(sql);
+
+        sql ="""
+                update encounter m
+                set patient_gender = e.gender          
+                from patient_information e
+                where e.uuid = m.patient_id and m.external_system ='opd'
+                """;
+                vectorJdbcTemplate.update(sql);
 
     }
 
