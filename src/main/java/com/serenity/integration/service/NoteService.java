@@ -676,7 +676,7 @@ and encounter.visit_id is null
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
 
         List<EncounterNote> encounters = new ArrayList<>();
-        String sql = "select * from encounter e join patient p on p.id=e.patient_id LIMIT 5000";
+        String sql = "select * from encounter e join patient p on p.id=e.patient_id";
         SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
         while (set.next()) {
             PatientData patient = patientDataMap.get(set.getString("mr_number"));
