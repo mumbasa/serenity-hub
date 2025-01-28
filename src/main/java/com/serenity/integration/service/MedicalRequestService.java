@@ -195,6 +195,8 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
                 request.setDosageDisplay(set.getString("dosage_display"));
                 request.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
                 request.setServiceProviderName("Nyaho Medical Centre");
+                request.setExternalId(set.getString("visit_id"));
+                request.setExternalSystem("his");
              //   request.setVisitId(ecounter.get(0).getVisitId());
                 try {
                     request.setPatientId(mps.get(set.getString("patient_id")).getUuid());
