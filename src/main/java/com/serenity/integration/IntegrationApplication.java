@@ -101,7 +101,7 @@ public class IntegrationApplication {
 	//encounterService.encounterOPDthread();
 	//noteService.noteThread();getLegacyEncounters
 	//medicalRequestService.medicalRequestOPD2();
-	medicalRequestService.saveMedicalRequestThread();
+	medicalRequestService.medicalRequestIPD();
 	//encounterService.encounterLegacythread();
 	//noteService.noteThread();
 	logger.info("finishi.ng import");
