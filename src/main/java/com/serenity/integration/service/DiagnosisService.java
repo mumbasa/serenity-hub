@@ -148,7 +148,7 @@ while (set.next()) {
     
 }
        diagnosisRepository.saveAll(diagnosises);
-       populateWithVisits()
+       populateWithVisits();
 }
     }
 
