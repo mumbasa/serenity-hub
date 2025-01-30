@@ -126,13 +126,19 @@ public class DiagnosisService {
         diagnosisRepository.saveAll(diagnosises);
         /// populateWithVisits();
         /// \\
-        /// 
+        ///
         return 1;
     }
 
     public void provisionalDiagnosisThread() {
         logger.info("kooooooooooooooading");
-        long dataSize = 800000;
+        String sql = """
+                select
+                count(*) from cpoe_patientdiagnosis cp
+               
+                where cp.ProvisionalDiagnosis != ''
+                """;
+        long dataSize = hisJdbcTemplate.queryForObject(sql,Long.class);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
@@ -192,14 +198,8 @@ public class DiagnosisService {
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
 
         String sqlCount = """
-                                                        select
-                                        count(*)
-                                                                   from cpoe_10cm_patient ccp
-                inner join icd_10_new icd on ccp.icd_id = icd.ID
-                inner join employee_master em on em.Employee_ID = ccp.UserID
-                inner join patient_medical_history pmh on pmh.Transaction_ID = ccp.Transaction_ID
-                left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID
-                                                        """;
+                select count(*) from cpoe_10cm_patient ccp
+                """;
         @SuppressWarnings("null")
         int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
         logger.info(rows + " number of rows");
@@ -269,11 +269,9 @@ public class DiagnosisService {
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
 
         String sqlCount = """
-                                                                select
-                                                count(*)from
+                                            select count(*)from
                 	nursingprogress np
-                inner join employee_master em on
-                	np.CreateUserID = em.Employee_ID
+            
                                                                 """;
         @SuppressWarnings("null")
         int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
