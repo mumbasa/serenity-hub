@@ -149,7 +149,7 @@ while (set.next()) {
 }
 logger.info("saving digas");
        diagnosisRepository.saveAll(diagnosises);
-       populateWithVisits();
+      /// populateWithVisits();
 }
     }
 
