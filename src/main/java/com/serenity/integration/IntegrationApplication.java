@@ -109,7 +109,7 @@ public class IntegrationApplication {
 
 //encounterService.encounterLegacythread();
 	//noteService.noteThread();
-	diagnosisService.getProvisionalDiagnosis();
+	diagnosisService.provisionalDiagnosisThread();
 	logger.info("finishi.ng import");
 
 	}

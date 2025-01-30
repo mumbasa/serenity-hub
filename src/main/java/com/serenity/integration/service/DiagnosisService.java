@@ -71,147 +71,41 @@ public class DiagnosisService {
     VisitRepository visitRepository;
     Logger logger = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
-    public void getProvisionalDiagnosis() {
-List<Diagnosis> diagnosises = new ArrayList<>();
-        Map<String, PatientData> mps = patientRepository.findAll().stream()
-        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
-Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
-        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+    public void getProvisionalDiagnosis(Map<String, PatientData> mps, Map<String, String> doc, int batch) {
+        List<Diagnosis> diagnosises = new ArrayList<>();
 
-        String sqlCount = """
-                                select
-                count(*)
+        String sqlQuery = """
+                select
+                	cp.Transaction_ID visit_id,
+                	cp.ID 'uuid',
+                	cp.CreatedDate created_at,
+                	cp.CreatedDate updated_at,
+                	cp.ProvisionalDiagnosis 'condition',
+                	case
+                		when pmh.`Type` = 'IPD' then "admission-diagnosis"
+                		else "chief-complaint"
+                	end role,
+                	1 'rank',
+                	null code,
+                	'UNKNOWN' system,
+                	'provisional' status,
+                	null note,
+                	case
+                		when dm.Doctor_ID is not null then concat(dm.Title, " ", dm.Name)
+                		else concat(em.Title, " ", em.Name)
+                	end practitioner_name,
+                	case
+                		when dm.Doctor_ID is not null then dm.Doctor_ID
+                		else em.Employee_ID
+                	end practitioner_id
                 from
                 	cpoe_patientdiagnosis cp
                 inner join employee_master em on em.Employee_ID = cp.CreatedBy
                 inner join patient_medical_history pmh on pmh.Transaction_ID = cp.Transaction_ID
                 left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID
-                where cp.ProvisionalDiagnosis != ''
-                ;
+                where cp.ProvisionalDiagnosis != ''  LIMIT ?,3000;
                                 """;
-        @SuppressWarnings("null")
-        int rows =800000;// hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
-        logger.info(rows + " number of rows");
-        int totalSize = rows;
-        int batches = (totalSize + 1000 - 1) / 1000; // Ceiling division
-
-        for (int i = 0; i < batches; i++) {
-            int startIndex = i * 1000;
-            int endIndex = Math.min(startIndex + 1000, totalSize);
-
-        String sqlQuery = """
-select
-	cp.Transaction_ID visit_id,
-	cp.ID 'uuid',
-	cp.CreatedDate created_at,
-	cp.CreatedDate updated_at,
-	cp.ProvisionalDiagnosis 'condition',
-	case 
-		when pmh.`Type` = 'IPD' then "admission-diagnosis"
-		else "chief-complaint"
-	end role,
-	1 'rank',
-	null code,
-	'UNKNOWN' system,
-	'provisional' status,
-	null note,
-	case
-		when dm.Doctor_ID is not null then concat(dm.Title, " ", dm.Name)
-		else concat(em.Title, " ", em.Name)
-	end practitioner_name,
-	case
-		when dm.Doctor_ID is not null then dm.Doctor_ID 
-		else em.Employee_ID
-	end practitioner_id
-from
-	cpoe_patientdiagnosis cp
-inner join employee_master em on em.Employee_ID = cp.CreatedBy
-inner join patient_medical_history pmh on pmh.Transaction_ID = cp.Transaction_ID
-left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID
-where cp.ProvisionalDiagnosis != ''  LIMIT ?,1000;
-                """;
-SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery,startIndex);
-while (set.next()) {
-    Diagnosis diagnosis = new Diagnosis();
-    diagnosis.setUuid(UUID.randomUUID().toString());
-    diagnosis.setCreatedAt(set.getString("created_at"));
-    diagnosis.setCondition(set.getString("condition"));
-    diagnosis.setCode(set.getString("code"));
-    diagnosis.setPractitionerId(doc.get(set.getString("practitioner_id")));
-    diagnosis.setPractitionerName(set.getString("practitioner_name"));
-    diagnosis.setRole(set.getString("role"));
-    diagnosis.setSystem(set.getString("system"));
-    diagnosis.setVisitId(set.getString("visit_id"));     
-                   diagnosis.setRank(set.getInt("rank"));
-
-    diagnosises.add(diagnosis);
-    
-}
-logger.info("saving digas");
-       diagnosisRepository.saveAll(diagnosises);
-      /// populateWithVisits();
-}
-    }
-
-
-
-    public void getICD10Diagnosis() {
-        List<Diagnosis> diagnosises = new ArrayList<>();
-                Map<String, PatientData> mps = patientRepository.findAll().stream()
-                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
-        Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
-                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
-        
-                String sqlCount = """
-                                        select
-                        count(*)
-                                                   from cpoe_10cm_patient ccp
-inner join icd_10_new icd on ccp.icd_id = icd.ID
-inner join employee_master em on em.Employee_ID = ccp.UserID
-inner join patient_medical_history pmh on pmh.Transaction_ID = ccp.Transaction_ID
-left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID
-                                        """;
-                @SuppressWarnings("null")
-                int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
-                logger.info(rows + " number of rows");
-                int totalSize = rows;
-                int batches = (totalSize + 10000 - 1) / 10000; // Ceiling division
-        
-                for (int i = 0; i < batches; i++) {
-                    int startIndex = i * 10000;
-                    int endIndex = Math.min(startIndex + 10000, totalSize);
-        
-                String sqlQuery = """
-      select
-	ccp.Transaction_ID visit_id,
-	ccp.id uuid,
-	ccp.EntDate created_at,
-	ccp.EntDate updated_at,
-	icd.WHO_Full_Desc 'condition',
-	case 
-		when pmh.`Type` = 'IPD' then "admission-diagnosis"
-		else "chief-complaint"
-	end role,
-	1 rank,
-	icd.ICD10_Code code,
-	"ICD-10" system,
-	"confirmed" status,
-	null note,
-	case
-		when dm.Doctor_ID is not null then concat(dm.Title, " ", dm.Name)
-		else concat(em.Title, " ", em.Name)
-	end practitioner_name,
-	case
-		when dm.Doctor_ID is not null then dm.Doctor_ID 
-		else em.Employee_ID
-	end practitioner_id
-from cpoe_10cm_patient ccp
-inner join icd_10_new icd on ccp.icd_id = icd.ID
-inner join employee_master em on em.Employee_ID = ccp.UserID
-inner join patient_medical_history pmh on pmh.Transaction_ID = ccp.Transaction_ID
-left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID  LIMIT ?,10000;
-                        """;
-        SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery,startIndex);
+        SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery, batch);
         while (set.next()) {
             Diagnosis diagnosis = new Diagnosis();
             diagnosis.setUuid(UUID.randomUUID().toString());
@@ -221,84 +115,214 @@ left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID  LIMIT ?,10000;
             diagnosis.setPractitionerId(doc.get(set.getString("practitioner_id")));
             diagnosis.setPractitionerName(set.getString("practitioner_name"));
             diagnosis.setRole(set.getString("role"));
-            diagnosis.setVisitId(set.getString("visit_id"));
             diagnosis.setSystem(set.getString("system"));
+            diagnosis.setVisitId(set.getString("visit_id"));
             diagnosis.setRank(set.getInt("rank"));
 
             diagnosises.add(diagnosis);
-            
-        }
-               diagnosisRepository.saveAll(diagnosises);
-        }
-            }
-        
-            
 
-            public void getNursingDiagnosis() {
-                List<Diagnosis> diagnosises = new ArrayList<>();
-                        Map<String, PatientData> mps = patientRepository.findAll().stream()
-                        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
-                Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
-                        .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
-                
-                        String sqlCount = """
-                                                select
-                                count(*)from
-	nursingprogress np
-inner join employee_master em on
-	np.CreateUserID = em.Employee_ID
-                                                """;
-                        @SuppressWarnings("null")
-                        int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
-                        logger.info(rows + " number of rows");
-                        int totalSize = rows;
-                        int batches = (totalSize + 10000 - 1) / 10000; // Ceiling division
-                
-                        for (int i = 0; i < batches; i++) {
-                            int startIndex = i * 10000;
-                            int endIndex = Math.min(startIndex + 10000, totalSize);
-                
-                        String sqlQuery = """
-            select
-	np.TransactionID visit_id,
-	np.ID uuid,
-	np.Createddatetime created_at,
-	np.Createddatetime updated_at,
-	np.NursingDiagnosis 'condition',
-	"nursing-diagnosis" role,
-	1 rank,
-	null code,
-	'UNKNOWN' system,
-	'provisional' status,
-	null note,
-	concat(em.Title, ' ', em.Name) practitioner_name,
-	em.Employee_ID practitioner_id
-from
-	nursingprogress np
-inner join employee_master em on
-	np.CreateUserID = em.Employee_ID  LIMIT ?,10000;
-                                """;
-                SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery,startIndex);
-                while (set.next()) {
-                    Diagnosis diagnosis = new Diagnosis();
-                    diagnosis.setUuid(UUID.randomUUID().toString());
-                    diagnosis.setCreatedAt(set.getString("created_at"));
-                    diagnosis.setCondition(set.getString("condition"));
-                    diagnosis.setCode(set.getString("code"));
-                    diagnosis.setPractitionerId(doc.get(set.getString("practitioner_id")));
-                    diagnosis.setPractitionerName(set.getString("practitioner_name"));
-                    diagnosis.setRole(set.getString("role"));
-                    diagnosis.setVisitId(set.getString("visit_id"));
-                    diagnosis.setSystem(set.getString("system"));
-                    diagnosis.setRank(set.getInt("rank"));
-                    diagnosises.add(diagnosis);
-                    
+        }
+        logger.info("saving digas");
+        diagnosisRepository.saveAll(diagnosises);
+        /// populateWithVisits();
+    }
+
+    public void provisionalDiagnosisThread() {
+        logger.info("kooooooooooooooading");
+        long dataSize = 800000;
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(3000, dataSize));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+        System.err.println("patiend count is " + dataSize);
+
+    }
+
+    public Set<Callable<Integer>> submitTask2(int batchSize, long rows) {
+        List<Diagnosis> diagnosises = new ArrayList<>();
+        Map<String, PatientData> mps = patientRepository.findAll().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+        Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = (int) rows;
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                int endIndex = Math.min(startIndex + batchSize, totalSize);
+                logger.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+                System.err.println("Batch no " + batchNumber);
+
+                try {
+                    getProvisionalDiagnosis(mps, doc, startIndex);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                    logger.info("error adding note");
+
                 }
-                       diagnosisRepository.saveAll(diagnosises);
-                }
-                    }
-                
-                
+
+                return 1;
+            });
+        }
+
+        return callables;
+    }
+
+    public void getICD10Diagnosis() {
+        List<Diagnosis> diagnosises = new ArrayList<>();
+        Map<String, PatientData> mps = patientRepository.findAll().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+        Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+
+        String sqlCount = """
+                                                        select
+                                        count(*)
+                                                                   from cpoe_10cm_patient ccp
+                inner join icd_10_new icd on ccp.icd_id = icd.ID
+                inner join employee_master em on em.Employee_ID = ccp.UserID
+                inner join patient_medical_history pmh on pmh.Transaction_ID = ccp.Transaction_ID
+                left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID
+                                                        """;
+        @SuppressWarnings("null")
+        int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
+        logger.info(rows + " number of rows");
+        int totalSize = rows;
+        int batches = (totalSize + 10000 - 1) / 10000; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            int startIndex = i * 10000;
+            int endIndex = Math.min(startIndex + 10000, totalSize);
+
+            String sqlQuery = """
+                          select
+                    	ccp.Transaction_ID visit_id,
+                    	ccp.id uuid,
+                    	ccp.EntDate created_at,
+                    	ccp.EntDate updated_at,
+                    	icd.WHO_Full_Desc 'condition',
+                    	case
+                    		when pmh.`Type` = 'IPD' then "admission-diagnosis"
+                    		else "chief-complaint"
+                    	end role,
+                    	1 rank,
+                    	icd.ICD10_Code code,
+                    	"ICD-10" system,
+                    	"confirmed" status,
+                    	null note,
+                    	case
+                    		when dm.Doctor_ID is not null then concat(dm.Title, " ", dm.Name)
+                    		else concat(em.Title, " ", em.Name)
+                    	end practitioner_name,
+                    	case
+                    		when dm.Doctor_ID is not null then dm.Doctor_ID
+                    		else em.Employee_ID
+                    	end practitioner_id
+                    from cpoe_10cm_patient ccp
+                    inner join icd_10_new icd on ccp.icd_id = icd.ID
+                    inner join employee_master em on em.Employee_ID = ccp.UserID
+                    inner join patient_medical_history pmh on pmh.Transaction_ID = ccp.Transaction_ID
+                    left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID  LIMIT ?,10000;
+                                            """;
+            SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery, startIndex);
+            while (set.next()) {
+                Diagnosis diagnosis = new Diagnosis();
+                diagnosis.setUuid(UUID.randomUUID().toString());
+                diagnosis.setCreatedAt(set.getString("created_at"));
+                diagnosis.setCondition(set.getString("condition"));
+                diagnosis.setCode(set.getString("code"));
+                diagnosis.setPractitionerId(doc.get(set.getString("practitioner_id")));
+                diagnosis.setPractitionerName(set.getString("practitioner_name"));
+                diagnosis.setRole(set.getString("role"));
+                diagnosis.setVisitId(set.getString("visit_id"));
+                diagnosis.setSystem(set.getString("system"));
+                diagnosis.setRank(set.getInt("rank"));
+
+                diagnosises.add(diagnosis);
+
+            }
+            diagnosisRepository.saveAll(diagnosises);
+        }
+    }
+
+    public void getNursingDiagnosis() {
+        List<Diagnosis> diagnosises = new ArrayList<>();
+        Map<String, PatientData> mps = patientRepository.findAll().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+        Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+
+        String sqlCount = """
+                                                                select
+                                                count(*)from
+                	nursingprogress np
+                inner join employee_master em on
+                	np.CreateUserID = em.Employee_ID
+                                                                """;
+        @SuppressWarnings("null")
+        int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
+        logger.info(rows + " number of rows");
+        int totalSize = rows;
+        int batches = (totalSize + 10000 - 1) / 10000; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            int startIndex = i * 10000;
+            int endIndex = Math.min(startIndex + 10000, totalSize);
+
+            String sqlQuery = """
+                                select
+                    	np.TransactionID visit_id,
+                    	np.ID uuid,
+                    	np.Createddatetime created_at,
+                    	np.Createddatetime updated_at,
+                    	np.NursingDiagnosis 'condition',
+                    	"nursing-diagnosis" role,
+                    	1 rank,
+                    	null code,
+                    	'UNKNOWN' system,
+                    	'provisional' status,
+                    	null note,
+                    	concat(em.Title, ' ', em.Name) practitioner_name,
+                    	em.Employee_ID practitioner_id
+                    from
+                    	nursingprogress np
+                    inner join employee_master em on
+                    	np.CreateUserID = em.Employee_ID  LIMIT ?,10000;
+                                                    """;
+            SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery, startIndex);
+            while (set.next()) {
+                Diagnosis diagnosis = new Diagnosis();
+                diagnosis.setUuid(UUID.randomUUID().toString());
+                diagnosis.setCreatedAt(set.getString("created_at"));
+                diagnosis.setCondition(set.getString("condition"));
+                diagnosis.setCode(set.getString("code"));
+                diagnosis.setPractitionerId(doc.get(set.getString("practitioner_id")));
+                diagnosis.setPractitionerName(set.getString("practitioner_name"));
+                diagnosis.setRole(set.getString("role"));
+                diagnosis.setVisitId(set.getString("visit_id"));
+                diagnosis.setSystem(set.getString("system"));
+                diagnosis.setRank(set.getInt("rank"));
+                diagnosises.add(diagnosis);
+
+            }
+            diagnosisRepository.saveAll(diagnosises);
+        }
+    }
+
     public Set<Callable<Integer>> submitLegacyTask2(int batchSize, long rows) {
 
         Set<Callable<Integer>> callables = new HashSet<>();
@@ -547,8 +571,6 @@ inner join employee_master em on
 
     }
 
-  
-
     public void encounterLegacythread() {
         logger.info("kooooooooooooooading");
         int dataSize = encounterRepository.getOOPCount();
@@ -568,7 +590,6 @@ inner join employee_master em on
 
     }
 
-  
     public void populateWithVisits() {
         String sql = """
                         update diagnosis m
