@@ -90,7 +90,7 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
                 ;
                                 """;
         @SuppressWarnings("null")
-        int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
+        int rows =800000;// hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
         logger.info(rows + " number of rows");
         int totalSize = rows;
         int batches = (totalSize + 10000 - 1) / 10000; // Ceiling division
