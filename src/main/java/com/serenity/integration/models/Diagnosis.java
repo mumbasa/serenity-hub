@@ -20,6 +20,8 @@ public class Diagnosis {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
+    @Column(columnDefinition="TEXT")
+
     private String condition;
     private String role;
     private Integer rank;
