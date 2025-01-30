@@ -71,7 +71,7 @@ public class DiagnosisService {
     VisitRepository visitRepository;
     Logger logger = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
-    public void getProvisionalDiagnosis(Map<String, PatientData> mps, Map<String, String> doc, int batch) {
+    public int getProvisionalDiagnosis(Map<String, PatientData> mps, Map<String, String> doc, int batch) {
         List<Diagnosis> diagnosises = new ArrayList<>();
 
         String sqlQuery = """
@@ -103,7 +103,7 @@ public class DiagnosisService {
                 inner join employee_master em on em.Employee_ID = cp.CreatedBy
                 inner join patient_medical_history pmh on pmh.Transaction_ID = cp.Transaction_ID
                 left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID
-                where cp.ProvisionalDiagnosis != ''  LIMIT ?,3000;
+                where cp.ProvisionalDiagnosis != ''  LIMIT ?,1000;
                                 """;
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery, batch);
         while (set.next()) {
@@ -125,6 +125,9 @@ public class DiagnosisService {
         logger.info("saving digas");
         diagnosisRepository.saveAll(diagnosises);
         /// populateWithVisits();
+        /// \\
+        /// 
+        return 1;
     }
 
     public void provisionalDiagnosisThread() {
@@ -132,7 +135,7 @@ public class DiagnosisService {
         long dataSize = 800000;
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(3000, dataSize));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
@@ -146,7 +149,6 @@ public class DiagnosisService {
     }
 
     public Set<Callable<Integer>> submitTask2(int batchSize, long rows) {
-        List<Diagnosis> diagnosises = new ArrayList<>();
         Map<String, PatientData> mps = patientRepository.findAll().stream()
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
         Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
