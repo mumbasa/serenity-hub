@@ -14,6 +14,7 @@ import com.serenity.integration.cron.VisitsCron;
 import com.serenity.integration.repository.EncounterRepository;
 import com.serenity.integration.repository.VisitRepository;
 import com.serenity.integration.service.AdmissionService;
+import com.serenity.integration.service.DiagnosisService;
 import com.serenity.integration.service.EncounterService;
 import com.serenity.integration.service.MedicalRequestService;
 import com.serenity.integration.service.NoteService;
@@ -65,6 +66,9 @@ public class IntegrationApplication {
 	PatientService patientService;
 
 	@Autowired
+	DiagnosisService diagnosisService;
+
+	@Autowired
 	MedicalRequestService medicalRequestService;
 
 	Logger logger = LoggerFactory.getLogger(getClass());
@@ -101,9 +105,11 @@ public class IntegrationApplication {
 	//encounterService.encounterOPDthread();
 	//noteService.noteThread();getLegacyEncounters
 	//medicalRequestService.medicalRequestOPD2();
-	medicalRequestService.medicalRequestIPD();
-	//encounterService.encounterLegacythread();
+//	medicalRequestService.medicalRequestIPD();
+
+//encounterService.encounterLegacythread();
 	//noteService.noteThread();
+	diagnosisService.getProvisionalDiagnosis();
 	logger.info("finishi.ng import");
 
 	}
