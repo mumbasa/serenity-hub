@@ -93,11 +93,11 @@ Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
         int rows =800000;// hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
         logger.info(rows + " number of rows");
         int totalSize = rows;
-        int batches = (totalSize + 10000 - 1) / 10000; // Ceiling division
+        int batches = (totalSize + 1000 - 1) / 1000; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
-            int startIndex = i * 10000;
-            int endIndex = Math.min(startIndex + 10000, totalSize);
+            int startIndex = i * 1000;
+            int endIndex = Math.min(startIndex + 1000, totalSize);
 
         String sqlQuery = """
 select
@@ -128,7 +128,7 @@ from
 inner join employee_master em on em.Employee_ID = cp.CreatedBy
 inner join patient_medical_history pmh on pmh.Transaction_ID = cp.Transaction_ID
 left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID
-where cp.ProvisionalDiagnosis != ''  LIMIT ?,10000;
+where cp.ProvisionalDiagnosis != ''  LIMIT ?,1000;
                 """;
 SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery,startIndex);
 while (set.next()) {
@@ -147,6 +147,7 @@ while (set.next()) {
     diagnosises.add(diagnosis);
     
 }
+logger.info("saving digas");
        diagnosisRepository.saveAll(diagnosises);
        populateWithVisits();
 }
