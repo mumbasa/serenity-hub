@@ -546,24 +546,7 @@ inner join employee_master em on
 
     }
 
-    public void encounterthread() {
-        logger.info("kooooooooooooooading");
-        int dataSize = 1878637;
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
-            for (Future<Integer> future : futures) {
-                System.out.println("future.get = " + future.get());
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        executorService.shutdown();
-        System.err.println("patiend count is " + dataSize);
-
-    }
+  
 
     public void encounterLegacythread() {
         logger.info("kooooooooooooooading");
