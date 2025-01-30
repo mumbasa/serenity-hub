@@ -277,11 +277,11 @@ public class DiagnosisService {
         int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
         logger.info(rows + " number of rows");
         int totalSize = rows;
-        int batches = (totalSize + 10000 - 1) / 10000; // Ceiling division
+        int batches = (totalSize + 1000 - 1) / 1000; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
-            int startIndex = i * 10000;
-            int endIndex = Math.min(startIndex + 10000, totalSize);
+            int startIndex = i * 1000;
+            int endIndex = Math.min(startIndex + 1000, totalSize);
 
             String sqlQuery = """
                                 select
@@ -301,7 +301,7 @@ public class DiagnosisService {
                     from
                     	nursingprogress np
                     inner join employee_master em on
-                    	np.CreateUserID = em.Employee_ID  LIMIT ?,10000;
+                    	np.CreateUserID = em.Employee_ID  LIMIT ?,1000;
                                                     """;
             SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery, startIndex);
             while (set.next()) {

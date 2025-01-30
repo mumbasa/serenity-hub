@@ -109,6 +109,7 @@ public class IntegrationApplication {
 
 //encounterService.encounterLegacythread();
 	//noteService.noteThread();
+	diagnosisService.getNursingDiagnosis();
 	diagnosisService.getICD10Diagnosis();
 	diagnosisService.provisionalDiagnosisThread();
 
