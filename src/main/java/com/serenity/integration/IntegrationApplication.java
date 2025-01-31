@@ -109,9 +109,9 @@ public class IntegrationApplication {
 
 //encounterService.encounterLegacythread();
 	//noteService.noteThread();
-	diagnosisService.getNursingDiagnosis();
-	diagnosisService.getICD10Diagnosis();
-	diagnosisService.provisionalDiagnosisThread();
+	//diagnosisService.getNursingDiagnosis();	
+	diagnosisService.getProvisionalDiagnosis();;
+diagnosisService.getICD10Diagnosis();
 
 	logger.info("finishi.ng import");
 

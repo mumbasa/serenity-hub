@@ -262,6 +262,90 @@ public class DiagnosisService {
         }
     }
 
+
+
+
+    public void getProvisionalDiagnosis() {
+        Map<String, PatientData> mps = patientRepository.findAll().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+        Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+
+        String sqlCount = """
+               select
+                
+                count(*)
+                
+                from
+                	cpoe_patientdiagnosis cp
+          
+                where cp.ProvisionalDiagnosis != '' ;
+                """;
+        @SuppressWarnings("null")
+        int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
+        logger.info(rows + " number of rows");
+        int totalSize = rows;
+        int batches = (totalSize + 1000 - 1) / 1000; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            List<Diagnosis> diagnosises = new ArrayList<>();
+
+            int startIndex = i * 1000;
+            int endIndex = Math.min(startIndex + 1000, totalSize);
+
+            String sqlQuery = """
+                        select
+                	cp.Transaction_ID visit_id,
+                	cp.ID 'uuid',
+                	cp.CreatedDate created_at,
+                	cp.CreatedDate updated_at,
+                	cp.ProvisionalDiagnosis 'condition',
+                	case
+                		when pmh.`Type` = 'IPD' then "admission-diagnosis"
+                		else "chief-complaint"
+                	end role,
+                	1 'rank',
+                	null code,
+                	'UNKNOWN' system,
+                	'provisional' status,
+                	null note,
+                	case
+                		when dm.Doctor_ID is not null then concat(dm.Title, " ", dm.Name)
+                		else concat(em.Title, " ", em.Name)
+                	end practitioner_name,
+                	case
+                		when dm.Doctor_ID is not null then dm.Doctor_ID
+                		else em.Employee_ID
+                	end practitioner_id
+                from
+                	cpoe_patientdiagnosis cp
+                inner join employee_master em on em.Employee_ID = cp.CreatedBy
+                inner join patient_medical_history pmh on pmh.Transaction_ID = cp.Transaction_ID
+                left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID
+                where cp.ProvisionalDiagnosis != ''  LIMIT ?,1000
+                                            """;
+            SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery, startIndex);
+            while (set.next()) {
+                Diagnosis diagnosis = new Diagnosis();
+                diagnosis.setUuid(UUID.randomUUID().toString());
+                diagnosis.setCreatedAt(set.getString("created_at"));
+                diagnosis.setCondition(set.getString("condition"));
+                diagnosis.setCode(set.getString("code"));
+                diagnosis.setPractitionerId(doc.get(set.getString("practitioner_id")));
+                diagnosis.setPractitionerName(set.getString("practitioner_name"));
+                diagnosis.setRole(set.getString("role"));
+                diagnosis.setVisitId(set.getString("visit_id"));
+                diagnosis.setSystem(set.getString("system"));
+                diagnosis.setRank(set.getInt("rank"));
+
+                diagnosises.add(diagnosis);
+
+            }
+            diagnosisRepository.saveAll(diagnosises);
+        }
+    }
+
+
     public void getNursingDiagnosis() {
         Map<String, PatientData> mps = patientRepository.findAll().stream()
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
