@@ -111,7 +111,7 @@ public class IntegrationApplication {
 	//noteService.noteThread();
 	//diagnosisService.getNursingDiagnosis();	
 	//diagnosisService.getProvisionalDiagnosis();;
-	diagnosisService.provisionalDiagnosisThread();
+	diagnosisService.getProvisionalDiagnosis();
 diagnosisService.getICD10Diagnosis();
 
 	logger.info("finishi.ng import");
