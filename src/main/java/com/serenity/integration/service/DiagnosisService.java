@@ -141,7 +141,7 @@ public class DiagnosisService {
         long dataSize = hisJdbcTemplate.queryForObject(sql,Long.class);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(1000, dataSize));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(100, dataSize));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
@@ -203,7 +203,7 @@ public class DiagnosisService {
         int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
         logger.info(rows + " number of rows");
         int totalSize = rows;
-        int batches = (totalSize + 1000 - 1) / 1000; // Ceiling division
+        int batches = (totalSize + 100 - 1) / 100; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
             List<Diagnosis> diagnosises = new ArrayList<>();
@@ -239,7 +239,7 @@ public class DiagnosisService {
                     inner join icd_10_new icd on ccp.icd_id = icd.ID
                     inner join employee_master em on em.Employee_ID = ccp.UserID
                     inner join patient_medical_history pmh on pmh.Transaction_ID = ccp.Transaction_ID
-                    left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID  LIMIT ?,1000;
+                    left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID  LIMIT ?,100;
                                             """;
             SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery, startIndex);
             while (set.next()) {
