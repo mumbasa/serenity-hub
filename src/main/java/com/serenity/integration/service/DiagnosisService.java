@@ -191,7 +191,6 @@ public class DiagnosisService {
     }
 
     public void getICD10Diagnosis() {
-        List<Diagnosis> diagnosises = new ArrayList<>();
         Map<String, PatientData> mps = patientRepository.findAll().stream()
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
         Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
@@ -207,6 +206,8 @@ public class DiagnosisService {
         int batches = (totalSize + 1000 - 1) / 1000; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
+            List<Diagnosis> diagnosises = new ArrayList<>();
+
             int startIndex = i * 1000;
             int endIndex = Math.min(startIndex + 1000, totalSize);
 
@@ -262,7 +263,6 @@ public class DiagnosisService {
     }
 
     public void getNursingDiagnosis() {
-        List<Diagnosis> diagnosises = new ArrayList<>();
         Map<String, PatientData> mps = patientRepository.findAll().stream()
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
         Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
@@ -280,6 +280,8 @@ public class DiagnosisService {
         int batches = (totalSize + 1000 - 1) / 1000; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
+            List<Diagnosis> diagnosises = new ArrayList<>();
+
             int startIndex = i * 1000;
             int endIndex = Math.min(startIndex + 1000, totalSize);
 
