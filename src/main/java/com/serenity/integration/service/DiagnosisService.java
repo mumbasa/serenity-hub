@@ -285,13 +285,13 @@ public class DiagnosisService {
         int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
         logger.info(rows + " number of rows");
         int totalSize = rows;
-        int batches = (totalSize + 500 - 1) / 500; // Ceiling division
+        int batches = (totalSize + 200 - 1) / 200; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
             List<Diagnosis> diagnosises = new ArrayList<>();
 
-            int startIndex = i * 500;
-            int endIndex = Math.min(startIndex + 500, totalSize);
+            int startIndex = i * 200;
+            int endIndex = Math.min(startIndex + 200, totalSize);
 
             String sqlQuery = """
                         select
@@ -322,7 +322,7 @@ public class DiagnosisService {
                 inner join employee_master em on em.Employee_ID = cp.CreatedBy
                 inner join patient_medical_history pmh on pmh.Transaction_ID = cp.Transaction_ID
                 left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID
-                where cp.ProvisionalDiagnosis != ''  LIMIT ?,500
+                where cp.ProvisionalDiagnosis != ''  LIMIT ?,200
                                             """;
             SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery, startIndex);
             while (set.next()) {
