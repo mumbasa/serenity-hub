@@ -105,7 +105,7 @@ public class DiagnosisService {
                 inner join employee_master em on em.Employee_ID = cp.CreatedBy
                 inner join patient_medical_history pmh on pmh.Transaction_ID = cp.Transaction_ID
                 left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID
-                where cp.ProvisionalDiagnosis != ''  LIMIT ?,1000;
+                where cp.ProvisionalDiagnosis != ''  LIMIT ?,200;
                                 """;
         SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery, batch);
         while (set.next()) {
@@ -143,7 +143,7 @@ public class DiagnosisService {
         long dataSize = hisJdbcTemplate.queryForObject(sql,Long.class);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(100, dataSize));
+            List<Future<Integer>> futures = executorService.invokeAll(submitTask2(200, dataSize));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
