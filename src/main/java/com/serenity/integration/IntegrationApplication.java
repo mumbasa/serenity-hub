@@ -1,6 +1,7 @@
 package com.serenity.integration;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import com.serenity.integration.cron.NoteServiceCron;
 import com.serenity.integration.cron.VisitsCron;
+import com.serenity.integration.models.Diagnosis;
 import com.serenity.integration.repository.EncounterRepository;
 import com.serenity.integration.repository.VisitRepository;
 import com.serenity.integration.service.AdmissionService;
@@ -48,7 +50,7 @@ public class IntegrationApplication {
 	VisitMigration visitMigration;
 
 	@Autowired
-	PatientMigrationService v ;
+	PatientMigrationService v;
 
 	@Autowired
 	SetupService setupService;
@@ -80,42 +82,44 @@ public class IntegrationApplication {
 	@PostConstruct
 	public void coke() {
 		logger.info("Starting import");
-		//patientService.loadPatients();;
-	//	patientMigrationService.getPatientsThreads();;
-		//practitionerService.getLegacyPractitioner();
-		//practitionerService.migrateDoctors();
-	//	visitService.getHisThreads();
-	///	visitService.getIPDVISITSThreads();
-		//visitService.getlegacyThreads();
-		//visitMigration.getVisitThreads();
-		//noteService.truncate();
-		//noteService.getChiefNotes();
-		//noteService.cleanData();
+		// patientService.loadPatients();;
+		// patientMigrationService.getPatientsThreads();;
+		// practitionerService.getLegacyPractitioner();
+		// practitionerService.migrateDoctors();
+		// visitService.getHisThreads();
+		/// visitService.getIPDVISITSThreads();
+		// visitService.getlegacyThreads();
+		// visitMigration.getVisitThreads();
+		// noteService.truncate();
+		// noteService.getChiefNotes();
+		// noteService.cleanData();
 
-		//noteService.getCarePlan();
-		//noteService.cleanData();
+		// noteService.getCarePlan();
+		// noteService.cleanData();
 
-	//	noteService.getPresentingIllness();
-	//	noteService.cleanData();
+		// noteService.getPresentingIllness();
+		// noteService.cleanData();
 
-	//	 noteService.getProgressNote();
-	//	 noteService.cleanData();
+		// noteService.getProgressNote();
+		// noteService.cleanData();
 
-	//	 noteService.cleanData();
-	//encounterService.encounterOPDthread();
-	//noteService.noteThread();getLegacyEncounters
-	//medicalRequestService.medicalRequestOPD2();
-//	medicalRequestService.medicalRequestIPD();
+		// noteService.cleanData();
+		// encounterService.encounterOPDthread();
+		// noteService.noteThread();getLegacyEncounters
+		// medicalRequestService.medicalRequestOPD2();
+		// medicalRequestService.medicalRequestIPD();
 
-//encounterService.encounterLegacythread();
-	//noteService.noteThread();
-	//diagnosisService.getNursingDiagnosis();	
-	//diagnosisService.getProvisionalDiagnosis();;
-	diagnosisService.getProvisionalDiagnosis();
-diagnosisService.getICD10Diagnosis();
+		// encounterService.encounterLegacythread();
+		// noteService.noteThread();
+		// diagnosisService.getNursingDiagnosis();
+		// diagnosisService.getProvisionalDiagnosis();;
+		diagnosisService.getProvisionalDiagnosis();
+		//diagnosisService.migrationThread();
 
-	logger.info("finishi.ng import");
+		logger.info("finishi.ng import");
 
 	}
+
+	
 
 }
