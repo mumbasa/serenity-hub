@@ -37,5 +37,7 @@ public class Diagnosis {
     private String visitId;
     private String practitionerId;
     private String createdAt;
+    //private String externalSystem;
+    //private String externalId;
 
 }

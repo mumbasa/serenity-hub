@@ -45,8 +45,6 @@ public class DiagnosisService {
     @Autowired
     DiagnosisRepository diagnosisRepository;
 
-    
-
     @Autowired
     @Qualifier(value = "hisJdbcTemplate")
     JdbcTemplate hisJdbcTemplate;
@@ -137,10 +135,10 @@ public class DiagnosisService {
         String sql = """
                 select
                 count(*) from cpoe_patientdiagnosis cp
-               
+
                 where cp.ProvisionalDiagnosis != ''
                 """;
-        long dataSize = hisJdbcTemplate.queryForObject(sql,Long.class);
+        long dataSize = hisJdbcTemplate.queryForObject(sql, Long.class);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(submitTask2(200, dataSize));
@@ -264,24 +262,21 @@ public class DiagnosisService {
         }
     }
 
-
-
-
     public void getProvisionalDiagnosis() {
-        
+
         Map<String, String> doc = doctorRepository.findHisPractitioners().stream()
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
 
         String sqlCount = """
-               select
-                
-                count(*)
-                
-                from
-                	cpoe_patientdiagnosis cp
-          
-                where cp.ProvisionalDiagnosis != '' ;
-                """;
+                select
+
+                 count(*)
+
+                 from
+                 	cpoe_patientdiagnosis cp
+
+                 where cp.ProvisionalDiagnosis != '' ;
+                 """;
         @SuppressWarnings("null")
         int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
         logger.info(rows + " number of rows");
@@ -295,36 +290,36 @@ public class DiagnosisService {
             int endIndex = Math.min(startIndex + 1000, totalSize);
 
             String sqlQuery = """
-                        select
-                	cp.Transaction_ID visit_id,
-                	cp.ID 'uuid',
-                	cp.CreatedDate created_at,
-                	cp.CreatedDate updated_at,
-                	cp.ProvisionalDiagnosis 'condition',
-                	case
-                		when pmh.`Type` = 'IPD' then "admission-diagnosis"
-                		else "chief-complaint"
-                	end role,
-                	1 'rank',
-                	null code,
-                	'UNKNOWN' system,
-                	'provisional' status,
-                	null note,
-                	case
-                		when dm.Doctor_ID is not null then concat(dm.Title, " ", dm.Name)
-                		else concat(em.Title, " ", em.Name)
-                	end practitioner_name,
-                	case
-                		when dm.Doctor_ID is not null then dm.Doctor_ID
-                		else em.Employee_ID
-                	end practitioner_id
-                from
-                	cpoe_patientdiagnosis cp
-                inner join employee_master em on em.Employee_ID = cp.CreatedBy
-                inner join patient_medical_history pmh on pmh.Transaction_ID = cp.Transaction_ID
-                left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID
-                where cp.ProvisionalDiagnosis != ''  LIMIT ?,1000
-                                            """;
+                            select
+                    	cp.Transaction_ID visit_id,
+                    	cp.ID 'uuid',
+                    	cp.CreatedDate created_at,
+                    	cp.CreatedDate updated_at,
+                    	cp.ProvisionalDiagnosis 'condition',
+                    	case
+                    		when pmh.`Type` = 'IPD' then "admission-diagnosis"
+                    		else "chief-complaint"
+                    	end role,
+                    	1 'rank',
+                    	null code,
+                    	'UNKNOWN' system,
+                    	'provisional' status,
+                    	null note,
+                    	case
+                    		when dm.Doctor_ID is not null then concat(dm.Title, " ", dm.Name)
+                    		else concat(em.Title, " ", em.Name)
+                    	end practitioner_name,
+                    	case
+                    		when dm.Doctor_ID is not null then dm.Doctor_ID
+                    		else em.Employee_ID
+                    	end practitioner_id
+                    from
+                    	cpoe_patientdiagnosis cp
+                    inner join employee_master em on em.Employee_ID = cp.CreatedBy
+                    inner join patient_medical_history pmh on pmh.Transaction_ID = cp.Transaction_ID
+                    left join doctor_master dm on dm.Doctor_ID = pmh.Doctor_ID
+                    where cp.ProvisionalDiagnosis != ''  LIMIT ?,1000
+                                                """;
             SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery, startIndex);
             while (set.next()) {
                 Diagnosis diagnosis = new Diagnosis();
@@ -346,7 +341,6 @@ public class DiagnosisService {
         }
     }
 
-
     public void getNursingDiagnosis() {
         Map<String, PatientData> mps = patientRepository.findAll().stream()
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
@@ -354,10 +348,10 @@ public class DiagnosisService {
                 .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
 
         String sqlCount = """
-                                            select count(*)from
-                	nursingprogress np
-            
-                                                                """;
+                                           select count(*)from
+                nursingprogress np
+
+                                                               """;
         @SuppressWarnings("null")
         int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
         logger.info(rows + " number of rows");
@@ -411,10 +405,6 @@ public class DiagnosisService {
         }
     }
 
-   
-
-    
-
     public void populateWithVisits() {
         String sql = """
                         update diagnosis m
@@ -427,52 +417,48 @@ public class DiagnosisService {
 
     }
 
+    public void saveDiagnoses(List<Diagnosis> diagnoses) {
 
+        String sql = """
+                        INSERT INTO public.diagnoses
+                (created_at,  id, "uuid", "condition", "role",
+                "system", status, note, practitioner_name, patient_id,
+                practitioner_id, visit_id )
+                VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS') ,?, uuid(?), ?, ?, ?, ?, ?, ?, uuid(?), uuid(?), uuid(?))
+                        """;
+        serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
-    public void saveDiagnoses(List<Diagnosis> diagnoses){
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                Diagnosis diagnosis = diagnoses.get(i);
+                ps.setString(1, diagnosis.getCreatedAt().replaceAll("T|Z", " "));
+                ps.setLong(2, diagnosis.getId());
+                ps.setString(3, diagnosis.getUuid());
+                ps.setString(4, diagnosis.getCondition());
+                ps.setString(5, diagnosis.getRole());
+                ps.setString(6, diagnosis.getSystem());
+                ps.setString(7, diagnosis.getStatus());
+                ps.setString(8, diagnosis.getNote());
+                ps.setString(9, diagnosis.getPractitionerName());
+                ps.setString(10, diagnosis.getPatientId());
+                ps.setString(11, diagnosis.getPractitionerId());
+                ps.setString(12, diagnosis.getVisitId());
 
-String sql ="""
-        INSERT INTO public.diagnoses
-(created_at,  id, "uuid", "condition", "role",  
-"system", status, note, practitioner_name, patient_id, 
-practitioner_id, visit_id )
-VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS') ,?, uuid(?), ?, ?, ?, ?, ?, ?, uuid(?), uuid(?), uuid(?))
-        """;
-serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            }
 
-	@Override
-	public void setValues(PreparedStatement ps, int i) throws SQLException {
-		Diagnosis diagnosis = diagnoses.get(i);
-        ps.setString(1, diagnosis.getCreatedAt().replaceAll("T|Z", " "));
-        ps.setLong(2, diagnosis.getId());
-        ps.setString(3, diagnosis.getUuid());
-        ps.setString(4,diagnosis.getCondition());
-        ps.setString(5,diagnosis.getRole());
-        ps.setString(6, diagnosis.getSystem());
-        ps.setString(7, diagnosis.getStatus());
-        ps.setString(8,diagnosis.getNote());
-        ps.setString(9, diagnosis.getPractitionerName());
-        ps.setString(10, diagnosis.getPatientId());
-        ps.setString(11,diagnosis.getPractitionerId());
-        ps.setString(12, diagnosis.getVisitId());
+            @Override
+            public int getBatchSize() {
+                // TODO Auto-generated method stub
+                return diagnoses.size();
+            }
 
-	}
-
-	@Override
-	public int getBatchSize() {
-		// TODO Auto-generated method stub
-        return diagnoses.size();
-	}
-    
-});
+        });
 
     }
 
-
-
     public void migrationThread() {
         logger.info("kooooooooooooooading");
-        
+
         long dataSize = diagnosisRepository.count();
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
@@ -489,9 +475,8 @@ serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
     }
 
-
     public Set<Callable<Integer>> submitTasker(int batchSize, long rows) {
-       
+
         Set<Callable<Integer>> callables = new HashSet<>();
         int totalSize = (int) rows;
         int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
@@ -508,6 +493,92 @@ serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
                 try {
                     saveDiagnoses(diagnosisRepository.getfirst100k(startIndex));
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                    logger.info("error adding note");
+
+                }
+
+                return 1;
+            });
+        }
+
+        return callables;
+    }
+
+    public void getLegacyDiagnosis(int size,int batchSize) {
+        List<Diagnosis> diagnoses = new ArrayList<>();
+        String sql = """
+                SELECT * FROM encounter_diagnosis OFFSET ? LIMIT ?
+                """;
+        SqlRowSet set = legJdbcTemplate.queryForRowSet(sql, size, batchSize);
+        while (set.next()) {
+           // System.err.println(set.getString("role"));
+            Diagnosis diagnosis = new Diagnosis();
+            diagnosis.setCode(set.getString("code"));
+            diagnosis.setRole(set.getString("role"));
+            diagnosis.setCondition(set.getString("condition"));
+            diagnosis.setRank(set.getInt("rank"));
+            diagnosis.setEncounterId(set.getString("encounter_id"));
+            diagnosis.setStatus(set.getString("status"));
+            diagnosis.setNote(set.getString("note"));
+            diagnosis.setUuid(set.getString("id"));
+            diagnosis.setSystem("opd");
+            //diagnosis.setExternalId(set.getString("uuid"));
+            diagnosis.setCreatedAt(set.getString("created_at"));
+            diagnoses.add(diagnosis);
+
+        }
+        diagnosisRepository.saveAll(diagnoses);
+        System.err.println("added to database");
+
+    }
+
+
+
+
+    public void getDignosisLegacyThread() {
+              String sqlCount = "SELECT count(*) FROM encounter_diagnosis";
+        @SuppressWarnings("null")
+        int rows = legJdbcTemplate.queryForObject(sqlCount, Integer.class);
+        logger.info("Legacy row => "+rows);
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(insertLegacyData(2000, rows));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+        System.err.println("patiend count is " + rows);
+        
+    }
+
+
+
+    public Set<Callable<Integer>> insertLegacyData(int batchSize, long rows) {
+       
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = (int) rows;
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                int endIndex = Math.min(startIndex + batchSize, totalSize);
+                logger.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+                System.err.println("Batch no " + batchNumber);
+
+                try {
+                    getLegacyDiagnosis(startIndex,batchSize);
+
                 } catch (Exception e) {
                     // TODO: handle exception
                     e.printStackTrace();
