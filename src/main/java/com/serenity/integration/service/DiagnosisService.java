@@ -547,7 +547,7 @@ public class DiagnosisService {
 
                                                                """;
         @SuppressWarnings("null")
-        int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
+        int rows = legJdbcTemplate.queryForObject(sqlCount, Integer.class);
         logger.info(rows + " number of rows");
         int totalSize = rows;
         int batches = (totalSize + 1000 - 1) / 1000; // Ceiling division
