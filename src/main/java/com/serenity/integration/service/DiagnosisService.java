@@ -538,6 +538,51 @@ public class DiagnosisService {
 
 
 
+    public void getLegacyDiagnosis() {
+       
+
+        String sqlCount = """
+                                           select count(*) from
+                encounter_diagnosis
+
+                                                               """;
+        @SuppressWarnings("null")
+        int rows = hisJdbcTemplate.queryForObject(sqlCount, Integer.class);
+        logger.info(rows + " number of rows");
+        int totalSize = rows;
+        int batches = (totalSize + 1000 - 1) / 1000; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            List<Diagnosis> diagnoses = new ArrayList<>();
+
+            int startIndex = i * 1000;
+
+            String sqlQuery = """
+                                SELECT * FROM encounter_diagnosis OFFSET ? LIMIT 1000;
+                                                    """;
+            SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery, startIndex);
+            while (set.next()) {
+            Diagnosis diagnosis = new Diagnosis();
+            diagnosis.setCode(set.getString("code"));
+            diagnosis.setRole(set.getString("role"));
+            diagnosis.setCondition(set.getString("condition"));
+            diagnosis.setRank(set.getInt("rank"));
+            diagnosis.setEncounterId(set.getString("encounter_id"));
+            diagnosis.setStatus(set.getString("status"));
+            diagnosis.setNote(set.getString("note"));
+            diagnosis.setUuid(set.getString("id"));
+            diagnosis.setSystem("opd");
+            //diagnosis.setExternalId(set.getString("uuid"));
+            diagnosis.setCreatedAt(set.getString("created_at"));
+            diagnoses.add(diagnosis);
+
+            }
+            diagnosisRepository.saveAll(diagnoses);
+        }
+    }
+
+
+
     public void getDignosisLegacyThread() {
               String sqlCount = "SELECT count(*) FROM encounter_diagnosis";
         @SuppressWarnings("null")
@@ -576,15 +621,10 @@ public class DiagnosisService {
                         batchNumber + 1, batches, startIndex);
                 System.err.println("Batch no " + batchNumber);
 
-                try {
+               
                     getLegacyDiagnosis(startIndex,batchSize);
 
-                } catch (Exception e) {
-                    // TODO: handle exception
-                    e.printStackTrace();
-                    logger.info("error adding note");
-
-                }
+               
 
                 return 1;
             });
