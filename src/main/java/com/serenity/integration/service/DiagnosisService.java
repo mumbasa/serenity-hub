@@ -560,7 +560,7 @@ public class DiagnosisService {
             String sqlQuery = """
                                 SELECT * FROM encounter_diagnosis OFFSET ? LIMIT 1000;
                                                     """;
-            SqlRowSet set = hisJdbcTemplate.queryForRowSet(sqlQuery, startIndex);
+            SqlRowSet set = legJdbcTemplate.queryForRowSet(sqlQuery, startIndex);
             while (set.next()) {
             Diagnosis diagnosis = new Diagnosis();
             diagnosis.setCode(set.getString("code"));
