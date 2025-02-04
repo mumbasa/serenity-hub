@@ -492,7 +492,7 @@ public class DiagnosisService {
                 System.err.println("Batch no " + batchNumber);
 
                 try {
-                    saveDiagnoses(diagnosisRepository.getfirst100k(startIndex));
+                    saveDiagnoses(diagnosisRepository.findBySystemLimit(startIndex));
                 } catch (Exception e) {
                     // TODO: handle exception
                     e.printStackTrace();
@@ -507,14 +507,14 @@ public class DiagnosisService {
         return callables;
     }
 
-    public void getLegacyDiagnosis(int size,int batchSize) {
+    public void getLegacyDiagnosis(int size, int batchSize) {
         List<Diagnosis> diagnoses = new ArrayList<>();
         String sql = """
                 SELECT * FROM encounter_diagnosis OFFSET ? LIMIT ?
                 """;
         SqlRowSet set = legJdbcTemplate.queryForRowSet(sql, size, batchSize);
         while (set.next()) {
-           // System.err.println(set.getString("role"));
+            // System.err.println(set.getString("role"));
             Diagnosis diagnosis = new Diagnosis();
             diagnosis.setCode(set.getString("code"));
             diagnosis.setRole(set.getString("role"));
@@ -525,7 +525,7 @@ public class DiagnosisService {
             diagnosis.setNote(set.getString("note"));
             diagnosis.setUuid(set.getString("id"));
             diagnosis.setSystem("opd");
-            //diagnosis.setExternalId(set.getString("uuid"));
+            // diagnosis.setExternalId(set.getString("uuid"));
             diagnosis.setCreatedAt(set.getString("created_at"));
             diagnoses.add(diagnosis);
 
@@ -535,11 +535,7 @@ public class DiagnosisService {
 
     }
 
-
-
-
     public void getLegacyDiagnosis() {
-       
 
         String sqlCount = """
                                            select count(*) from
@@ -558,36 +554,36 @@ public class DiagnosisService {
             int startIndex = i * 1000;
 
             String sqlQuery = """
-                                SELECT * FROM encounter_diagnosis OFFSET ? LIMIT 1000;
-                                                    """;
+                    SELECT * FROM encounter_diagnosis OFFSET ? LIMIT 1000;
+                                        """;
             SqlRowSet set = legJdbcTemplate.queryForRowSet(sqlQuery, startIndex);
             while (set.next()) {
-            Diagnosis diagnosis = new Diagnosis();
-            diagnosis.setCode(set.getString("code"));
-            diagnosis.setRole(set.getString("role"));
-            diagnosis.setCondition(set.getString("condition"));
-            diagnosis.setRank(set.getInt("rank"));
-            diagnosis.setEncounterId(set.getString("encounter_id"));
-            diagnosis.setStatus(set.getString("status"));
-            diagnosis.setNote(set.getString("note"));
-            diagnosis.setUuid(set.getString("id"));
-            diagnosis.setSystem("opd");
-            //diagnosis.setExternalId(set.getString("uuid"));
-            diagnosis.setCreatedAt(set.getString("created_at"));
-            diagnoses.add(diagnosis);
+                Diagnosis diagnosis = new Diagnosis();
+                diagnosis.setCode(set.getString("code"));
+                diagnosis.setRole(set.getString("role"));
+                diagnosis.setCondition(set.getString("condition"));
+                diagnosis.setRank(set.getInt("rank"));
+                diagnosis.setEncounterId(set.getString("encounter_id"));
+                diagnosis.setStatus(set.getString("status"));
+                diagnosis.setNote(set.getString("note"));
+                diagnosis.setUuid(set.getString("id"));
+                diagnosis.setSystem("opd");
+                // diagnosis.setExternalId(set.getString("uuid"));
+                diagnosis.setCreatedAt(set.getString("created_at"));
+                diagnoses.add(diagnosis);
 
             }
             diagnosisRepository.saveAll(diagnoses);
         }
+
+        updateWithData();
     }
 
-
-
     public void getDignosisLegacyThread() {
-              String sqlCount = "SELECT count(*) FROM encounter_diagnosis";
+        String sqlCount = "SELECT count(*) FROM encounter_diagnosis";
         @SuppressWarnings("null")
         int rows = legJdbcTemplate.queryForObject(sqlCount, Integer.class);
-        logger.info("Legacy row => "+rows);
+        logger.info("Legacy row => " + rows);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
             List<Future<Integer>> futures = executorService.invokeAll(insertLegacyData(2000, rows));
@@ -600,13 +596,11 @@ public class DiagnosisService {
 
         executorService.shutdown();
         System.err.println("patiend count is " + rows);
-        
+
     }
 
-
-
     public Set<Callable<Integer>> insertLegacyData(int batchSize, long rows) {
-       
+
         Set<Callable<Integer>> callables = new HashSet<>();
         int totalSize = (int) rows;
         int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
@@ -621,10 +615,7 @@ public class DiagnosisService {
                         batchNumber + 1, batches, startIndex);
                 System.err.println("Batch no " + batchNumber);
 
-               
-                    getLegacyDiagnosis(startIndex,batchSize);
-
-               
+                getLegacyDiagnosis(startIndex, batchSize);
 
                 return 1;
             });
@@ -633,4 +624,14 @@ public class DiagnosisService {
         return callables;
     }
 
+    public void updateWithData() {
+        String sql = """
+                        update diagnosis
+                set visitid = e.visit_id,patientid =e.patient_id,practitionerid =e.assigned_to_id,practitionername=e.assigned_to_name
+                from encounter e
+                where system = 'opd' and
+                encounterid=e.uuid;
+                        """;
+        legJdbcTemplate.update(sql);
+    }
 }

@@ -113,8 +113,8 @@ public class IntegrationApplication {
 		// noteService.noteThread();
 		// diagnosisService.getNursingDiagnosis();
 		// diagnosisService.getProvisionalDiagnosis();;
-		diagnosisService.getLegacyDiagnosis();
-		//diagnosisService.migrationThread();
+		//diagnosisService.getLegacyDiagnosis();
+		diagnosisService.migrationThread();
 
 		logger.info("finishi.ng import");
 
