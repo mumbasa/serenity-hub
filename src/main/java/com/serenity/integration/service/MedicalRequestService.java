@@ -764,7 +764,7 @@ String sql ="""
   update medicalrequest k
 set practitionerid=e.assigned_to_id,practitionername=assigned_to_name ,visitid=e.visit_id 
 from  encounter e
-where e.external_id =k.encounterid  and k.externalsystem ='opd' and e.patientid is null
+where e.external_id =k.encounterid  and k.externalsystem ='opd' and k.patientid is null
         """;
 
 vectorJdbcTemplate.update(sql);
