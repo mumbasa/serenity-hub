@@ -801,10 +801,10 @@ movetoHub(startIndex, batchSize);
 
 public void cleanLegacyRequest(){
 String sql ="""
-        update medicalrequest k
-set patientid = v.patientid ,patientname =v.patientname ,mrnumber =v.patientmrnumber ,encounterid =e.uuid,visitid=v."uuid" 
-from visits v join encounter e on v.uuid = uuid(e.visit_id) 
-where v.externalid =k.visitid  and k.externalsystem ='opd'
+       update medicalrequest k
+set patientid = e.patient_id ,patientname =e.patient_full_name ,mrnumber =e.patient_mr_number ,visitid=e.visit_id 
+from  encounter e
+where e.external_id =k.encounterid  and k.externalsystem ='opd'
         """;
 
 legJdbcTemplate.update(sql);
