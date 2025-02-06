@@ -783,6 +783,7 @@ movetoHub(startIndex, batchSize);
             request.setAuthoredOn(set.getString("authored_on"));
             request.setCreatedAt(set.getString("created_at"));
             request.setUuid(set.getString("id"));
+            request.setEncounterId("encounter_id");
             request.setName(set.getString("name"));
             request.setExternalId(set.getString("id"));
             request.setExternalSystem("opd");
