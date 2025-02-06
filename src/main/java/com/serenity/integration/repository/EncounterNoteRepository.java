@@ -19,6 +19,8 @@ public interface EncounterNoteRepository extends  JpaRepository<EncounterNote, S
     @Query(value = "select * from encounternote where externalsystem='opd' and practitionerid is not null and visitid is not null and patientid  is not null order by id OFFSET ?1 LIMIT 100",nativeQuery = true)
     List<EncounterNote> findOffset(int offset);
 
+    List<EncounterNote> findByNoteType(String offset);
+
     int countByNoteType(String notetype);
     int countByExternalSystem(String notetype);
 

@@ -743,6 +743,78 @@ and encounter.visit_id is null
     }
 
 
+
+
+
+    public void getLegacyVisitNotesEncounters() {
+
+        Map<String, PatientData> patientDataMap = patientRepository.findAll().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
+        Map<String, String> doctorMap = doctorRepository.findHisPractitioners().stream()
+                .collect(Collectors.toMap(e -> e.getExternalId(), e -> e.getSerenityUUid()));
+
+        List<EncounterNote> encounters = new ArrayList<>();
+        String sql = "select  * from encounter_patient_notes e join patient p on p.id=e.patient_id;";
+        SqlRowSet set = legJdbcTemplate.queryForRowSet(sql);
+        while (set.next()) {
+            PatientData patient = patientDataMap.get(set.getString("mr_number"));
+           // Optional<Visits> visit = visitRepository.findByExternalId(set.getString("visit_id"));
+         
+            EncounterNote encounter = new EncounterNote();
+            encounter.setUuid(UUID.randomUUID().toString());
+            encounter.setEncounterId(set.getString("encounter_id"));
+            encounter.setExternalId(set.getString(5));
+            encounter.setCreatedAt(set.getString(2));
+            encounter.setEncounterType("ambulatory");
+            encounter.setPatientId(patient.getUuid());
+            encounter.setNoteType(set.getString("note_type"));
+            encounter.setPatientBirthDate(patient.getBirthDate());
+            encounter.setPatientFullName(patient.getFullName());
+            encounter.setPatientMobile(patient.getMobile());
+            encounter.setPatientMrNumber(patient.getMrNumber());
+            encounter.setExternalSystem("opd");
+            encounter.setNote(set.getString("display"));
+            encounter.setLocationId("23f59485-8518-4f4e-9146-d061dfe58175");
+           // encounter.setVisitId(set.getString("visit_id"));
+            encounter.setServiceProviderId("161380e9-22d3-4627-a97f-0f918ce3e4a9");
+            encounter.setServiceProviderName("Nyaho Medical Centre");
+            encounters.add(encounter);
+          
+            }
+            logger.info("adding encounter");
+        
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitNote(encounters, 1000));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        cleanvisitNOte();
+
+        executorService.shutdown();
+        System.err.println("patiend count is ");
+
+    }
+
+    public void cleanvisitNOte(){
+
+        String sql ="""
+            update encounternote 
+set practitionerid =e.assigned_to_id,visitid=e.visit_id,practitionername=e.assigned_to_name 
+from encounter  e
+where e.uuid =encounternote.encounterid 
+and encounternote.practitionerid is null
+and encounternote.externalsystem ='opd' and notetype='visit-note'
+            """;
+    vectorJdbcTemplate.update(sql);
+    }
+
     public void cleanLegacyData(){
         String sql ="""
                 update encounternote 
@@ -766,6 +838,9 @@ and encounternote.externalsystem ='opd'
     }
 
 
-
+public void moveVisitNote(){
+saveNotes(encounterNoteRepository.findByNoteType("visit-note"));
+    
+}
 
 }

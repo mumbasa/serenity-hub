@@ -54,6 +54,11 @@ public class MedicalRequestService {
     static Logger logger = LoggerFactory.getLogger("Medical Request Service");
 
     @Autowired
+    @Qualifier(value = "legJdbcTemplate")
+    JdbcTemplate legJdbcTemplate;
+
+
+    @Autowired
     VisitRepository visitRepository;
 
     @Autowired
@@ -672,4 +677,97 @@ where medicalrequest.externalid =v.external_id
                 
                 """;
     }
+
+
+    public void getLeacyRequest(){
+        String sqlCount ="SELECT count(*) FROM medication_request m join patient p on m.patient_id=p.id";
+        @SuppressWarnings("null")
+        int rows = legJdbcTemplate.queryForObject(sqlCount,Integer.class);
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        try {
+            List<Future<Integer>> futures = executorService.invokeAll(submitLegacyNotes(10000, rows));
+            for (Future<Integer> future : futures) {
+                System.out.println("future.get = " + future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+        logger.info("Starting importing Medical Requests");
+
+        cleanLegacyRquest();
+
+
+
+
+    }
+
+    public Set<Callable<Integer>> submitLegacyNotes(int batchSize, long rows) {
+
+        Set<Callable<Integer>> callables = new HashSet<>();
+        int totalSize = (int) rows;
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            final int batchNumber = i; // For use in lambda
+
+            callables.add(() -> {
+                int startIndex = batchNumber * batchSize;
+                logger.debug("Processing batch {}/{}, indices [{}]",
+                        batchNumber + 1, batches, startIndex);
+             
+                try {
+                    movetoHub(startIndex, batchSize);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    e.printStackTrace();
+                    logger.info("error adding note");
+
+                }
+
+                return 1;
+            });
+        }
+
+        return callables;
+    }
+
+    public int movetoHub(int offset,int limit){
+        List<MedicalRequest> medicalRequests = new ArrayList<>();
+        String sql ="SELECT * FROM medication_request m join patient p on m.patient_id=p.id order by patient_id OFFSET ? LIMIT ?";
+        SqlRowSet set = legJdbcTemplate.queryForRowSet(sql,offset,limit);
+        while (set.next()) {
+            MedicalRequest request = new MedicalRequest();
+            request.setCode(set.getString("code"));
+            request.setCategory(set.getString("category"));
+            request.setAuthoredOn(set.getString("authored_on"));
+            request.setCreatedAt(set.getString("created_at"));
+            request.setUuid(set.getString("id"));
+            request.setName(set.getString("name"));
+            request.setExternalId(set.getString("id"));
+            request.setExternalSystem("opd");
+            request.setVisitId(set.getString("visit_id"));
+            request.setPriority(set.getString("priority"));
+            request.setStatus(set.getString("status"));
+            medicalRequests.add(request);
+            
+        }
+        medicalRequestRepository.saveAll(medicalRequests);
+        return 1;
+
+    }
+
+
+public void cleanLegacyRquest(){
+String sql ="""
+        update medicalrequest k
+set patientid = v.patientid ,patientname =v.patientname ,mrnumber =v.patientmrnumber ,encounterid =e.uuid,visitid=v."uuid" 
+from visits v join encounter e on v.uuid = uuid(e.visit_id) 
+where v.externalid =k.visitid  and k.externalsystem ='opd'
+        """;
+
+legJdbcTemplate.update(sql);
+}
 }

@@ -107,14 +107,14 @@ public class IntegrationApplication {
 		// encounterService.encounterOPDthread();
 		// noteService.noteThread();getLegacyEncounters
 		// medicalRequestService.medicalRequestOPD2();
-		// medicalRequestService.medicalRequestIPD();
+		medicalRequestService.getLeacyRequest();
 
 		// encounterService.encounterLegacythread();
-		// noteService.noteThread();
+	// noteService.moveVisitNote();
 		// diagnosisService.getNursingDiagnosis();
 		// diagnosisService.getProvisionalDiagnosis();;
 		//diagnosisService.getLegacyDiagnosis();
-		diagnosisService.migrationThread();
+//		diagnosisService.migrationThread();
 
 		logger.info("finishi.ng import");
 
