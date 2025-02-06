@@ -685,7 +685,7 @@ where medicalrequest.externalid =v.external_id
         int rows = legJdbcTemplate.queryForObject(sqlCount,Integer.class);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitLegacyNotes(10000, rows));
+            List<Future<Integer>> futures = executorService.invokeAll(submitLegacyNotes(1000, rows));
             for (Future<Integer> future : futures) {
                 System.out.println("future.get = " + future.get());
             }
