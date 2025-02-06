@@ -107,7 +107,7 @@ public class IntegrationApplication {
 		// encounterService.encounterOPDthread();
 		// noteService.noteThread();getLegacyEncounters
 		// medicalRequestService.medicalRequestOPD2();
-		medicalRequestService.getLeacyRequest();
+		medicalRequestService.getLegacyRequest();
 
 		// encounterService.encounterLegacythread();
 	// noteService.moveVisitNote();

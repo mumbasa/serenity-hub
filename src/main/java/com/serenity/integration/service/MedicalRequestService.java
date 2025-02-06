@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -679,58 +680,77 @@ where medicalrequest.externalid =v.external_id
     }
 
 
-    public void getLeacyRequest(){
-        String sqlCount ="SELECT count(*) FROM medication_request m join patient p on m.patient_id=p.id";
-        @SuppressWarnings("null")
-        int rows = legJdbcTemplate.queryForObject(sqlCount,Integer.class);
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        try {
-            List<Future<Integer>> futures = executorService.invokeAll(submitLegacyNotes(1000, rows));
-            for (Future<Integer> future : futures) {
+    public void getLegacyRequest() {
+    logger.info("Starting importing Medical Requests");
+
+    // Step 1: Get the total number of rows
+    String sqlCount = "SELECT count(*) FROM medication_request m JOIN patient p ON m.patient_id = p.id";
+    int rows = legJdbcTemplate.queryForObject(sqlCount, Integer.class);
+
+    // Step 2: Create a thread pool
+    ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+    try {
+        // Step 3: Submit tasks to the thread pool
+        List<Future<Integer>> futures = executorService.invokeAll(submitLegacyNotes(1000, rows));
+
+        // Step 4: Process results
+        for (Future<Integer> future : futures) {
+            try {
                 System.out.println("future.get = " + future.get());
+            } catch (ExecutionException e) {
+                logger.error("Error processing batch: " + e.getMessage(), e);
+                // Handle the error (e.g., stop processing or log and continue)
             }
-        } catch (InterruptedException | ExecutionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
-
+    } catch (InterruptedException e) {
+        logger.error("Thread pool was interrupted: " + e.getMessage(), e);
+        // Restore the interrupted status
+        Thread.currentThread().interrupt();
+    } finally {
+        // Step 5: Shutdown the thread pool
         executorService.shutdown();
-        logger.info("Starting importing Medical Requests");
-
-        cleanLegacyRquest();
-
-
+        try {
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+                cleanLegacyRequest();
+            }
+        } catch (InterruptedException e) {
+            logger.error("Thread pool shutdown interrupted: " + e.getMessage(), e);
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
 
 
     }
+            // Step 6: Clean up resources
+}
 
     public Set<Callable<Integer>> submitLegacyNotes(int batchSize, long rows) {
-
         Set<Callable<Integer>> callables = new HashSet<>();
-        int totalSize = (int) rows;
-        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
-
+        long totalSize = rows; // Use long to avoid potential overflow
+        long batches = ((totalSize + batchSize - 1) / batchSize); // Ceiling division
+    
         for (int i = 0; i < batches; i++) {
             final int batchNumber = i; // For use in lambda
-
+    
             callables.add(() -> {
                 int startIndex = batchNumber * batchSize;
                 logger.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
-             
+    
                 try {
                     movetoHub(startIndex, batchSize);
+                    // Return the number of rows processed or a status code
+                    return batchSize;
                 } catch (Exception e) {
-                    // TODO: handle exception
-                    e.printStackTrace();
-                    logger.info("error adding note");
-
+                    logger.error("Error processing batch {}/{}: {}", batchNumber + 1, batches, e.getMessage(), e);
+                    // Return an error code or rethrow the exception
+                    throw new RuntimeException("Failed to process batch " + (batchNumber + 1), e);
                 }
-
-                return 1;
             });
         }
-
+    
         return callables;
     }
 
@@ -760,7 +780,7 @@ where medicalrequest.externalid =v.external_id
     }
 
 
-public void cleanLegacyRquest(){
+public void cleanLegacyRequest(){
 String sql ="""
         update medicalrequest k
 set patientid = v.patientid ,patientname =v.patientname ,mrnumber =v.patientmrnumber ,encounterid =e.uuid,visitid=v."uuid" 
