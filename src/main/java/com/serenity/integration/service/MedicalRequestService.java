@@ -592,7 +592,7 @@ public class MedicalRequestService {
                 int endIndex = Math.min(startIndex + batchSize, totalSize);
                 logger.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
-                List<MedicalRequest> notes = medicalRequestRepository.findOffset(startIndex);
+                List<MedicalRequest> notes = medicalRequestRepository.findByExternalSystem("opd",startIndex);
                 System.err.println(notes.get(0).toString());
 
                 try {
@@ -633,9 +633,9 @@ public class MedicalRequestService {
                 MedicalRequest request = requests.get(i);
                 ps.setString(1, request.getCreatedAt());
                 ps.setLong(2, request.getId());
-                ps.setString(3, request.getServiceProviderId());
+                ps.setString(3, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
                 ps.setString(4, request.getUuid());
-                ps.setString(5, request.getName());
+                ps.setString(5, request.getName()==null?"":request.getName());
                 ps.setString(6, request.getCategory());
                 ps.setString(7, request.getCode());
                 ps.setString(8, request.getNotes());
@@ -764,7 +764,7 @@ String sql ="""
   update medicalrequest k
 set practitionerid=e.assigned_to_id,practitionername=assigned_to_name ,visitid=e.visit_id 
 from  encounter e
-where e.external_id =k.encounterid  and k.externalsystem ='opd' and k.patientid is null
+where e.external_id =k.encounterid  and k.externalsystem ='opd'
         """;
 
 vectorJdbcTemplate.update(sql);
