@@ -726,6 +726,24 @@ where medicalrequest.externalid =v.external_id
             // Step 6: Clean up resources
 }
 
+
+public void getLegacyRequest2() {
+    logger.info("Starting importing Medical Requests");
+
+    // Step 1: Get the total number of rows
+    String sqlCount = "SELECT count(*) FROM medication_request m JOIN patient p ON m.patient_id = p.id";
+    int rows = legJdbcTemplate.queryForObject(sqlCount, Integer.class);
+    int batchSize = 1000;
+    long batches = ((rows + batchSize - 1) / batchSize); // Ceiling division
+    
+    for (int i = 0; i < batches; i++) {
+        int startIndex = i * batchSize;
+
+movetoHub(startIndex, batchSize);
+    }
+    cleanLegacyRequest();
+            // Step 6: Clean up resources
+}
     public Set<Callable<Integer>> submitLegacyNotes(int batchSize, long rows) {
         Set<Callable<Integer>> callables = new HashSet<>();
         long totalSize = rows; // Use long to avoid potential overflow
