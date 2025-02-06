@@ -680,56 +680,11 @@ where medicalrequest.externalid =v.external_id
     }
 
 
-    public void getLegacyRequest() {
-    logger.info("Starting importing Medical Requests");
-
-    // Step 1: Get the total number of rows
-    String sqlCount = "SELECT count(*) FROM medication_request m JOIN patient p ON m.patient_id = p.id";
-    int rows = legJdbcTemplate.queryForObject(sqlCount, Integer.class);
-
-    // Step 2: Create a thread pool
-    ExecutorService executorService = Executors.newFixedThreadPool(10);
-
-    try {
-        // Step 3: Submit tasks to the thread pool
-        List<Future<Integer>> futures = executorService.invokeAll(submitLegacyNotes(1000, rows));
-
-        // Step 4: Process results
-        for (Future<Integer> future : futures) {
-            try {
-                System.out.println("future.get = " + future.get());
-            } catch (ExecutionException e) {
-                logger.error("Error processing batch: " + e.getMessage(), e);
-                // Handle the error (e.g., stop processing or log and continue)
-            }
-        }
-    } catch (InterruptedException e) {
-        logger.error("Thread pool was interrupted: " + e.getMessage(), e);
-        // Restore the interrupted status
-        Thread.currentThread().interrupt();
-    } finally {
-        // Step 5: Shutdown the thread pool
-        executorService.shutdown();
-        try {
-            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
-                executorService.shutdownNow();
-                cleanLegacyRequest();
-            }
-        } catch (InterruptedException e) {
-            logger.error("Thread pool shutdown interrupted: " + e.getMessage(), e);
-            executorService.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-
-
-    }
-            // Step 6: Clean up resources
-}
-
-
+  
 public void getLegacyRequest2() {
     logger.info("Starting importing Medical Requests");
-
+    Map<String, PatientData> mps = patientRepository.findAll().stream()
+    .collect(Collectors.toMap(e -> e.getExternalId(), e -> e));
     // Step 1: Get the total number of rows
     String sqlCount = "SELECT count(*) FROM medication_request m JOIN patient p ON m.patient_id = p.id";
     int rows = legJdbcTemplate.queryForObject(sqlCount, Integer.class);
@@ -739,12 +694,12 @@ public void getLegacyRequest2() {
     for (int i = 0; i < batches; i++) {
         int startIndex = i * batchSize;
 
-movetoHub(startIndex, batchSize);
+movetoHub(startIndex, batchSize,mps);
     }
     cleanLegacyRequest();
             // Step 6: Clean up resources
 }
-    public Set<Callable<Integer>> submitLegacyNotes(int batchSize, long rows) {
+    public Set<Callable<Integer>> submitLegacyNotes(int batchSize, long rows,Map<String, PatientData> mps) {
         Set<Callable<Integer>> callables = new HashSet<>();
         long totalSize = rows; // Use long to avoid potential overflow
         long batches = ((totalSize + batchSize - 1) / batchSize); // Ceiling division
@@ -758,7 +713,7 @@ movetoHub(startIndex, batchSize);
                         batchNumber + 1, batches, startIndex);
     
                 try {
-                    movetoHub(startIndex, batchSize);
+                    movetoHub(startIndex, batchSize,mps);
                     // Return the number of rows processed or a status code
                     return batchSize;
                 } catch (Exception e) {
@@ -772,11 +727,12 @@ movetoHub(startIndex, batchSize);
         return callables;
     }
 
-    public int movetoHub(int offset,int limit){
+    public int movetoHub(int offset,int limit,Map<String, PatientData> mps){
         List<MedicalRequest> medicalRequests = new ArrayList<>();
         String sql ="SELECT * FROM medication_request m join patient p on m.patient_id=p.id order by patient_id OFFSET ? LIMIT ?";
         SqlRowSet set = legJdbcTemplate.queryForRowSet(sql,offset,limit);
         while (set.next()) {
+            PatientData patient = mps.get(set.getString("mr_number"));
             MedicalRequest request = new MedicalRequest();
             request.setCode(set.getString("code"));
             request.setCategory(set.getString("category"));
@@ -787,6 +743,10 @@ movetoHub(startIndex, batchSize);
             request.setName(set.getString("name"));
             request.setExternalId(set.getString("id"));
             request.setExternalSystem("opd");
+            request.setPatientId(patient.getUuid());
+            request.setMrNumber(patient.getMrNumber());
+            
+            request.setPatientName(patient.getFullName());
             request.setVisitId(set.getString("visit_id"));
             request.setPriority(set.getString("priority"));
             request.setStatus(set.getString("status"));
@@ -801,12 +761,12 @@ movetoHub(startIndex, batchSize);
 
 public void cleanLegacyRequest(){
 String sql ="""
-       update medicalrequest k
-set patientid = e.patient_id ,patientname =e.patient_full_name ,mrnumber =e.patient_mr_number ,visitid=e.visit_id 
+  update medicalrequest k
+set practitionerid=e.assigned_to_id,practitionername=assigned_to_name ,visitid=e.visit_id 
 from  encounter e
-where e.external_id =k.encounterid  and k.externalsystem ='opd'
+where e.external_id =k.encounterid  and k.externalsystem ='opd' and e.patientid is null
         """;
 
-legJdbcTemplate.update(sql);
+vectorJdbcTemplate.update(sql);
 }
 }
