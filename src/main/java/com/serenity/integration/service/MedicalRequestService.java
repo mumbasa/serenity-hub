@@ -593,7 +593,6 @@ public class MedicalRequestService {
                 logger.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
                 List<MedicalRequest> notes = medicalRequestRepository.findByExternalSystem("opd",startIndex);
-                System.err.println(notes.get(0).toString());
 
                 try {
                     saveMedicalRequest(notes);
@@ -662,6 +661,66 @@ public class MedicalRequestService {
         });
 
     }
+
+
+    public void saveMedicalRequestNoThread() {
+        int totalSize = medicalRequestRepository.findByCountSystem("opd");
+        int batchSize = 1000;
+        int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
+
+        for (int i = 0; i < batches; i++) {
+            int startIndex = i * batchSize;
+            List<MedicalRequest> requests = medicalRequestRepository.findByExternalSystem("opd", startIndex);
+
+        String sql = """
+                        INSERT INTO public.medication_requests
+                (created_at, pk, service_provider_id, "uuid", "name",
+                category, code, notes, priority, status,
+                encounter_id,patient_id, patient_mr_number, patient_full_name,
+                practitioner_name, practitioner_id,  visit_id)
+                 VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'), ?, uuid(?), uuid(?),  ?,
+                 ?, ?, ?,?, ?,
+                 uuid(?), uuid(?), ?, ?, ?,
+                  uuid(?), uuid(?))
+                        """;
+
+        serenityJdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+
+                MedicalRequest request = requests.get(i);
+                ps.setString(1, request.getCreatedAt());
+                ps.setLong(2, request.getId());
+                ps.setString(3, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
+                ps.setString(4, request.getUuid());
+                ps.setString(5, request.getName()==null?"":request.getName());
+                ps.setString(6, request.getCategory());
+                ps.setString(7, request.getCode());
+                ps.setString(8, request.getNotes());
+                ps.setString(9, request.getPriority());
+                ps.setString(10, request.getStatus());
+
+                ps.setString(11, request.getEncounterId());
+                ps.setString(12, request.getPatientId());
+                ps.setString(13, request.getMrNumber());
+                ps.setString(14, request.getPatientName());
+                ps.setString(15, request.getPractitionerName());
+
+                ps.setString(16, request.getPractitionerId());
+                ps.setString(17, request.getVisitId());
+
+            }
+
+            @Override
+            public int getBatchSize() {
+                // TODO Auto-generated method stub
+                return requests.size();
+            }
+
+        });
+
+    }}
 
 
     public void cleanDAta(){
