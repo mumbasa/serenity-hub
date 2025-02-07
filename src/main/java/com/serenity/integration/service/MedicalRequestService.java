@@ -592,7 +592,7 @@ public class MedicalRequestService {
                 int endIndex = Math.min(startIndex + batchSize, totalSize);
                 logger.debug("Processing batch {}/{}, indices [{}]",
                         batchNumber + 1, batches, startIndex);
-                List<MedicalRequest> notes = medicalRequestRepository.findByExternalSystem("opd",startIndex);
+                List<MedicalRequest> notes = medicalRequestRepository.findByExternalSystem(startIndex);
 
                 try {
                     saveMedicalRequest(notes);
@@ -673,7 +673,7 @@ public class MedicalRequestService {
         for (int i = 0; i < batches; i++) {
             logger.info("Starting medicalResult dump");
             int startIndex = i * batchSize;
-            List<MedicalRequest> requests = medicalRequestRepository.findByExternalSystem("opd", startIndex);
+            List<MedicalRequest> requests = medicalRequestRepository.findByExternalSystem(startIndex);
 
         String sql = """
                         INSERT INTO public.medication_requests
