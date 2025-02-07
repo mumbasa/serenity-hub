@@ -696,7 +696,7 @@ public class MedicalRequestService {
                 ps.setString(1, request.getCreatedAt());
                // ps.setLong(2, request.getId());
                 ps.setString(2, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
-                ps.setString(3, request.getUuid());
+                ps.setString(3, UUID.randomUUID().toString());
                 ps.setString(4, request.getName()==null?"":request.getName());
                 ps.setString(5, request.getCategory());
                 ps.setString(6, request.getCode());
