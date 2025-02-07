@@ -681,7 +681,7 @@ public class MedicalRequestService {
                 category, code, notes, priority, status,
                 encounter_id,patient_id, patient_mr_number, patient_full_name,
                 practitioner_name, practitioner_id,  visit_id)
-                 VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'), ?, uuid(?), uuid(?),  ?,
+                 VALUES(to_timestamp(?, 'YYYY-MM-DD HH24:MI:SS'), nextval('medication_requests_pk_seq'::regclass), uuid(?), uuid(?),  ?,
                  ?, ?, ?,?, ?,
                  uuid(?), uuid(?), ?, ?, ?,
                   uuid(?), uuid(?))
@@ -694,24 +694,24 @@ public class MedicalRequestService {
 
                 MedicalRequest request = requests.get(i);
                 ps.setString(1, request.getCreatedAt());
-                ps.setLong(2, request.getId());
-                ps.setString(3, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
-                ps.setString(4, request.getUuid());
-                ps.setString(5, request.getName()==null?"":request.getName());
-                ps.setString(6, request.getCategory());
-                ps.setString(7, request.getCode());
-                ps.setString(8, request.getNotes());
-                ps.setString(9, request.getPriority());
-                ps.setString(10, request.getStatus());
+               // ps.setLong(2, request.getId());
+                ps.setString(2, "161380e9-22d3-4627-a97f-0f918ce3e4a9");
+                ps.setString(3, request.getUuid());
+                ps.setString(4, request.getName()==null?"":request.getName());
+                ps.setString(5, request.getCategory());
+                ps.setString(6, request.getCode());
+                ps.setString(7, request.getNotes());
+                ps.setString(8, request.getPriority());
+                ps.setString(9, request.getStatus());
 
-                ps.setString(11, request.getEncounterId());
-                ps.setString(12, request.getPatientId());
-                ps.setString(13, request.getMrNumber());
-                ps.setString(14, request.getPatientName());
-                ps.setString(15, request.getPractitionerName());
+                ps.setString(10, request.getEncounterId());
+                ps.setString(11, request.getPatientId());
+                ps.setString(12, request.getMrNumber());
+                ps.setString(13, request.getPatientName());
+                ps.setString(14, request.getPractitionerName());
 
-                ps.setString(16, request.getPractitionerId());
-                ps.setString(17, request.getVisitId());
+                ps.setString(15, request.getPractitionerId());
+                ps.setString(16, request.getVisitId());
 
             }
 
