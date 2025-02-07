@@ -113,7 +113,9 @@ public class IntegrationApplication {
 	// noteService.moveVisitNote();
 		// diagnosisService.getNursingDiagnosis();
 		// diagnosisService.getProvisionalDiagnosis();;
+		
 		//diagnosisService.getLegacyDiagnosis();
+
 //		diagnosisService.migrationThread();
 
 		logger.info("finishi.ng import");

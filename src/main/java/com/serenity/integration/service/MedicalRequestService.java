@@ -664,11 +664,13 @@ public class MedicalRequestService {
 
 
     public void saveMedicalRequestNoThread() {
-        int totalSize = medicalRequestRepository.findByCountSystem("opd");
+        String sqls ="select count(*) from medicalrequest where externalsystem='opd'  and practitionerid is not null and visitid is not null and patientid  is not null and encounterid is not  null";
+        int totalSize = vectorJdbcTemplate.queryForObject(sqls, Integer.class);
         int batchSize = 1000;
         int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
 
         for (int i = 0; i < batches; i++) {
+            logger.info("Starting medicalResult dump");
             int startIndex = i * batchSize;
             List<MedicalRequest> requests = medicalRequestRepository.findByExternalSystem("opd", startIndex);
 
@@ -720,7 +722,9 @@ public class MedicalRequestService {
 
         });
 
-    }}
+    }
+
+}
 
 
     public void cleanDAta(){
