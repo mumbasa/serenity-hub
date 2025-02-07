@@ -666,6 +666,7 @@ public class MedicalRequestService {
     public void saveMedicalRequestNoThread() {
         String sqls ="select count(*) from medicalrequest where externalsystem='opd'  and practitionerid is not null and visitid is not null and patientid  is not null and encounterid is not  null";
         int totalSize = vectorJdbcTemplate.queryForObject(sqls, Integer.class);
+        logger.info("Total dump size "+totalSize);
         int batchSize = 1000;
         int batches = (totalSize + batchSize - 1) / batchSize; // Ceiling division
 
